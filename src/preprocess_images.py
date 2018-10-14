@@ -36,7 +36,6 @@ def tile_and_label(hsm):
     # Check if output directory exists, if not create
     if not os.path.exists("tiles/"):
         os.mkdir("tiles/")
-
     processed_images = 0
     skipped_images = 0
 
@@ -47,7 +46,7 @@ def tile_and_label(hsm):
 
 
 
-        if hs.classIndex == 4 or hs.classIndex == 3:
+        if hs.classIndex == 4:
             # if anomaly or NA skip for now
             skipped_images+=1
             continue
@@ -97,8 +96,8 @@ def tile_and_label(hsm):
                     cv2.imwrite(img_name + ".jpg", cropped_img)
                     # create label
                     with open(img_name + ".txt", 'a') as file:
-                        file.write(str(hs.classIndex) + " " + str(tile_center_x) + " " +
-                                   str(tile_center_y) + " " +
+                        file.write(str(hs.classIndex) + " " + str((tile_center_x + 0.0) / tilew) + " " +
+                                   str((tile_center_y + 0.0) / tileh) + " " +
                                    str(40.0 / tilew) + " " +
                                    str(40.0 / tileh))
                     # add image to training list
