@@ -44,7 +44,7 @@ def tile_and_label(hsm):
     for id in hsm.hotspots:
         hs = hsm.hotspots[id]
 
-
+        foundEmptyHS = False
 
         if hs.classIndex == 4:
             # if anomaly or NA skip for now
@@ -79,7 +79,7 @@ def tile_and_label(hsm):
                     bot += remainder_h
                 left = tilew * x
                 right = tilew * x
-                if  x != cw:
+                if x != cw:
                     right += tilew
                 else:
                     right += remainder_w  # if last col use remainder width
@@ -87,7 +87,6 @@ def tile_and_label(hsm):
                 cropped_img = hs.rgb.image[top: bot, left: right]
 
                 img_name = "tiles/tile_" + id
-                found = False
                 # recalculate bounding box in tile
                 if left < center_x < right and bot > center_y > top:
                     # save image
@@ -104,14 +103,13 @@ def tile_and_label(hsm):
                     with open('training_list.txt', 'a') as file:
                         file.write(img_name + ".jpg" + "\n")
                 else:
-                    # save one in 30 empty images for training
-                    if 14 == random.randint(1, 400) and not found:
+                    if not foundEmptyHS:
+                        foundEmptyHS = True
                         cv2.imwrite(img_name + "-empty.jpg", cropped_img)
                         with open(img_name + "-empty.txt", 'a') as file:
                             file.write("")
                         with open('training_list.txt', 'a') as file:
                             file.write(img_name + "-empty.jpg" + "\n")
-                        found = True
 
                 #TODO pick random empty images to train on as well maybe one tile per image
 
