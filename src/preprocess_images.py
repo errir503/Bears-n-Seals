@@ -6,12 +6,8 @@ import csv
 import random
 import NOAA
 
-# configs
 config = {
-    "tile_size": {
-        "width": 512,
-        "height": 512
-    }
+    "output_dir": "results/"
 }
 
 def main():
@@ -29,94 +25,67 @@ def main():
     hsm = create_hotspot_map(rows)
     del rows
 
-    tile_and_label(hsm)
+    crop_hotspots(hsm)
 
 
-def tile_and_label(hsm):
+def crop_hotspots(hsm):
     # Check if output directory exists, if not create
-    if not os.path.exists("tiles/"):
-        os.mkdir("tiles/")
-    processed_images = 0
-    skipped_images = 0
-
-    tilew = config["tile_size"]["width"]
-    tileh = config["tile_size"]["height"]
+    if not os.path.exists(config["output_dir"]):
+        os.mkdir(config["output_dir"])
+    i = 0
     for id in hsm.hotspots:
         hs = hsm.hotspots[id]
+        print("Cropping hotspot:" + str(id) + " -" + str(round((i+0.0)/len(hsm.hotspots), 2))) + "% complete"
+        i += 1
 
         foundEmptyHS = False
 
         if hs.classIndex == 4:
             # if anomaly or NA skip for now
-            skipped_images+=1
             continue
 
         if (not hs.rgb.load_image()):
-            skipped_images+=1
             print("Failed to load images for hotspot" + hs.id)
             continue
-
-        imgh = hs.rgb.image.shape[0]  # image height
-        imgw = hs.rgb.image.shape[1]  # image width
-        remainder_w = imgw % tilew   # image remainder for width
-        remainder_h = imgh % tileh  # image remainder for height
-        cw = imgw/tilew  # number of tiles width
-        ch = imgh/tileh  # number of tiles height
+        imgh = hs.rgb.image.shape[0]
+        imgw = hs.rgb.image.shape[1]
 
         # center points of bounding box
-        center_y = (hs.rgb_bb_b - hs.rgb_bb_t) / 2 + hs.rgb_bb_t
-        center_x = (hs.rgb_bb_r - hs.rgb_bb_l) / 2 + hs.rgb_bb_l
+        center_y = (hs.rgb_bb_b - hs.rgb_bb_t) / 2
+        center_x = (hs.rgb_bb_r - hs.rgb_bb_l) / 2
 
-        # Tile image
-        processed_images += 1
-        for y in range(0,ch+1):
-            for x in range(0, cw+1):
-                top = tileh * y
-                bot = tileh * y
-                if y != ch:  # if last row then use the remainder height
-                    bot += tileh
-                else:
-                    bot += remainder_h
-                left = tilew * x
-                right = tilew * x
-                if x != cw:
-                    right += tilew
-                else:
-                    right += remainder_w  # if last col use remainder width
+        topCrop = max(hs.rgb_bb_t, 0)
+        bottomCrop = max(hs.rgb_bb_b, 0)
+        bottomCrop = min(bottomCrop, imgh)
+        leftCrop = max(hs.rgb_bb_l, 0)
+        rightCrop = max(hs.rgb_bb_r, 0)
+        rightCrop = min(rightCrop, imgw)
 
-                cropped_img = hs.rgb.image[top: bot, left: right]
+        if topCrop == 0:
+            center_y += hs.rgb_bb_t
+        if leftCrop == 0:
+            center_x += hs.rgb_bb_l
 
-                img_name = "tiles/tile_" + id
-                # recalculate bounding box in tile
-                if left < center_x < right and bot > center_y > top:
-                    # save image
-                    tile_center_x = center_x - x * tilew
-                    tile_center_y = center_y - y * tileh
-                    cv2.imwrite(img_name + ".jpg", cropped_img)
-                    # create label
-                    with open(img_name + ".txt", 'a') as file:
-                        file.write(str(hs.classIndex) + " " + str((tile_center_x + 0.0) / tilew) + " " +
-                                   str((tile_center_y + 0.0) / tileh) + " " +
-                                   str(40.0 / tilew) + " " +
-                                   str(40.0 / tileh))
-                    # add image to training list
-                    with open('training_list.txt', 'a') as file:
-                        file.write(img_name + ".jpg" + "\n")
-                else:
-                    if not foundEmptyHS:
-                        foundEmptyHS = True
-                        cv2.imwrite(img_name + "-empty.jpg", cropped_img)
-                        with open(img_name + "-empty.txt", 'a') as file:
-                            file.write("")
-                        with open('training_list.txt', 'a') as file:
-                            file.write(img_name + "-empty.jpg" + "\n")
+        crop_img = hs.rgb.image[topCrop:bottomCrop, leftCrop: rightCrop]
 
-                #TODO pick random empty images to train on as well maybe one tile per image
+        croph = crop_img.shape[0]
+        cropw = crop_img.shape[1]
+
+        # cv2.circle(crop_img, (center_x, center_y), 5, (0, 255, 0), 2)
+
+        img_name = config["output_dir"]+"crop_" + id
+        cv2.imwrite(img_name + ".jpg", crop_img)
+
+        with open(img_name + ".txt", 'a') as file:
+            file.write(str(hs.classIndex) + " " + str((center_x + 0.0) / cropw) + " " +
+                       str((center_y + 0.0) / croph) + " " +
+                       str(40.0 / cropw) + " " +
+                       str(40.0 / croph) + "\n")
+
+        with open('training_list.txt', 'a') as file:
+            file.write(os.getcwd() + "/" + img_name + ".jpg" + "\n")
 
         hs.rgb.free()
-
-
-        i = 0
 
 
 def create_hotspot_map(rows):
@@ -139,9 +108,9 @@ def create_hotspot_map(rows):
 
     del rows[0]  # remove col headers
     for row in rows:
-        rgb = NOAA.Image(res_path+row[IMG_RGB_COL_IDX], "rgb")
-        therm8 = NOAA.Image(res_path+row[IMG_THERMAL8_COL_IDX], "therm8")
-        therm16 = NOAA.Image(res_path+row[IMG_THERMAL16_COL_IDX], "therm16")
+        rgb = NOAA.Image(res_path + row[IMG_RGB_COL_IDX], "rgb")
+        therm8 = NOAA.Image(res_path + row[IMG_THERMAL8_COL_IDX], "therm8")
+        therm16 = NOAA.Image(res_path + row[IMG_THERMAL16_COL_IDX], "therm16")
 
         hotspot = NOAA.HotSpot(row[HOTSPOT_ID_COL_IDX], int(row[XPOS_IDX]), int(row[YPOS_IDX]), int(row[LEFT_IDX]),
                                int(row[TOP_IDX]),
