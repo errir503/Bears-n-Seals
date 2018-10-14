@@ -7,7 +7,8 @@ import random
 import NOAA
 
 config = {
-    "output_dir": "results/"
+    "output_dir": "results/",
+    "offset": 80
 }
 
 def main():
@@ -72,6 +73,7 @@ def crop_hotspots(hsm):
         cropw = crop_img.shape[1]
 
         # cv2.circle(crop_img, (center_x, center_y), 5, (0, 255, 0), 2)
+        cv2.rectangle(crop_img, (center_x-config["offset"], center_y-config["offset"]), (center_x+config["offset"], center_y+config["offset"]), (0, 255, 0), 2) #draw rect
 
         img_name = config["output_dir"]+"crop_" + id
         cv2.imwrite(img_name + ".jpg", crop_img)
@@ -79,8 +81,8 @@ def crop_hotspots(hsm):
         with open(img_name + ".txt", 'a') as file:
             file.write(str(hs.classIndex) + " " + str((center_x + 0.0) / cropw) + " " +
                        str((center_y + 0.0) / croph) + " " +
-                       str(40.0 / cropw) + " " +
-                       str(40.0 / croph) + "\n")
+                       str((config["offset"] + 0.0) / cropw) + " " +
+                       str((config["offset"] + 0.0)/ croph) + "\n")
 
         with open('training_list.txt', 'a') as file:
             file.write(os.getcwd() + "/" + img_name + ".jpg" + "\n")
