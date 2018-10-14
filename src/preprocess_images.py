@@ -87,9 +87,9 @@ def tile_and_label(hsm):
                 cropped_img = hs.rgb.image[top: bot, left: right]
 
                 img_name = "tiles/tile_" + id
-
+                found = False
                 # recalculate bounding box in tile
-                if center_x > left and center_x < right and center_y < bot and center_y > top:
+                if left < center_x < right and bot > center_y > top:
                     # save image
                     tile_center_x = center_x - x * tilew
                     tile_center_y = center_y - y * tileh
@@ -105,12 +105,13 @@ def tile_and_label(hsm):
                         file.write(img_name + ".jpg" + "\n")
                 else:
                     # save one in 30 empty images for training
-                    if(14 == random.randint(1,400)):
+                    if 14 == random.randint(1, 400) and not found:
                         cv2.imwrite(img_name + "-empty.jpg", cropped_img)
                         with open(img_name + "-empty.txt", 'a') as file:
                             file.write("")
                         with open('training_list.txt', 'a') as file:
                             file.write(img_name + "-empty.jpg" + "\n")
+                        found = True
 
                 #TODO pick random empty images to train on as well maybe one tile per image
 
