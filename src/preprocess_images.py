@@ -1,24 +1,15 @@
 import os
 import sys
-import cv2
-import csv
 import NOAA
+import visuals
 import LabelParser as parser
 
-from feature_extraction_net.ALIGN import ImageAligner
+from image_registration import *
+
 config = {
-    "output_dir": "results/",
+    "output_dir": "images/results/",
     "offset": 80
 }
-
-
-def align_images(hsm):
-    for id in hsm.hotspots:
-        hs = hsm.hotspots[id]
-        if hs.load_all():
-            aligner = ImageAligner(hs)
-            aligner.align()
-
 
 def main():
     rows = list()
@@ -34,18 +25,17 @@ def main():
     res_path = sys.argv[2]
     hsm = make_hotspots(rows)
     del rows
-
-    crop_hotspots(hsm)
+    #visuals.show_ir(hsm)
+    # register_images(hsm)
+    # crop_hotspots(hsm)
     # align_images(hotspots)
-
 
 def crop_hotspots(hsm):
     # Check if output directory exists, if not create
     if not os.path.exists(config["output_dir"]):
         os.mkdir(config["output_dir"])
     i = 0
-    for id in hsm.hotspots:
-        hs = hsm.hotspots[id]
+    for hs in hsm.hotspots:
         print("Cropping hotspot:" + str(id) + " -" + str(round((i+0.0)/len(hsm.hotspots), 2))) + "% complete"
         i += 1
 
@@ -83,9 +73,9 @@ def crop_hotspots(hsm):
         cropw = crop_img.shape[1]
 
         # cv2.circle(crop_img, (center_x, center_y), 5, (0, 255, 0), 2)
-        cv2.rectangle(crop_img, (center_x-config["offset"], center_y-config["offset"]), (center_x+config["offset"], center_y+config["offset"]), (0, 255, 0), 2) #draw rect
+        #cv2.rectangle(crop_img, (center_x-config["offset"], center_y-config["offset"]), (center_x+config["offset"], center_y+config["offset"]), (0, 255, 0), 2) #draw rect
 
-        img_name = config["output_dir"]+"crop_" + id
+        img_name = config["output_dir"]+"crop_" + hs.id
         cv2.imwrite(img_name + ".jpg", crop_img)
 
         with open(img_name + ".txt", 'a') as file:
@@ -106,9 +96,9 @@ def make_hotspots(rows):
     for row in rows:
         hotspot = parser.parse_hotspot(row, res_path)
         hsm.add(hotspot)
-    for key in hsm.images:
-        print(key + str(len(hsm.images[key])))
     return hsm
+
+
 
 
 # Call main function

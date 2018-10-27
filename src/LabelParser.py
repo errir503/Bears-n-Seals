@@ -27,6 +27,9 @@ def parse_meta_deta(filename):
 
     return project_name, aircraft, camera_pos
 
+
+
+
 def parse_ts(ts):
     if len(ts) != 21 or ts[18:21] != 'GMT':
         return None

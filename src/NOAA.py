@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+import normalizer as norm
+
 SpeciesList = ["Ringed Seal", "Bearded Seal", "Polar Bear", "UNK Seal", "NA"]
 
 
@@ -39,7 +41,7 @@ class Image():
         self.camerapos = camerapos  # camera position
 
     # Loads image to memory, returns true if success, false if not
-    def load_image(self):
+    def load_image(self, colorJet = False):
         if self.image is not None:
             return True
         elif self.type == "rgb":
@@ -47,7 +49,7 @@ class Image():
         elif self.type == "thermal":
             self.image = cv2.imread(self.path, cv2.IMREAD_GRAYSCALE)
         elif self.type == "ir":
-            self.image = self.imreadIR(self.path)
+            self.image = self.imreadIR(self.path, colorJet)
         return self.image is not None
 
     def free(self):
@@ -57,13 +59,19 @@ class Image():
     def tile(self):
         self.load_image()
 
-    def imreadIR(self, fileIR, percent=0.005):
-        img = cv2.imread(fileIR, cv2.IMREAD_ANYDEPTH)
-
-        if (not img is None):
-            imgNorm = np.floor((img - np.percentile(img, percent)) / (
-                        np.percentile(img, 100 - percent) - np.percentile(img, percent)) * 256)
-            return imgNorm.astype(np.uint8), img
+    def imreadIR(self, fileIR, colorJet, percent=0.005):
+        anyDepth = cv2.imread(fileIR, cv2.IMREAD_ANYDEPTH)
+        if (not anyDepth is None):
+            imgGlobalNorm = norm.normalize_ir_global(self.camerapos, fileIR)
+            imgLocalNorm = norm.normalize_ir_local(self.camerapos, fileIR)
+            imgNorm = np.floor((anyDepth - np.percentile(anyDepth, percent)) / (
+                        np.percentile(anyDepth, 100 - percent) - np.percentile(anyDepth, percent)) * 256)
+            if colorJet:
+                imgNorm = cv2.applyColorMap(imgNorm.astype(np.uint8), cv2.COLORMAP_HSV)
+                anyDepth = cv2.applyColorMap(anyDepth.astype(np.uint8), cv2.COLORMAP_HSV)
+                imgGlobalNorm = cv2.applyColorMap(imgGlobalNorm.astype(np.uint8), cv2.COLORMAP_HSV)
+                imgLocalNorm = cv2.applyColorMap(imgLocalNorm.astype(np.uint8), cv2.COLORMAP_HSV)
+            return imgNorm.astype(np.uint8), anyDepth, imgGlobalNorm.astype(np.uint8), imgLocalNorm.astype(np.uint8)
         return None
 
 
