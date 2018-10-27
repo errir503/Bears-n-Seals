@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-import normalizer as norm
+from src.util import normalizer as norm
 
 SpeciesList = ["Ringed Seal", "Bearded Seal", "Polar Bear", "UNK Seal", "NA"]
 

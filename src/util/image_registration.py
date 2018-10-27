@@ -74,6 +74,7 @@ def computeTransform(imgRef, img, warp_mode=cv2.MOTION_HOMOGRAPHY, matchLowRes=T
 
     print("%d matches" % len(matches))
 
+
     if (len(matches) < MIN_MATCHES):
         print("not enough matches")
         return False, np.identity(3), 0
@@ -89,6 +90,14 @@ def computeTransform(imgRef, img, warp_mode=cv2.MOTION_HOMOGRAPHY, matchLowRes=T
     # Find homography
     h, mask = cv2.findHomography(points1, points2, cv2.RANSAC)
 
+    draw_params = dict(matchColor=(0, 255, 0),  # draw matches in green color
+                       singlePointColor=None,
+                       matchesMask=mask.ravel().tolist(),  # draw only inliers
+                       flags=2)
+
+    img3 = cv2.drawMatches(imgGray, keypoints1, imgRefGray, keypoints2, matches, None, **draw_params)
+    cv2.imshow("result", img3)
+    cv2.waitKey()
     print("%d inliers" % sum(mask))
 
     if sum(mask) < MIN_INLIERS:
@@ -260,15 +269,17 @@ def register_images(hsm):
             print("Failed to load ir image for hotspot" + hs.id)
             continue
 
+        img_ir = hs.ir.image[0]
+        img_rgb = hs.rgb.image
+        img_rgb = cv2.resize(img_rgb, (0,0), fx=0.2, fy=0.2)
 
         # compute transform
-        ret, transform, _ = computeTransform(hs.rgb.image, hs.ir.image[0])
+        ret, transform, _ = computeTransform(img_rgb, img_ir)
         if (not ret):
             print("failed!!!")
             return
 
-        img_ir = hs.ir.image[0]
-        img_rgb = hs.rgb.image
+
 
         # warp IR image
         imgWarped = cv2.warpPerspective(img_ir, transform, (img_rgb.shape[1], img_rgb.shape[0]))
@@ -284,7 +295,7 @@ def register_images(hsm):
 
         # must write as .png to save with alpha channel, warning this will be a big file
         b_channel, g_channel, r_channel = cv2.split(img_rgb)
-        imgBGRA = cv2.merge((b_channel, g_channel, r_channel, imgWarped))
+        # imgBGRA = cv2.merge((b_channel, g_channel, r_channel, imgWarped))
 
         # cv2.imwrite(fileRGBAAligned, imgBGRA)
 

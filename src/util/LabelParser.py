@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-import NOAA
+import src.NOAA
 
 HOTSPOT_ID_COL_IDX = 0
 TIMESTAMP = 1
@@ -50,20 +50,20 @@ def parse_hotspot(row, res_path):
     project_name, aircraft, thermal_pos = parse_meta_deta(row[IMG_THERMAL8_COL_IDX])
     project_name, aircraft, ir_pos = parse_meta_deta(row[IMG_THERMAL16_COL_IDX])
     # create each image object
-    rgb = NOAA.Image(res_path + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
-    thermal = NOAA.Image(res_path + row[IMG_THERMAL8_COL_IDX], "thermal", thermal_pos)
-    ir = NOAA.Image(res_path + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
-    return NOAA.HotSpot(row[HOTSPOT_ID_COL_IDX],
-                        int(row[XPOS_IDX]),
-                        int(row[YPOS_IDX]),
-                        int(row[LEFT_IDX]),
-                        int(row[TOP_IDX]),
-                        int(row[RIGHT_IDX]),
-                        int(row[BOT_IDX]),
-                        row[HOTSPOT_TYPE_COL_IDX],
-                        row[SPECIES_ID_COL_IDX],
-                        rgb,
-                        thermal,
-                        ir,
-                        time,
-                        project_name, aircraft)
+    rgb = src.NOAA.Image(res_path + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
+    thermal = src.NOAA.Image(res_path + row[IMG_THERMAL8_COL_IDX], "thermal", thermal_pos)
+    ir = src.NOAA.Image(res_path + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
+    return src.NOAA.HotSpot(row[HOTSPOT_ID_COL_IDX],
+                            int(row[XPOS_IDX]),
+                            int(row[YPOS_IDX]),
+                            int(row[LEFT_IDX]),
+                            int(row[TOP_IDX]),
+                            int(row[RIGHT_IDX]),
+                            int(row[BOT_IDX]),
+                            row[HOTSPOT_TYPE_COL_IDX],
+                            row[SPECIES_ID_COL_IDX],
+                            rgb,
+                            thermal,
+                            ir,
+                            time,
+                            project_name, aircraft)

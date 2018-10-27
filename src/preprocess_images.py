@@ -1,10 +1,8 @@
 import os
 import sys
 import NOAA
-import visuals
-import LabelParser as parser
-
-from image_registration import *
+from util import LabelParser as parser, visuals
+from util.image_registration import *
 
 config = {
     "output_dir": "images/results/",
@@ -26,7 +24,7 @@ def main():
     hsm = make_hotspots(rows)
     del rows
     #visuals.show_ir(hsm)
-    # register_images(hsm)
+    register_images(hsm)
     # crop_hotspots(hsm)
     # align_images(hotspots)
 
