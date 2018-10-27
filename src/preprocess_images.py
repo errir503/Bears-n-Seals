@@ -1,15 +1,24 @@
 import os
 import sys
 import cv2
-import numpy as np
 import csv
-import random
 import NOAA
+import LabelParser as parser
 
+from feature_extraction_net.ALIGN import ImageAligner
 config = {
     "output_dir": "results/",
     "offset": 80
 }
+
+
+def align_images(hsm):
+    for id in hsm.hotspots:
+        hs = hsm.hotspots[id]
+        if hs.load_all():
+            aligner = ImageAligner(hs)
+            aligner.align()
+
 
 def main():
     rows = list()
@@ -19,14 +28,15 @@ def main():
     for row in reader:
         rows.append(row)
     f.close()
+    del rows[0]  # remove col headers
 
     global res_path
     res_path = sys.argv[2]
-
-    hsm = create_hotspot_map(rows)
+    hsm = make_hotspots(rows)
     del rows
 
     crop_hotspots(hsm)
+    # align_images(hotspots)
 
 
 def crop_hotspots(hsm):
@@ -90,37 +100,14 @@ def crop_hotspots(hsm):
         hs.rgb.free()
 
 
-def create_hotspot_map(rows):
-    # Column index for each attribute in the given data
-    HOTSPOT_ID_COL_IDX = 0
-    TIMESTAMP = 1
-    IMG_THERMAL8_COL_IDX = 2
-    IMG_THERMAL16_COL_IDX = 3
-    IMG_RGB_COL_IDX = 4
-    XPOS_IDX = 5
-    YPOS_IDX = 6
-    LEFT_IDX = 7
-    TOP_IDX = 8
-    RIGHT_IDX = 9
-    BOT_IDX = 10
-    HOTSPOT_TYPE_COL_IDX = 11
-    SPECIES_ID_COL_IDX = 12
-
+def make_hotspots(rows):
     hsm = NOAA.HotSpotMap()
 
-    del rows[0]  # remove col headers
     for row in rows:
-        rgb = NOAA.Image(res_path + row[IMG_RGB_COL_IDX], "rgb")
-        therm8 = NOAA.Image(res_path + row[IMG_THERMAL8_COL_IDX], "therm8")
-        therm16 = NOAA.Image(res_path + row[IMG_THERMAL16_COL_IDX], "therm16")
-
-        hotspot = NOAA.HotSpot(row[HOTSPOT_ID_COL_IDX], int(row[XPOS_IDX]), int(row[YPOS_IDX]), int(row[LEFT_IDX]),
-                               int(row[TOP_IDX]),
-                               int(row[RIGHT_IDX]), int(row[BOT_IDX]), row[HOTSPOT_TYPE_COL_IDX],
-                               row[SPECIES_ID_COL_IDX], rgb, therm8, therm16,
-                               row[TIMESTAMP])
-
-        hsm.add([rgb, therm8, therm16], hotspot)
+        hotspot = parser.parse_hotspot(row, res_path)
+        hsm.add(hotspot)
+    for key in hsm.images:
+        print(key + str(len(hsm.images[key])))
     return hsm
 
 
