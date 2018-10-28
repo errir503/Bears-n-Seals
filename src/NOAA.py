@@ -33,6 +33,11 @@ class HotSpot:
             print("Skipped " + self.id)
             return False
 
+    def getRGBCenterPt(self):
+        x = self.rgb_bb_l + ((self.rgb_bb_r - self.rgb_bb_l) / 2)
+        y = self.rgb_bb_t + ((self.rgb_bb_b - self.rgb_bb_t) / 2)
+        return (x, y)
+
 class Image():
     def __init__(self, path, type, camerapos):
         self.path = path
@@ -59,19 +64,18 @@ class Image():
     def tile(self):
         self.load_image()
 
-    def imreadIR(self, fileIR, colorJet, percent=0.005):
+    def imreadIR(self, fileIR, colorJet = False):
         anyDepth = cv2.imread(fileIR, cv2.IMREAD_ANYDEPTH)
         if (not anyDepth is None):
             imgGlobalNorm = norm.normalize_ir_global(self.camerapos, fileIR)
             imgLocalNorm = norm.normalize_ir_local(self.camerapos, fileIR)
-            imgNorm = np.floor((anyDepth - np.percentile(anyDepth, percent)) / (
-                        np.percentile(anyDepth, 100 - percent) - np.percentile(anyDepth, percent)) * 256)
+            imgNorm = norm.norm(anyDepth)
             if colorJet:
                 imgNorm = cv2.applyColorMap(imgNorm.astype(np.uint8), cv2.COLORMAP_HSV)
                 anyDepth = cv2.applyColorMap(anyDepth.astype(np.uint8), cv2.COLORMAP_HSV)
                 imgGlobalNorm = cv2.applyColorMap(imgGlobalNorm.astype(np.uint8), cv2.COLORMAP_HSV)
                 imgLocalNorm = cv2.applyColorMap(imgLocalNorm.astype(np.uint8), cv2.COLORMAP_HSV)
-            return imgNorm.astype(np.uint8), anyDepth, imgGlobalNorm.astype(np.uint8), imgLocalNorm.astype(np.uint8)
+            return imgNorm.astype(np.uint8), imgGlobalNorm.astype(np.uint8), imgLocalNorm.astype(np.uint8), anyDepth
         return None
 
 

@@ -23,8 +23,8 @@ def main():
     res_path = sys.argv[2]
     hsm = make_hotspots(rows)
     del rows
-    #visuals.show_ir(hsm)
-    register_images(hsm)
+    # visuals.show_ir(hsm)
+    register_images(hsm, showImgs = True, showFigures=False)
     # crop_hotspots(hsm)
     # align_images(hotspots)
 

@@ -1,8 +1,9 @@
 import cv2
-import numpy as np
 import matplotlib.pyplot as plt
 import csv
 import numpy as np
+
+from src.util import normalizer as norm
 
 MAX_FEATURES = 500
 GOOD_MATCH_PERCENT = 0.15
@@ -11,7 +12,8 @@ MATCH_HEIGHT = 512
 MIN_MATCHES = 4
 MIN_INLIERS = 4
 
-def computeTransform(imgRef, img, warp_mode=cv2.MOTION_HOMOGRAPHY, matchLowRes=True):
+def computeTransform(imgRef, img, hs, warp_mode=cv2.MOTION_HOMOGRAPHY, matchLowRes=False,
+                     showImgs = False):
     # Convert images to grayscale
     if (len(img.shape) == 3 and img.shape[2] == 3):
         imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -90,15 +92,17 @@ def computeTransform(imgRef, img, warp_mode=cv2.MOTION_HOMOGRAPHY, matchLowRes=T
     # Find homography
     h, mask = cv2.findHomography(points1, points2, cv2.RANSAC)
 
-    draw_params = dict(matchColor=(0, 255, 0),  # draw matches in green color
-                       singlePointColor=None,
-                       matchesMask=mask.ravel().tolist(),  # draw only inliers
-                       flags=2)
+    if showImgs:
+        draw_params = dict(matchColor=(0, 255, 0),  # draw matches in green color
+                           singlePointColor=None,
+                           matchesMask=mask.ravel().tolist(),  # draw only inliers
+                           flags=2)
 
-    img3 = cv2.drawMatches(imgGray, keypoints1, imgRefGray, keypoints2, matches, None, **draw_params)
-    cv2.imshow("result", img3)
-    cv2.waitKey()
-    print("%d inliers" % sum(mask))
+        img3 = cv2.drawMatches(imgGray, keypoints1, imgRefGray, keypoints2, matches, None, **draw_params)
+        cv2.imwrite("images/registration/matches-" +str(hs.id) + ".jpg", img3)
+
+
+        print("%d inliers" % sum(mask))
 
     if sum(mask) < MIN_INLIERS:
         print("not enough inliers")
@@ -260,7 +264,7 @@ def registerThermalAndColorImages(file, fileOut, folder, displayResults=False):
         for i in range(0, len(hotspots)):
             writer.writerow(hotspots[i])
 
-def register_images(hsm):
+def register_images(hsm, showFigures=False, showImgs = False):
     for hs in hsm.hotspots:
         if not hs.rgb.load_image():
             print("Failed to load rgb image for hotspot" + hs.id)
@@ -269,15 +273,28 @@ def register_images(hsm):
             print("Failed to load ir image for hotspot" + hs.id)
             continue
 
+        if not hs.thermal.load_image():
+            print("Failed to load ir image for hotspot" + hs.id)
+            continue
+
         img_ir = hs.ir.image[0]
+
         img_rgb = hs.rgb.image
         img_rgb = cv2.resize(img_rgb, (0,0), fx=0.2, fy=0.2)
 
+        ## Draw circles on hotspots
+        # cv2.circle(img_ir, hs.thermal_loc, 5, (0, 255, 0), 10)
+        # cv2.circle(img_rgb, hs.getRGBCenterPt(), 50, (0, 255, 0), 50)
+
+        # cv2.imshow('ir', img_ir)
+        # cv2.imshow('rgb', img_rgb)
+        # cv2.waitKey(0)
+
         # compute transform
-        ret, transform, _ = computeTransform(img_rgb, img_ir)
+        ret, transform, _ = computeTransform(img_rgb, img_ir, hs, showImgs = showImgs)
         if (not ret):
             print("failed!!!")
-            return
+            continue
 
 
 
@@ -291,28 +308,30 @@ def register_images(hsm):
         ptWarped = warpPoint(pt, transform)
 
         # write warped IR image
-        # cv2.imwrite(fileAligned, imgWarped)
+        cv2.imwrite("images/registration/warpedIr-" + str(hs.id) + ".JPG", imgWarped)
 
         # must write as .png to save with alpha channel, warning this will be a big file
         b_channel, g_channel, r_channel = cv2.split(img_rgb)
-        # imgBGRA = cv2.merge((b_channel, g_channel, r_channel, imgWarped))
+        imgBGRA = cv2.merge((b_channel, g_channel, r_channel, imgWarped))
 
-        # cv2.imwrite(fileRGBAAligned, imgBGRA)
+        cv2.imwrite("images/registration/BGRA-" + str(hs.id) + ".PNG", imgBGRA)
+
 
         # display everything
-        plt.figure()
-        plt.imshow(img_ir, cmap='gray')
-        plt.plot(pt[0], pt[1], color='red', marker='o')
-        plt.title("Orig IR")
+        if showFigures:
+            plt.figure()
+            plt.imshow(img_ir, cmap='gray')
+            plt.plot(pt[0], pt[1], color='red', marker='o')
+            plt.title("Orig IR")
 
-        plt.figure()
-        plt.imshow(imgWarped, cmap='gray')
-        plt.plot(ptWarped[0], ptWarped[1], color='red', marker='o')
-        plt.title("Aligned IR")
+            plt.figure()
+            plt.imshow(imgWarped, cmap='gray')
+            plt.plot(ptWarped[0], ptWarped[1], color='red', marker='o')
+            plt.title("Aligned IR")
 
-        plt.figure()
-        plt.imshow(cv2.cvtColor(img_rgb, cv2.COLOR_BGR2RGB))
-        plt.plot(ptWarped[0], ptWarped[1], color='red', marker='o')
-        plt.title("Orig RGB")
+            plt.figure()
+            plt.imshow(cv2.cvtColor(img_rgb, cv2.COLOR_BGR2RGB))
+            plt.plot(ptWarped[0], ptWarped[1], color='red', marker='o')
+            plt.title("Orig RGB")
 
-        plt.show()
+            plt.show()
