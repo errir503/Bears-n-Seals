@@ -3,7 +3,7 @@ import cv2
 from random import randint
 
 # can chose to prep one label with a hotspot identifier
-def crop_hotspot(out_dir, delta_bb, hs, minShift = 0, maxShift=0, label=True):
+def crop_hotspot(out_dir, delta_bb, hs, minShift = 0, maxShift=0):
     if hs.classIndex > 1:
         print("Skipping, not a seal")
         return
@@ -67,15 +67,14 @@ def crop_hotspot(out_dir, delta_bb, hs, minShift = 0, maxShift=0, label=True):
     if classIndex == 0 or classIndex == 1:
         classIndex == 0
 
-    if label:
-        with open(file_name + ".txt", 'a') as file:
-            file.write(str(classIndex) + " " + str((center_x + 0.0) / cropw) + " " +
-                       str((center_y + 0.0) / croph) + " " +
-                       str((delta_bb + 0.0) / cropw) + " " +
-                       str((delta_bb + 0.0) / croph) + "\n")
+    with open(file_name + ".txt", 'a') as file:
+        file.write(str(classIndex) + " " + str((center_x + 0.0) / cropw) + " " +
+                   str((center_y + 0.0) / croph) + " " +
+                   str((delta_bb + 0.0) / cropw) + " " +
+                   str((delta_bb + 0.0) / croph) + "\n")
 
-        with open('training_list.txt', 'a') as file:
-            file.write(os.getcwd() + "/" + file_name + ".jpg" + "\n")
+    with open('training_list.txt', 'a') as file:
+        file.write(os.getcwd() + "/" + file_name + ".jpg" + "\n")
 
 
 def random_shift(topCrop, bottomCrop, leftCrop, rightCrop, w, h, minShift, maxShift):
