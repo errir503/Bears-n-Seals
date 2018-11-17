@@ -76,8 +76,10 @@ def crop_hotspot(out_dir, delta_bb, hs, minShift, maxShift, label):
                    str((delta_bb + 0.0) / cropw) + " " +
                    str((delta_bb + 0.0) / croph) + "\n")
 
+
     with open(label, 'a') as file:
         file.write(os.getcwd() + "/" + file_name + ".jpg" + "\n")
+        file.write(os.getcwd() + "/" + file_name_neg + ".jpg" + "\n")
 
 
 def negative_bounds(topCrop, bottomCrop, leftCrop, rightCrop, w, h):
