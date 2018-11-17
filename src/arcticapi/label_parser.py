@@ -42,26 +42,30 @@ def parse_ts(ts):
 
 
 def parse_hotspot(row, res_path):
-    # get camera positions, project name, and aircraft
-    time = parse_ts(row[TIMESTAMP])
-    project_name, aircraft, rgb_pos = parse_meta_deta(row[IMG_RGB_COL_IDX])
-    project_name, aircraft, thermal_pos = parse_meta_deta(row[IMG_THERMAL8_COL_IDX])
-    project_name, aircraft, ir_pos = parse_meta_deta(row[IMG_THERMAL16_COL_IDX])
-    # create each image object
-    rgb = Image(res_path + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
-    thermal = Image(res_path + row[IMG_THERMAL8_COL_IDX], "thermal", thermal_pos)
-    ir = Image(res_path + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
-    return HotSpot(row[HOTSPOT_ID_COL_IDX],
-                            int(row[XPOS_IDX]),
-                            int(row[YPOS_IDX]),
-                            int(row[LEFT_IDX]),
-                            int(row[TOP_IDX]),
-                            int(row[RIGHT_IDX]),
-                            int(row[BOT_IDX]),
-                            row[HOTSPOT_TYPE_COL_IDX],
-                            row[SPECIES_ID_COL_IDX],
-                            rgb,
-                            thermal,
-                            ir,
-                            time,
-                            project_name, aircraft)
+    try:
+        # get camera positions, project name, and aircraft
+        time = parse_ts(row[TIMESTAMP])
+        project_name, aircraft, rgb_pos = parse_meta_deta(row[IMG_RGB_COL_IDX])
+        project_name, aircraft, thermal_pos = parse_meta_deta(row[IMG_THERMAL8_COL_IDX])
+        project_name, aircraft, ir_pos = parse_meta_deta(row[IMG_THERMAL16_COL_IDX])
+        # create each image object
+        rgb = Image(res_path + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
+        thermal = Image(res_path + row[IMG_THERMAL8_COL_IDX], "thermal", thermal_pos)
+        ir = Image(res_path + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
+        return HotSpot(row[HOTSPOT_ID_COL_IDX],
+                       int(row[XPOS_IDX]),
+                       int(row[YPOS_IDX]),
+                       int(row[LEFT_IDX]),
+                       int(row[TOP_IDX]),
+                       int(row[RIGHT_IDX]),
+                       int(row[BOT_IDX]),
+                       row[HOTSPOT_TYPE_COL_IDX],
+                       row[SPECIES_ID_COL_IDX],
+                       rgb,
+                       thermal,
+                       ir,
+                       time,
+                       project_name, aircraft)
+    except:
+        return None
+

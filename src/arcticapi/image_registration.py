@@ -11,7 +11,7 @@ MIN_MATCHES = 4
 MIN_INLIERS = 4
 
 
-def computeTransform(imgRef, img, hs, warp_mode=cv2.MOTION_HOMOGRAPHY,
+def computeTransform(imgRef, img, hs, warp_mode=3,
                      matchLowRes=False, showImgs=False):
     # Convert images to grayscale
     if len(img.shape) == 3 and img.shape[2] == 3:
