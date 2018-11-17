@@ -42,6 +42,7 @@ class HotSpot:
     def genCropsAndLables(self, out_dir, width_bb = 0, minShift = 0, maxShift = 0):
         if self.rgb.load_image():
             crop.crop_hotspot(out_dir, width_bb, self, minShift, maxShift)
+        self.rgb.free()
 
 
 
