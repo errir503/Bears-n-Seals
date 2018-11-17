@@ -47,6 +47,10 @@ class ArcticApi:
             os.mkdir(out_dir)
         i = 0
         for hs in self.hsm.hotspots:
+            if hs.classIndex > 1:
+                print("Skipping, not a seal")
+                continue
+            hs.classIndex = 0
             print("Cropping hotspot:" + str(hs.id) + " -" + str(
                 round((i + 0.0) / len(self.hsm.hotspots), 2))) + "% complete"
             i += 1

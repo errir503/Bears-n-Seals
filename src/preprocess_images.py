@@ -5,7 +5,7 @@ from arcticapi import ArcticApi
 def main():
     csv_file = sys.argv[1]
     res_path = sys.argv[2]
-    out_path = sys.argv[2]
+    out_path = sys.argv[3]
     api = ArcticApi(csv_file, res_path)
     api.crop_label_all(out_path, width_bb=70, minShift=100, maxShift=250, label=True)
 
