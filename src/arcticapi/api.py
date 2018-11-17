@@ -1,8 +1,5 @@
 import os
-import sys
 import csv
-
-import cv2
 
 from arcticapi import data_types, image_registration
 from arcticapi.label_parser import parse_hotspot
