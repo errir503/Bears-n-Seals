@@ -1,7 +1,6 @@
 import os
 from datetime import datetime
-
-import src.NOAA
+from data_types import Image, HotSpot
 
 HOTSPOT_ID_COL_IDX = 0
 TIMESTAMP = 1
@@ -17,17 +16,16 @@ BOT_IDX = 10
 HOTSPOT_TYPE_COL_IDX = 11
 SPECIES_ID_COL_IDX = 12
 
+
 def parse_meta_deta(filename):
     tokens = filename.split('_')
-    if(len(tokens) < 3):
+    if (len(tokens) < 3):
         return None, None, None
     project_name = tokens[0]
     aircraft = tokens[1]
     camera_pos = tokens[2]
 
     return project_name, aircraft, camera_pos
-
-
 
 
 def parse_ts(ts):
@@ -50,10 +48,10 @@ def parse_hotspot(row, res_path):
     project_name, aircraft, thermal_pos = parse_meta_deta(row[IMG_THERMAL8_COL_IDX])
     project_name, aircraft, ir_pos = parse_meta_deta(row[IMG_THERMAL16_COL_IDX])
     # create each image object
-    rgb = src.NOAA.Image(res_path + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
-    thermal = src.NOAA.Image(res_path + row[IMG_THERMAL8_COL_IDX], "thermal", thermal_pos)
-    ir = src.NOAA.Image(res_path + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
-    return src.NOAA.HotSpot(row[HOTSPOT_ID_COL_IDX],
+    rgb = Image(res_path + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
+    thermal = Image(res_path + row[IMG_THERMAL8_COL_IDX], "thermal", thermal_pos)
+    ir = Image(res_path + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
+    return HotSpot(row[HOTSPOT_ID_COL_IDX],
                             int(row[XPOS_IDX]),
                             int(row[YPOS_IDX]),
                             int(row[LEFT_IDX]),

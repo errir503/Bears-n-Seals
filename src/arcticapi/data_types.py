@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
 
-from src.util import normalizer as norm
+import normalizer as norm
+from arcticapi import crop
 
 SpeciesList = ["Ringed Seal", "Bearded Seal", "Polar Bear", "UNK Seal", "NA"]
 
@@ -38,6 +39,13 @@ class HotSpot:
         y = self.rgb_bb_t + ((self.rgb_bb_b - self.rgb_bb_t) / 2)
         return (x, y)
 
+    def genCropsAndLables(self, minShift = 0, maxShift = 0):
+        if self.rgb.load_image():
+            crop.crop_hotspot("cropped", 70, self.rgb.image, self.classIndex, self.id,
+                              self.rgb_bb_b, self.rgb_bb_t, self.rgb_bb_l, self.rgb_bb_r, minShift, maxShift)
+
+
+
 class Image():
     def __init__(self, path, type, camerapos):
         self.path = path
@@ -55,7 +63,10 @@ class Image():
             self.image = cv2.imread(self.path, cv2.IMREAD_GRAYSCALE)
         elif self.type == "ir":
             self.image = self.imreadIR(self.path, colorJet)
-        return self.image is not None
+        ret = self.image is not None
+        if not ret:
+            print("Failed to load image " + self.path)
+        return ret
 
     def free(self):
         del self.image
@@ -83,6 +94,7 @@ class Image():
 class HotSpotMap:
     def __init__(self):
         self.images = {}
+        self.hs_id_to_idx = {}
         self.hotspots = []
         return
 
@@ -105,7 +117,14 @@ class HotSpotMap:
         self.images[thermal.path].append(len(self.hotspots))
         self.images[ir.path].append(len(self.hotspots))
 
+        self.hs_id_to_idx[hotspot.id] = len(self.hotspots)
         self.hotspots.append(hotspot)
         return
+
+    def get_hs(self, id):
+        if str(id) in self.hs_id_to_idx:
+            return self.hotspots[self.hs_id_to_idx[str(id)]]
+        print("No HotSpot with id: " + str(id))
+        return None
 
 

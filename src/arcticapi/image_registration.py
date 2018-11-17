@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import csv
 import numpy as np
 
-from src.util import normalizer as norm
-
 MAX_FEATURES = 500
 GOOD_MATCH_PERCENT = 0.15
 RATIO_TEST = .85
@@ -12,45 +10,47 @@ MATCH_HEIGHT = 512
 MIN_MATCHES = 4
 MIN_INLIERS = 4
 
-def computeTransform(imgRef, img, hs, warp_mode=cv2.MOTION_HOMOGRAPHY, matchLowRes=False,
-                     showImgs = False):
+
+def computeTransform(imgRef, img, hs, warp_mode=cv2.MOTION_HOMOGRAPHY,
+                     matchLowRes=False, showImgs=False):
     # Convert images to grayscale
-    if (len(img.shape) == 3 and img.shape[2] == 3):
+    if len(img.shape) == 3 and img.shape[2] == 3:
         imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     else:
         imgGray = img
 
-    if (len(imgRef.shape) == 3 and imgRef.shape[2] == 3):
+    if len(imgRef.shape) == 3 and imgRef.shape[2] == 3:
         imgRefGray = cv2.cvtColor(imgRef, cv2.COLOR_BGR2GRAY)
     else:
         imgRefGray = imgRef
 
     # resize if requested
-    if (matchLowRes):
+    if matchLowRes:
         aspect = imgRefGray.shape[1] / imgRefGray.shape[0]
         imgRefGray = cv2.resize(imgRefGray, (int(MATCH_HEIGHT * aspect), MATCH_HEIGHT))
+        # rgb_center = (rgb_center[0] * aspect, rgb_center[1] * MATCH_HEIGHT)
 
     # Detect SIFT features and compute descriptors.
     sift = cv2.xfeatures2d.SIFT_create()
     keypoints1, descriptors1 = sift.detectAndCompute(imgGray, None)
     keypoints2, descriptors2 = sift.detectAndCompute(imgRefGray, None)
 
-    if (len(keypoints1) < 2):
+    if len(keypoints1) < 2:
         print("not enough keypoints")
         return False, np.identity(3), 0
 
-    if (len(keypoints2) < 2):
+    if len(keypoints2) < 2:
         print("not enough keypoints")
         return False, np.identity(3), 0
 
     # scale feature points back to original size
-    if (matchLowRes):
+    if matchLowRes:
         scale = imgRef.shape[0] / imgRefGray.shape[0]
         for i in range(0, len(keypoints2)):
             keypoints2[i].pt = (keypoints2[i].pt[0] * scale, keypoints2[i].pt[1] * scale)
 
     # Pick good features
-    if (RATIO_TEST < 1):
+    if RATIO_TEST < 1:
         # ratio test
         matcher = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
         matches = matcher.knnMatch(descriptors1, descriptors2, k=2)
@@ -76,7 +76,6 @@ def computeTransform(imgRef, img, hs, warp_mode=cv2.MOTION_HOMOGRAPHY, matchLowR
 
     print("%d matches" % len(matches))
 
-
     if (len(matches) < MIN_MATCHES):
         print("not enough matches")
         return False, np.identity(3), 0
@@ -99,8 +98,7 @@ def computeTransform(imgRef, img, hs, warp_mode=cv2.MOTION_HOMOGRAPHY, matchLowR
                            flags=2)
 
         img3 = cv2.drawMatches(imgGray, keypoints1, imgRefGray, keypoints2, matches, None, **draw_params)
-        cv2.imwrite("images/registration/matches-" +str(hs.id) + ".jpg", img3)
-
+        cv2.imwrite("images/registration/matches-" + str(hs.id) + ".jpg", img3)
 
         print("%d inliers" % sum(mask))
 
@@ -126,7 +124,7 @@ def computeTransform(imgRef, img, hs, warp_mode=cv2.MOTION_HOMOGRAPHY, matchLowR
         points2Inliers = []
 
         for i in range(0, len(mask)):
-            if (int(mask[i]) == 1):
+            if int(mask[i]) == 1:
                 points1Inliers.append(points1[i, :])
                 points2Inliers.append(points2[i, :])
 
@@ -157,7 +155,7 @@ def imreadIR(fileIR, percent=0.01):
 
     if (not img is None):
         imgNorm = np.floor((img - np.percentile(img, percent)) / (
-                    np.percentile(img, 100 - percent) - np.percentile(img, percent)) * 256)
+                np.percentile(img, 100 - percent) - np.percentile(img, percent)) * 256)
 
     return imgNorm.astype(np.uint8), img
 
@@ -264,74 +262,78 @@ def registerThermalAndColorImages(file, fileOut, folder, displayResults=False):
         for i in range(0, len(hotspots)):
             writer.writerow(hotspots[i])
 
-def register_images(hsm, showFigures=False, showImgs = False):
-    for hs in hsm.hotspots:
-        if not hs.rgb.load_image():
-            print("Failed to load rgb image for hotspot" + hs.id)
-            continue
-        if not hs.ir.load_image():
-            print("Failed to load ir image for hotspot" + hs.id)
-            continue
 
-        if not hs.thermal.load_image():
-            print("Failed to load ir image for hotspot" + hs.id)
-            continue
+def register_images(hs, showFigures=False, showImgs=False):
+    if not hs.rgb.load_image():
+        print("Failed to load rgb image for hotspot" + hs.id)
+        return
+    if not hs.ir.load_image():
+        print("Failed to load ir image for hotspot" + hs.id)
+        return
 
-        img_ir = hs.ir.image[0]
+    if not hs.thermal.load_image():
+        print("Failed to load ir image for hotspot" + hs.id)
+        return
 
-        img_rgb = hs.rgb.image
-        img_rgb = cv2.resize(img_rgb, (0,0), fx=0.2, fy=0.2)
+    rgb_scalar = 0.2
 
-        ## Draw circles on hotspots
-        # cv2.circle(img_ir, hs.thermal_loc, 5, (0, 255, 0), 10)
-        # cv2.circle(img_rgb, hs.getRGBCenterPt(), 50, (0, 255, 0), 50)
+    img_ir = hs.ir.image[0]
+    img_rgb = hs.rgb.image
+    img_rgb = cv2.resize(img_rgb, (0, 0), fx=rgb_scalar, fy=rgb_scalar)
 
-        # cv2.imshow('ir', img_ir)
-        # cv2.imshow('rgb', img_rgb)
-        # cv2.waitKey(0)
+    cv2.imwrite("test_ir_"+hs.id+".jpg", img_ir)
+    cv2.imwrite("test_rgb_"+hs.id+".jpg", img_rgb)
 
-        # compute transform
-        ret, transform, _ = computeTransform(img_rgb, img_ir, hs, showImgs = showImgs)
-        if (not ret):
-            print("failed!!!")
-            continue
+    # rgb_center = hs.getRGBCenterPt()
+    # rgb_center = tuple(rgb_scalar * np.array(rgb_center))
+    ## Draw circles on hotspots
+    # cv2.circle(img_ir, hs.thermal_loc, 5, (0, 255, 0), 10)
+    # cv2.circle(img_rgb, hs.getRGBCenterPt(), 50, (0, 255, 0), 50)
 
+    # cv2.imshow('ir', img_ir)
+    # cv2.imshow('rgb', img_rgb)
+    # cv2.waitKey(0)
 
+    # compute transform
+    ret, transform, _ = computeTransform(img_rgb, img_ir, hs,
+                                         showImgs=showImgs)
+    if (not ret):
+        print("failed!!!")
+        return
 
-        # warp IR image
-        imgWarped = cv2.warpPerspective(img_ir, transform, (img_rgb.shape[1], img_rgb.shape[0]))
+    # warp IR image
+    imgWarped = cv2.warpPerspective(img_ir, transform, (img_rgb.shape[1], img_rgb.shape[0]))
 
-        # sample hotspot
-        pt = hs.thermal_loc
+    # sample hotspot
+    pt = hs.thermal_loc
 
-        # warp hotspot
-        ptWarped = warpPoint(pt, transform)
+    # warp hotspot
+    ptWarped = warpPoint(pt, transform)
 
-        # write warped IR image
-        cv2.imwrite("images/registration/warpedIr-" + str(hs.id) + ".JPG", imgWarped)
+    # write warped IR image
+    cv2.imwrite("images/registration/warpedIr-" + str(hs.id) + ".JPG", imgWarped)
 
-        # must write as .png to save with alpha channel, warning this will be a big file
-        b_channel, g_channel, r_channel = cv2.split(img_rgb)
-        imgBGRA = cv2.merge((b_channel, g_channel, r_channel, imgWarped))
+    # must write as .png to save with alpha channel, warning this will be a big file
+    b_channel, g_channel, r_channel = cv2.split(img_rgb)
+    imgBGRA = cv2.merge((b_channel, g_channel, r_channel, imgWarped))
 
-        cv2.imwrite("images/registration/BGRA-" + str(hs.id) + ".PNG", imgBGRA)
+    cv2.imwrite("images/registration/BGRA-" + str(hs.id) + ".PNG", imgBGRA)
 
+    # display everything
+    if showFigures:
+        plt.figure()
+        plt.imshow(img_ir, cmap='gray')
+        plt.plot(pt[0], pt[1], color='red', marker='o')
+        plt.title("Orig IR")
 
-        # display everything
-        if showFigures:
-            plt.figure()
-            plt.imshow(img_ir, cmap='gray')
-            plt.plot(pt[0], pt[1], color='red', marker='o')
-            plt.title("Orig IR")
+        plt.figure()
+        plt.imshow(imgWarped, cmap='gray')
+        plt.plot(ptWarped[0], ptWarped[1], color='red', marker='o')
+        plt.title("Aligned IR")
 
-            plt.figure()
-            plt.imshow(imgWarped, cmap='gray')
-            plt.plot(ptWarped[0], ptWarped[1], color='red', marker='o')
-            plt.title("Aligned IR")
+        plt.figure()
+        plt.imshow(cv2.cvtColor(img_rgb, cv2.COLOR_BGR2RGB))
+        plt.plot(ptWarped[0], ptWarped[1], color='red', marker='o')
+        plt.title("Orig RGB")
 
-            plt.figure()
-            plt.imshow(cv2.cvtColor(img_rgb, cv2.COLOR_BGR2RGB))
-            plt.plot(ptWarped[0], ptWarped[1], color='red', marker='o')
-            plt.title("Orig RGB")
-
-            plt.show()
+        plt.show()
