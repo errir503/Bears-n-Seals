@@ -29,43 +29,45 @@ def parse_meta_deta(filename):
 
 
 def parse_ts(ts):
-    if len(ts) != 21 or ts[18:21] != 'GMT':
+    try:
+        if len(ts) != 21 or ts[18:21] != 'GMT':
+            return None
+        year = int(ts[0:4])
+        month = int(int(ts[4:6]) - 1)
+        date = int(ts[6:8])
+        hours = int(ts[8:10])
+        minutes = int(ts[10:12])
+        seconds = int(ts[12:14])
+        ms = int(ts[15:18])
+        return datetime(year, month, date, hours, minutes, seconds, ms)
+    except:
         return None
-    year = int(ts[0:4])
-    month = int(int(ts[4:6]) - 1)
-    date = int(ts[6:8])
-    hours = int(ts[8:10])
-    minutes = int(ts[10:12])
-    seconds = int(ts[12:14])
-    ms = int(ts[15:18])
-    return datetime(year, month, date, hours, minutes, seconds, ms)
+
 
 
 def parse_hotspot(row, res_path):
-    try:
-        # get camera positions, project name, and aircraft
-        time = parse_ts(row[TIMESTAMP])
-        project_name, aircraft, rgb_pos = parse_meta_deta(row[IMG_RGB_COL_IDX])
-        project_name, aircraft, thermal_pos = parse_meta_deta(row[IMG_THERMAL8_COL_IDX])
-        project_name, aircraft, ir_pos = parse_meta_deta(row[IMG_THERMAL16_COL_IDX])
-        # create each image object
-        rgb = Image(res_path + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
-        thermal = Image(res_path + row[IMG_THERMAL8_COL_IDX], "thermal", thermal_pos)
-        ir = Image(res_path + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
-        return HotSpot(row[HOTSPOT_ID_COL_IDX],
-                       int(row[XPOS_IDX]),
-                       int(row[YPOS_IDX]),
-                       int(row[LEFT_IDX]),
-                       int(row[TOP_IDX]),
-                       int(row[RIGHT_IDX]),
-                       int(row[BOT_IDX]),
-                       row[HOTSPOT_TYPE_COL_IDX],
-                       row[SPECIES_ID_COL_IDX],
-                       rgb,
-                       thermal,
-                       ir,
-                       time,
-                       project_name, aircraft)
-    except:
-        return None
+    # get camera positions, project name, and aircraft
+    time = parse_ts(row[TIMESTAMP])
+    project_name, aircraft, rgb_pos = parse_meta_deta(row[IMG_RGB_COL_IDX])
+    project_name, aircraft, thermal_pos = parse_meta_deta(row[IMG_THERMAL8_COL_IDX])
+    project_name, aircraft, ir_pos = parse_meta_deta(row[IMG_THERMAL16_COL_IDX])
+    # create each image object
+    rgb = Image(res_path + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
+    thermal = Image(res_path + row[IMG_THERMAL8_COL_IDX], "thermal", thermal_pos)
+    ir = Image(res_path + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
+    return HotSpot(row[HOTSPOT_ID_COL_IDX],
+                   int(row[XPOS_IDX]),
+                   int(row[YPOS_IDX]),
+                   int(row[LEFT_IDX]),
+                   int(row[TOP_IDX]),
+                   int(row[RIGHT_IDX]),
+                   int(row[BOT_IDX]),
+                   row[HOTSPOT_TYPE_COL_IDX],
+                   row[SPECIES_ID_COL_IDX],
+                   rgb,
+                   thermal,
+                   ir,
+                   time,
+                   project_name, aircraft)
+
 
