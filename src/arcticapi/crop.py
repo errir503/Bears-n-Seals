@@ -2,8 +2,9 @@ import os
 import cv2
 from random import randint
 
+
 # can chose to prep one label with a hotspot identifier
-def crop_hotspot(out_dir, delta_bb, hs, minShift = 0, maxShift=0):
+def crop_hotspot(out_dir, delta_bb, hs, minShift, maxShift, label):
     img = hs.rgb.image
     classIndex = hs.classIndex
     id = hs.id
@@ -50,15 +51,22 @@ def crop_hotspot(out_dir, delta_bb, hs, minShift = 0, maxShift=0):
     rcrop = min(rcrop, imgw)
 
     crop_img = img[tcrop:bcrop, lcrop: rcrop]
-
     croph = crop_img.shape[0]
     cropw = crop_img.shape[1]
+    file_name = out_dir + "crop_" + id + "_" + str(classIndex)
+    cv2.imwrite(file_name + ".jpg", crop_img)
+
+    tcropn, bcropn, lcropn, rcropn = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh)
+    crop_img_neg = img[tcropn:bcropn, lcropn: rcropn]
+    file_name = out_dir + "crop_" + id + "_" + str(classIndex)
+    cv2.imwrite(file_name + ".jpg", crop_img)
 
     # cv2.circle(crop_img, (center_x, center_y), 5, (0, 255, 0), 2)
     # cv2.rectangle(crop_img, (center_x-delta_bb, center_y-delta_bb), (center_x+delta_bb, center_y+delta_bb), (0, 255, 0), 2) #draw rect
 
-    file_name = out_dir +  "crop_" + id + "_" + str(classIndex)
-    cv2.imwrite(file_name + ".jpg", crop_img)
+    file_name_neg = out_dir + "crop_" + id + "_" + str(classIndex) + "_neg"
+    open(file_name_neg+".txt", 'a').close()
+    cv2.imwrite(file_name_neg + ".jpg", crop_img_neg)
 
     if classIndex == 0 or classIndex == 1:
         classIndex == 0
@@ -68,8 +76,24 @@ def crop_hotspot(out_dir, delta_bb, hs, minShift = 0, maxShift=0):
                    str((delta_bb + 0.0) / cropw) + " " +
                    str((delta_bb + 0.0) / croph) + "\n")
 
-    with open('training_list.txt', 'a') as file:
+    with open(label, 'a') as file:
         file.write(os.getcwd() + "/" + file_name + ".jpg" + "\n")
+
+
+def negative_bounds(topCrop, bottomCrop, leftCrop, rightCrop, w, h):
+    offset = 50
+    if leftCrop > w / 2:
+        # take negative sample from right half
+        return topCrop + offset, bottomCrop + offset, w - 512, w
+    elif rightCrop < w / 2:
+        # take negative sample from left half
+        return topCrop + offset, bottomCrop + offset, 0, 512
+
+    # elif topCrop < h / 2:
+    #     # take negative sample from left half
+    #     return bottomCrop, bottomCrop+512, leftCrop, rightCrop
+
+    return 0, 512, 0, 512
 
 
 def random_shift(topCrop, bottomCrop, leftCrop, rightCrop, w, h, minShift, maxShift):
@@ -82,7 +106,7 @@ def random_shift(topCrop, bottomCrop, leftCrop, rightCrop, w, h, minShift, maxSh
     # make dx
     if randint(0, 1) == 1:
         if leftCrop != 0 and randint(0, 1) == 1:
-            dx -=  randint(minShift, maxShift)
+            dx -= randint(minShift, maxShift)
 
         elif rightCrop != 0 and randint(0, 1) == 1:
             dx += randint(minShift, maxShift)
