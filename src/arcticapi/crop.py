@@ -54,8 +54,8 @@ def crop_hotspot(out_dir, delta_bb, hs, minShift = 0, maxShift=0):
     croph = crop_img.shape[0]
     cropw = crop_img.shape[1]
 
-    cv2.circle(crop_img, (center_x, center_y), 5, (0, 255, 0), 2)
-    cv2.rectangle(crop_img, (center_x-delta_bb, center_y-delta_bb), (center_x+delta_bb, center_y+delta_bb), (0, 255, 0), 2) #draw rect
+    # cv2.circle(crop_img, (center_x, center_y), 5, (0, 255, 0), 2)
+    # cv2.rectangle(crop_img, (center_x-delta_bb, center_y-delta_bb), (center_x+delta_bb, center_y+delta_bb), (0, 255, 0), 2) #draw rect
 
     file_name = out_dir +  "crop_" + id + "_" + str(classIndex)
     cv2.imwrite(file_name + ".jpg", crop_img)
