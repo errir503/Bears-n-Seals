@@ -12,7 +12,7 @@ Pipeline for training:
 - Train
 - Repeat
 
-
+https://www.afsc.noaa.gov/News/iceseal_pop_assess.htm
 
 Useful Commands:
 insert file path at beginning of every line
@@ -23,3 +23,7 @@ export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
 
 head -n 1000 items.txt > valid.txt
 tail -n +1001 items.txt > train.txt
+
+
+
+./darknet detector map cfg/bearsnseals.data cfg/bearsnseals.cfg backup_70/bearsnseals_3900.weights
