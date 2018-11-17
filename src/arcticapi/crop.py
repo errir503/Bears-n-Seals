@@ -3,7 +3,21 @@ import cv2
 from random import randint
 
 # can chose to prep one label with a hotspot identifier
-def crop_hotspot(out_dir, delta_bb, img, classIndex, id, rgb_bb_b, rgb_bb_t, rgb_bb_l, rgb_bb_r, minShift = 0, maxShift=0, label=False):
+def crop_hotspot(out_dir, delta_bb, hs, minShift = 0, maxShift=0, label=True):
+    if hs.classIndex > 1:
+        print("Skipping, not a seal")
+        return
+
+    img = hs.rgb.image
+    classIndex = hs.classIndex
+    id = hs.id
+    rgb_bb_b = hs.rgb_bb_b
+    rgb_bb_t = hs.rgb_bb_t
+    rgb_bb_l = hs.rgb_bb_l
+    rgb_bb_r = hs.rgb_bb_r
+    if classIndex > 1:
+        return
+
     imgh = img.shape[0]
     imgw = img.shape[1]
 
@@ -32,6 +46,13 @@ def crop_hotspot(out_dir, delta_bb, img, classIndex, id, rgb_bb_b, rgb_bb_t, rgb
     center_y -= dy
     center_x -= dx
 
+    tcrop = max(tcrop, 0)
+    bcrop = max(bcrop, 0)
+    bcrop = min(bcrop, imgh)
+    lcrop = max(lcrop, 0)
+    rcrop = max(rcrop, 0)
+    rcrop = min(rcrop, imgw)
+
     crop_img = img[tcrop:bcrop, lcrop: rcrop]
 
     croph = crop_img.shape[0]
@@ -40,8 +61,12 @@ def crop_hotspot(out_dir, delta_bb, img, classIndex, id, rgb_bb_b, rgb_bb_t, rgb
     cv2.circle(crop_img, (center_x, center_y), 5, (0, 255, 0), 2)
     cv2.rectangle(crop_img, (center_x-delta_bb, center_y-delta_bb), (center_x+delta_bb, center_y+delta_bb), (0, 255, 0), 2) #draw rect
 
-    file_name = out_dir + "/crop_" + id
+    file_name = out_dir +  "/crop_" + id + "_" + str(classIndex)
     cv2.imwrite(file_name + ".jpg", crop_img)
+
+    if classIndex == 0 or classIndex == 1:
+        classIndex == 0
+
     if label:
         with open(file_name + ".txt", 'a') as file:
             file.write(str(classIndex) + " " + str((center_x + 0.0) / cropw) + " " +
