@@ -18,12 +18,27 @@ class ArcticApi:
 
 
         hsm = data_types.HotSpotMap()
-
+        ringed_seal_ct = 0
+        bearded_seal_ct = 0
+        polar_bear_ct = 0
+        na_seal_ct = 0
         for row in rows:
             hotspot = parse_hotspot(row, im_path)
+            if hotspot.classIndex == 0:
+                ringed_seal_ct += 1
+            elif hotspot.classIndex == 1:
+                bearded_seal_ct += 1
+            elif hotspot.classIndex == 2:
+                polar_bear_ct += 1
+            elif hotspot.classIndex == 3:
+                na_seal_ct += 1
             hsm.add(hotspot)
 
         self.hsm = hsm
+        print("Ringed Seals: " + str(ringed_seal_ct))
+        print("Bearded Seals: " + str(bearded_seal_ct))
+        print("Polar Bears: " + str(polar_bear_ct))
+        print("NA Seals: " + str(na_seal_ct))
         del rows
 
     def get_hotspots(self):

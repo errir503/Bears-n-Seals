@@ -10,7 +10,7 @@ def main():
     api.crop_label_all(out_path, width_bb=70, minShift=100, maxShift=250, label=True)
 
     # visuals.show_ir(hsm)
-    api.register()
+    # api.register()
     # api.prep_label("images/results/", 80, 16908)
     # crop_hotspots(hsm)
     # align_images(hotspots)
