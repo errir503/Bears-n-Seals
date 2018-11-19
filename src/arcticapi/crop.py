@@ -2,27 +2,30 @@ import os
 import cv2
 from random import randint
 
-class CropCfg(object):
-  def __init__(self, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly, debug = False):
-    self.out_dir = out_dir
-    self.bbox_size = bbox_size
-    self.minShift = minShift
-    self.maxShift = maxShift
-    self.crop_size = crop_size
-    self.label = label
-    self.combine_seal = combine_seal
-    self.make_bear = make_bear
-    self.make_anomaly = make_anomaly
-    self.debug = debug
 
-  def tostr(self):
-    return ("combine_seal = " + str(self.combine_seal) + "\n" +
-            "Generating polar bear crops = " + str(self.make_bear) + "\n" +
-            "generating anomaly crops crops = " + str(self.make_anomaly) + "\n\n" +
-            "bounding box w/h: " + str(self.bbox_size) + "\n" +
-            "crop size: " + str(self.crop_size) + "\n" +
-            "output to crops and labels saving to: " + self.out_dir + "\n" +
-            "training label list saving to: " + self.label)
+class CropCfg(object):
+    def __init__(self, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly,
+                 debug=False):
+        self.out_dir = out_dir
+        self.bbox_size = bbox_size
+        self.minShift = minShift
+        self.maxShift = maxShift
+        self.crop_size = crop_size
+        self.label = label
+        self.combine_seal = combine_seal
+        self.make_bear = make_bear
+        self.make_anomaly = make_anomaly
+        self.debug = debug
+
+    def tostr(self):
+        return ("combine_seal = " + str(self.combine_seal) + "\n" +
+                "Generating polar bear crops = " + str(self.make_bear) + "\n" +
+                "generating anomaly crops crops = " + str(self.make_anomaly) + "\n\n" +
+                "bounding box w/h: " + str(self.bbox_size) + "\n" +
+                "crop size: " + str(self.crop_size) + "\n" +
+                "output to crops and labels saving to: " + self.out_dir + "\n" +
+                "training label list saving to: " + self.label)
+
 
 def crop_hotspot(cfg, hs):
     """
@@ -36,14 +39,17 @@ def crop_hotspot(cfg, hs):
     imgh = img.shape[0]
     imgw = img.shape[1]
 
-    tcrop, bcrop, lcrop, rcrop, center_x, center_y = recalculate_crops(hs.rgb_bb_b, hs.rgb_bb_t, hs.rgb_bb_l, hs.rgb_bb_r,
-                                                   imgh, imgw, cfg.maxShift, cfg.minShift, cfg.crop_size)
+    tcrop, bcrop, lcrop, rcrop, center_x, center_y = recalculate_crops(hs.rgb_bb_b, hs.rgb_bb_t, hs.rgb_bb_l,
+                                                                       hs.rgb_bb_r,
+                                                                       imgh, imgw, cfg.maxShift, cfg.minShift,
+                                                                       cfg.crop_size)
 
     crop_img = img[tcrop:bcrop, lcrop: rcrop]
 
     if cfg.debug:
         cv2.circle(crop_img, (center_x, center_y), 5, (0, 255, 0), 2)
-        cv2.rectangle(crop_img, (center_x - cfg.bbox_size, center_y - cfg.bbox_size), (center_x + cfg.bbox_size, center_y + cfg.bbox_size),
+        cv2.rectangle(crop_img, (center_x - cfg.bbox_size, center_y - cfg.bbox_size),
+                      (center_x + cfg.bbox_size, center_y + cfg.bbox_size),
                       (0, 255, 0), 2)  # draw rect
 
     croph = crop_img.shape[0]
