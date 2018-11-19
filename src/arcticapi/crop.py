@@ -34,8 +34,6 @@ def crop_hotspot(out_dir, delta_bb, hs, minShift, maxShift, crop_size, label):
     open(file_name_neg + ".txt", 'a').close()
     cv2.imwrite(file_name_neg + ".jpg", crop_img_neg)
 
-    if classIndex == 0 or classIndex == 1:
-        classIndex == 0
     with open(file_name + ".txt", 'a') as file:
         file.write(str(classIndex) + " " + str((center_x + 0.0) / cropw) + " " +
                    str((center_y + 0.0) / croph) + " " +
