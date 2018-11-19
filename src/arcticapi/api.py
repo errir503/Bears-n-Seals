@@ -54,10 +54,10 @@ class ArcticApi:
                 image_registration.register_images(hs, showFigures, showImgs)
 
 
-    def crop_label_hotspot(self, out_dir, hotspot, width_bb, minShift, maxShift, label):
-        hotspot.genCropsAndLables(out_dir, width_bb, minShift, maxShift, label)
+    def crop_label_hotspot(self, out_dir, hotspot, width_bb, minShift, maxShift, crop_size, label):
+        hotspot.genCropsAndLables(out_dir, width_bb, minShift, maxShift, crop_size, label)
 
-    def crop_label_all(self, out_dir, width_bb, minShift, maxShift, label = "training_list.txt"):
+    def crop_label_all(self, out_dir, width_bb, minShift, maxShift, crop_size, label = "training_list.txt"):
         if not os.path.exists(out_dir):
             os.mkdir(out_dir)
         i = 0
@@ -69,4 +69,4 @@ class ArcticApi:
             print("Cropping hotspot:" + str(hs.id) + " -" + str(
                 round((i + 0.0) / len(self.hsm.hotspots), 2))) + "% complete"
             i += 1
-            self.crop_label_hotspot(out_dir, hs, width_bb, minShift, maxShift, label)
+            self.crop_label_hotspot(out_dir, hs, width_bb, minShift, maxShift, crop_size, label)

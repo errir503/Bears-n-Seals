@@ -7,7 +7,7 @@ def main():
     imdir = sys.argv[2]
     out_path = sys.argv[3]
     api = ArcticApi(csv_file, imdir)
-    api.crop_label_all(out_path, 70, 100, 250)
+    api.crop_label_all(out_path, 70, 100, 250, 800)
 
     # visuals.show_ir(hsm)
     # api.register()

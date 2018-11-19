@@ -11,11 +11,12 @@ parser.add_argument('--out', required=True, type=str, default=None, help='out di
 parser.add_argument('--bb', type=int, default=70, help='bounding box size: size of bounding box width and height around the center point')
 parser.add_argument('--min', type=int, default=100, help='min shift: min value shift center point dx and dy, calculated as random value between min and max')
 parser.add_argument('--max', type=int, default=250, help='max shift: max value shift center point dx and dy, calculated as random value between min and max')
+parser.add_argument('--cs', type=int, default=512, help='crop size: size of croped region')
 parser.add_argument('--label', type=str, default="training_list.txt", help='label: output file with all absolute label paths for training')
 # Parse
 args = parser.parse_args(sys.argv[1:])
 
 api = ArcticApi(args.csv, args.imdir)
-api.crop_label_all(args.out, args.bb, args.min, args.max, args.label)
+api.crop_label_all(args.out, args.bb, args.min, args.max, args.cs, args.label)
 
 print(args)

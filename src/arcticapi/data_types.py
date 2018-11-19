@@ -39,11 +39,10 @@ class HotSpot:
         y = self.rgb_bb_t + ((self.rgb_bb_b - self.rgb_bb_t) / 2)
         return (x, y)
 
-    def genCropsAndLables(self, out_dir, width_bb, minShift, maxShift, label = "training_list.txt"):
+    def genCropsAndLables(self, out_dir, width_bb, minShift, maxShift, crop_size, label="training_list.txt"):
         if self.rgb.load_image():
-            crop.crop_hotspot(out_dir, width_bb, self, minShift, maxShift, label)
+            crop.crop_hotspot(out_dir, width_bb, self, minShift, maxShift, crop_size, label)
         self.rgb.free()
-
 
 
 class Image():
@@ -54,7 +53,7 @@ class Image():
         self.camerapos = camerapos  # camera position
 
     # Loads image to memory, returns true if success, false if not
-    def load_image(self, colorJet = False):
+    def load_image(self, colorJet=False):
         if self.image is not None:
             return True
         elif self.type == "rgb":
@@ -75,7 +74,7 @@ class Image():
     def tile(self):
         self.load_image()
 
-    def imreadIR(self, fileIR, colorJet = False):
+    def imreadIR(self, fileIR, colorJet=False):
         anyDepth = cv2.imread(fileIR, cv2.IMREAD_ANYDEPTH)
         if (not anyDepth is None):
             imgGlobalNorm = norm.normalize_ir_global(self.camerapos, fileIR)
@@ -103,11 +102,9 @@ class HotSpotMap:
         if rgb.path not in self.images:
             self.images[rgb.path] = []
 
-
         thermal = hotspot.thermal
         if thermal.path not in self.images:
             self.images[thermal.path] = []
-
 
         ir = hotspot.ir
         if ir.path not in self.images:
@@ -126,5 +123,3 @@ class HotSpotMap:
             return self.hotspots[self.hs_id_to_idx[str(id)]]
         print("No HotSpot with id: " + str(id))
         return None
-
-
