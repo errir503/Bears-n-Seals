@@ -57,6 +57,11 @@ optional arguments:
   --cs CS        crop size: size of croped region (default: 512)
   --label LABEL  label: output file with all absolute label paths for training
                  (default: training_list.txt)
+  -c             global seal class: puts all seals as one class (default:
+                 False)
+  -b             make bear labels (default: False)
+  -a             make anomaly labels (default: False)
+  -d             debug: draws bounding box bounds (default: False)
 ```
 
 ## TODOs

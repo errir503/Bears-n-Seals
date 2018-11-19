@@ -3,6 +3,7 @@ import numpy as np
 
 import normalizer as norm
 from arcticapi import crop
+from arcticapi.crop import CropCfg
 
 SpeciesList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
 
@@ -39,9 +40,12 @@ class HotSpot:
         y = self.rgb_bb_t + ((self.rgb_bb_b - self.rgb_bb_t) / 2)
         return (x, y)
 
-    def genCropsAndLables(self, out_dir, width_bb, minShift, maxShift, crop_size, label="training_list.txt"):
+    def genCropsAndLables(self, cfg):
+        """
+        :type cfg: CropCfg
+        """
         if self.rgb.load_image():
-            crop.crop_hotspot(out_dir, width_bb, self, minShift, maxShift, crop_size, label)
+            crop.crop_hotspot(cfg, self)
         self.rgb.free()
 
 

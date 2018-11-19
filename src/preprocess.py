@@ -1,6 +1,7 @@
 import argparse
 import sys
 from arcticapi import ArcticApi
+from arcticapi.crop import CropCfg
 
 parser = argparse.ArgumentParser(description='Command line interface for cropping seal data.',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -16,11 +17,14 @@ parser.add_argument('--label', type=str, default="training_list.txt", help='labe
 parser.add_argument('-c', action='store_true', default=False, help='global seal class: puts all seals as one class')
 parser.add_argument('-b', action='store_true', default=False, help='make bear labels')
 parser.add_argument('-a', action='store_true', default=False, help='make anomaly labels')
+parser.add_argument('-d', action='store_true', default=False, help='debug: draws bounding box bounds')
 
 # Parse
 args = parser.parse_args(sys.argv[1:])
 
 api = ArcticApi(args.csv, args.imdir)
-api.crop_label_all(args.out, args.bb, args.min, args.max, args.cs, args.label, args.c, args.b, args.a)
+cfg = CropCfg(args.out, args.bb, args.min, args.max, args.cs, args.label, args.c, args.b, args.a, args.d)
+api.crop_label_all(cfg)
 
 print(args)
+

@@ -2,8 +2,34 @@ import os
 import cv2
 from random import randint
 
+class CropCfg(object):
+  def __init__(self, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly, debug = False):
+    self.out_dir = out_dir
+    self.bbox_size = bbox_size
+    self.minShift = minShift
+    self.maxShift = maxShift
+    self.crop_size = crop_size
+    self.label = label
+    self.combine_seal = combine_seal
+    self.make_bear = make_bear
+    self.make_anomaly = make_anomaly
+    self.debug = debug
 
-def crop_hotspot(out_dir, delta_bb, hs, minShift, maxShift, crop_size, label):
+  def tostr(self):
+    return ("combine_seal = " + str(self.combine_seal) + "\n" +
+            "Generating polar bear crops = " + str(self.make_bear) + "\n" +
+            "generating anomaly crops crops = " + str(self.make_anomaly) + "\n\n" +
+            "bounding box w/h: " + str(self.bbox_size) + "\n" +
+            "crop size: " + str(self.crop_size) + "\n" +
+            "output to crops and labels saving to: " + self.out_dir + "\n" +
+            "training label list saving to: " + self.label)
+
+def crop_hotspot(cfg, hs):
+    """
+
+    :param cfg: CropCfg
+    :type hs: HotSpot
+    """
     img = hs.rgb.image
     classIndex = hs.classIndex
     id = hs.id
@@ -11,36 +37,37 @@ def crop_hotspot(out_dir, delta_bb, hs, minShift, maxShift, crop_size, label):
     imgw = img.shape[1]
 
     tcrop, bcrop, lcrop, rcrop, center_x, center_y = recalculate_crops(hs.rgb_bb_b, hs.rgb_bb_t, hs.rgb_bb_l, hs.rgb_bb_r,
-                                                   imgh, imgw, maxShift, minShift, crop_size)
+                                                   imgh, imgw, cfg.maxShift, cfg.minShift, cfg.crop_size)
 
     crop_img = img[tcrop:bcrop, lcrop: rcrop]
 
-    cv2.circle(crop_img, (center_x, center_y), 5, (0, 255, 0), 2)
-    cv2.rectangle(crop_img, (center_x - delta_bb, center_y - delta_bb), (center_x + delta_bb, center_y + delta_bb),
-                  (0, 255, 0), 2)  # draw rect
+    if cfg.debug:
+        cv2.circle(crop_img, (center_x, center_y), 5, (0, 255, 0), 2)
+        cv2.rectangle(crop_img, (center_x - cfg.bbox_size, center_y - cfg.bbox_size), (center_x + cfg.bbox_size, center_y + cfg.bbox_size),
+                      (0, 255, 0), 2)  # draw rect
 
     croph = crop_img.shape[0]
     cropw = crop_img.shape[1]
-    file_name = out_dir + "crop_" + id + "_" + str(classIndex)
+    file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
     cv2.imwrite(file_name + ".jpg", crop_img)
 
     tcropn, bcropn, lcropn, rcropn = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh)
     crop_img_neg = img[tcropn:bcropn, lcropn: rcropn]
-    file_name = out_dir + "crop_" + id + "_" + str(classIndex)
+    file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
     cv2.imwrite(file_name + ".jpg", crop_img)
 
     # Generate negative image for training
-    file_name_neg = out_dir + "crop_" + id + "_" + str(classIndex) + "_neg"
+    file_name_neg = cfg.out_dir + "crop_" + id + "_" + str(classIndex) + "_neg"
     open(file_name_neg + ".txt", 'a').close()
     cv2.imwrite(file_name_neg + ".jpg", crop_img_neg)
 
     with open(file_name + ".txt", 'a') as file:
         file.write(str(classIndex) + " " + str((center_x + 0.0) / cropw) + " " +
                    str((center_y + 0.0) / croph) + " " +
-                   str((delta_bb + 0.0) / cropw) + " " +
-                   str((delta_bb + 0.0) / croph) + "\n")
+                   str((cfg.bbox_size + 0.0) / cropw) + " " +
+                   str((cfg.bbox_size + 0.0) / croph) + "\n")
 
-    with open(label, 'a') as file:
+    with open(cfg.label, 'a') as file:
         file.write(os.getcwd() + "/" + file_name + ".jpg" + "\n")
         file.write(os.getcwd() + "/" + file_name_neg + ".jpg" + "\n")
 
