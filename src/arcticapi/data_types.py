@@ -4,7 +4,7 @@ import numpy as np
 import normalizer as norm
 from arcticapi import crop
 
-SpeciesList = ["Ringed Seal", "Bearded Seal", "Polar Bear", "UNK Seal", "NA"]
+SpeciesList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
 
 
 class HotSpot:

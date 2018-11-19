@@ -2,7 +2,7 @@ import argparse
 import sys
 from arcticapi import ArcticApi
 
-parser = argparse.ArgumentParser(description='Command line interface for cropping seal data',
+parser = argparse.ArgumentParser(description='Command line interface for cropping seal data.',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('--csv', required=True, type=str, default=None, help='csv file: relative path to the seal image data csv file')
@@ -13,10 +13,14 @@ parser.add_argument('--min', type=int, default=100, help='min shift: min value s
 parser.add_argument('--max', type=int, default=250, help='max shift: max value shift center point dx and dy, calculated as random value between min and max')
 parser.add_argument('--cs', type=int, default=512, help='crop size: size of croped region')
 parser.add_argument('--label', type=str, default="training_list.txt", help='label: output file with all absolute label paths for training')
+parser.add_argument('-c', action='store_true', default=False, help='global seal class: puts all seals as one class')
+parser.add_argument('-b', action='store_true', default=False, help='make bear labels')
+parser.add_argument('-a', action='store_true', default=False, help='make anomaly labels')
+
 # Parse
 args = parser.parse_args(sys.argv[1:])
 
 api = ArcticApi(args.csv, args.imdir)
-api.crop_label_all(args.out, args.bb, args.min, args.max, args.cs, args.label)
+api.crop_label_all(args.out, args.bb, args.min, args.max, args.cs, args.label, args.c, args.b, args.a)
 
 print(args)

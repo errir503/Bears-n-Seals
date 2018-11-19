@@ -7,9 +7,6 @@ def crop_hotspot(out_dir, delta_bb, hs, minShift, maxShift, crop_size, label):
     img = hs.rgb.image
     classIndex = hs.classIndex
     id = hs.id
-    if classIndex > 1:
-        return
-
     imgh = img.shape[0]
     imgw = img.shape[1]
 

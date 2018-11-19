@@ -22,6 +22,7 @@ class ArcticApi:
         bearded_seal_ct = 0
         polar_bear_ct = 0
         na_seal_ct = 0
+        na_animal_ct = 0
         for row in rows:
             hotspot = parse_hotspot(row, im_path)
             if hotspot.classIndex == 0:
@@ -29,9 +30,12 @@ class ArcticApi:
             elif hotspot.classIndex == 1:
                 bearded_seal_ct += 1
             elif hotspot.classIndex == 2:
-                polar_bear_ct += 1
-            elif hotspot.classIndex == 3:
                 na_seal_ct += 1
+            elif hotspot.classIndex == 3:
+                polar_bear_ct += 1
+            elif hotspot.classIndex == 4:
+                na_animal_ct += 1
+
             hsm.add(hotspot)
 
         self.hsm = hsm
@@ -39,6 +43,7 @@ class ArcticApi:
         print("Bearded Seals: " + str(bearded_seal_ct))
         print("Polar Bears: " + str(polar_bear_ct))
         print("NA Seals: " + str(na_seal_ct))
+        print("NA Animals: " + str(na_animal_ct))
         del rows
 
     def get_hotspots(self):
@@ -53,20 +58,41 @@ class ArcticApi:
             if hs is not None:
                 image_registration.register_images(hs, showFigures, showImgs)
 
+    def crop_label_all(self, out_dir, width_bb, minShift, maxShift, crop_size, label, combine_seals, train_bear, train_anomaly):
+        hs_ct = len(self.hsm.hotspots)
+        print("Processing " + str(hs_ct) + " hotspots")
+        print("Combining all seals into 1 seal class = " + str(combine_seals))
+        print("Generating polar bear crops = " + str(train_bear))
+        print("Generating anomaly crops crops = " + str(train_anomaly))
+        print("")
+        print("Bounding box w/h: " + str(width_bb))
+        print("Crop size: " + str(crop_size))
+        print("")
+        print("Output to crops and labels saving to: " + out_dir)
+        print("Training label list saving to: " + label)
 
-    def crop_label_hotspot(self, out_dir, hotspot, width_bb, minShift, maxShift, crop_size, label):
-        hotspot.genCropsAndLables(out_dir, width_bb, minShift, maxShift, crop_size, label)
-
-    def crop_label_all(self, out_dir, width_bb, minShift, maxShift, crop_size, label = "training_list.txt"):
         if not os.path.exists(out_dir):
             os.mkdir(out_dir)
         i = 0
+        total_crops = 0
         for hs in self.hsm.hotspots:
-            if hs.classIndex > 1:
-                print("Skipping, not a seal")
-                continue
-            hs.classIndex = 0
-            print("Cropping hotspot:" + str(hs.id) + " -" + str(
-                round((i + 0.0) / len(self.hsm.hotspots), 2))) + "% complete"
             i += 1
-            self.crop_label_hotspot(out_dir, hs, width_bb, minShift, maxShift, crop_size, label)
+            if not train_bear and hs.classIndex == 3:
+                continue
+
+            if not train_anomaly and hs.classIndex == 4:
+                continue
+
+
+
+            if combine_seals:
+                if hs.classIndex == 0 or hs.classIndex == 1 or hs.classIndex == 2:
+                    hs.classIndex = 0
+            if total_crops % 10 == 0:
+                print("Cropping hotspot:" + str(hs.id) + " -" + str(
+                    round((i + 0.0) / hs_ct, 2) * 100) + "% complete, total " + str(total_crops))
+
+            total_crops += 1
+
+
+            hs.genCropsAndLables(out_dir, width_bb, minShift, maxShift, crop_size, label)
