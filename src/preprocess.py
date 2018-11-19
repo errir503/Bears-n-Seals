@@ -22,6 +22,8 @@ parser.add_argument('-d', action='store_true', default=False, help='debug: draws
 # Parse
 args = parser.parse_args(sys.argv[1:])
 
+
+
 api = ArcticApi(args.csv, args.imdir)
 cfg = CropCfg(args.out, args.bb, args.min, args.max, args.cs, args.label, args.c, args.b, args.a, args.d)
 api.crop_label_all(cfg)

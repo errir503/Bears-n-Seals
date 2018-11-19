@@ -75,8 +75,8 @@ class ArcticApi:
             classes[hs.classIndex] += 1
             hs.genCropsAndLables(cfg)
 
-        if cfg.combine_seals:
-            print("Se.ls: " + str(classes[0]))
+        if cfg.combine_seal:
+            print("Seals: " + str(classes[0]))
         else:
             print("Ringed Seals: " + str(classes[0]))
             print("Bearded Seals: " + str(classes[1]))
