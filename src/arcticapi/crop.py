@@ -137,7 +137,6 @@ def recalculate_crops(rgb_bb_b, rgb_bb_t, rgb_bb_l, rgb_bb_r, imgh, imgw, maxShi
 
     dx = lcrop_orig - lcrop
     dy = tcrop_orig - tcrop
-    print(dx, dy)
     local_x = crop_size/2 + dx
     local_y = crop_size/2 + dy
     return tcrop, bcrop, lcrop, rcrop, local_x, local_y
