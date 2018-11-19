@@ -83,3 +83,5 @@ class ArcticApi:
             print("NA Seals: " + str(classes[2]))
         print("Polar Bears: " + str(classes[3]))
         print("NA Animals: " + str(classes[4]))
+
+

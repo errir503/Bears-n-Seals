@@ -48,8 +48,8 @@ def crop_hotspot(cfg, hs):
 
     if cfg.debug:
         cv2.circle(crop_img, (center_x, center_y), 5, (0, 255, 0), 2)
-        cv2.rectangle(crop_img, (center_x - cfg.bbox_size, center_y - cfg.bbox_size),
-                      (center_x + cfg.bbox_size, center_y + cfg.bbox_size),
+        cv2.rectangle(crop_img, (center_x - cfg.bbox_size /2, center_y - cfg.bbox_size /2),
+                      (center_x + cfg.bbox_size /2, center_y + cfg.bbox_size /2),
                       (0, 255, 0), 2)  # draw rect
 
     croph = crop_img.shape[0]
@@ -57,8 +57,8 @@ def crop_hotspot(cfg, hs):
     file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
     cv2.imwrite(file_name + ".jpg", crop_img)
 
-    tcropn, bcropn, lcropn, rcropn = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh)
-    crop_img_neg = img[tcropn:bcropn, lcropn: rcropn]
+    tcrop, bcrop, lcrop, rcrop = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh, cfg.crop_size)
+    crop_img_neg = img[tcrop:bcrop, lcrop: rcrop]
     file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
     cv2.imwrite(file_name + ".jpg", crop_img)
 
@@ -83,60 +83,81 @@ def recalculate_crops(rgb_bb_b, rgb_bb_t, rgb_bb_l, rgb_bb_r, imgh, imgw, maxShi
     center_y_global = rgb_bb_t + (rgb_bb_b - rgb_bb_t) / 2
     center_x_global = rgb_bb_l + (rgb_bb_r - rgb_bb_l) / 2
 
-    # recalculate crops
-    rgb_bb_b = center_y_global + crop_size / 2
-    rgb_bb_t = center_y_global - crop_size / 2
-    rgb_bb_l = center_x_global - crop_size / 2
-    rgb_bb_r = center_x_global + crop_size / 2
+    lcrop_orig = center_x_global - crop_size/2
+    rcrop_orig = center_x_global + crop_size/2
+    tcrop_orig = center_y_global - crop_size/2
+    bcrop_orig = center_y_global + crop_size/2
 
-    center_y = (rgb_bb_b - rgb_bb_t) / 2
-    center_x = (rgb_bb_r - rgb_bb_l) / 2
+    dx, dy = random_shift(tcrop_orig, bcrop_orig, lcrop_orig, rcrop_orig, imgw, imgh, minShift, maxShift)
 
-    tcrop = max(rgb_bb_t, 0)
-    bcrop = max(rgb_bb_b, 0)
-    bcrop = min(bcrop, imgh)
-    lcrop = max(rgb_bb_l, 0)
-    rcrop = max(rgb_bb_r, 0)
-    rcrop = min(rcrop, imgw)
+    lcrop = lcrop_orig + dx
+    rcrop = rcrop_orig + dx
+    bcrop = bcrop_orig + dy
+    tcrop = tcrop_orig + dy
 
-    dx, dy = random_shift(tcrop, bcrop, lcrop, rcrop, imgw, imgh, minShift, maxShift)
+    # Ensure hotspot is still in cropped space, if not shift so that it is
+    if center_x_global < lcrop:
+        diff = lcrop - center_x_global
+        lcrop -= diff
+        rcrop -= diff
 
-    lcrop += dx
-    rcrop += dx
-    bcrop += dy
-    tcrop += dy
-    center_y -= dy
-    center_x -= dx
+    if center_x_global > rcrop:
+        diff = center_x_global - rcrop
+        lcrop += diff
+        rcrop += diff
 
-    tcrop = max(tcrop, 0)
-    bcrop = max(bcrop, 0)
-    bcrop = min(bcrop, imgh)
-    lcrop = max(lcrop, 0)
-    rcrop = max(rcrop, 0)
-    rcrop = min(rcrop, imgw)
+    if center_y_global < tcrop:
+        diff = center_y_global - tcrop
+        bcrop += diff
+        tcrop += diff
 
-    if tcrop == 0:
-        center_y += rgb_bb_t
-    if lcrop == 0:
-        center_x += rgb_bb_l
+    if center_y_global > bcrop:
+        diff = bcrop - center_y_global
+        bcrop -= diff
+        tcrop -= diff
 
-    return tcrop, bcrop, lcrop, rcrop, center_x, center_y
+    if tcrop < 0:
+        diff = 0 - tcrop
+        tcrop += diff
+        bcrop += diff
+    if bcrop > imgh:
+        diff = bcrop - imgh
+        bcrop -= diff
+        tcrop -= diff
+    if lcrop < 0:
+        diff = 0 - lcrop
+        lcrop += diff
+        rcrop += diff
+    if rcrop > imgw:
+        diff = imgw - rcrop
+        rcrop -= diff
+        lcrop -= diff
 
 
-def negative_bounds(topCrop, bottomCrop, leftCrop, rightCrop, w, h):
+
+    dx = lcrop_orig - lcrop
+    dy = tcrop_orig - tcrop
+    print(dx, dy)
+    local_x = crop_size/2 + dx
+    local_y = crop_size/2 + dy
+    return tcrop, bcrop, lcrop, rcrop, local_x, local_y
+
+
+def negative_bounds(topCrop, bottomCrop, leftCrop, rightCrop, w, h, crop_size):
+    # TODO find points screen quadrant take from another quadrant
     offset = 50
     if leftCrop > w / 2:
         # take negative sample from right half
-        return topCrop + offset, bottomCrop + offset, w - 512, w
+        return topCrop + offset, bottomCrop + offset, w - crop_size, w
     elif rightCrop < w / 2:
         # take negative sample from left half
-        return topCrop + offset, bottomCrop + offset, 0, 512
+        return topCrop + offset, bottomCrop + offset, 0, crop_size
 
     # elif topCrop < h / 2:
     #     # take negative sample from left half
     #     return bottomCrop, bottomCrop+512, leftCrop, rightCrop
 
-    return 0, 512, 0, 512
+    return 0, crop_size, 0, crop_size
 
 
 def random_shift(topCrop, bottomCrop, leftCrop, rightCrop, w, h, minShift, maxShift):
