@@ -1,9 +1,10 @@
-#Bears-n-Seals
+
+# Bears-n-Seals
 This a project collaboration between NOAA and XNOR AI.  The goal of this
 project is to detect seals and polar bears in aerial imagery from different locations in the arctic.
 
 
-##Data
+## Data
 All images were gathered from a plane flying ~1,000 feet above the ice.
 
 * `_CHESS_ImagesSelected4Detection.csv` : All raw hotspot data.
