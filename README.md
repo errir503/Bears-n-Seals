@@ -24,12 +24,12 @@ The column schema is as follows(each record in unique):
 The file names for `filt_color, filt_thermal8, filt_thermal16`:
 
 Example: `CHESS_FL1_C_160408_000946.314_THERM-16BIT.PNG`
-* [CHESS] : project name
-* [FL1] : plane tail number
-* [c] : camera - plane caries 3 pairs of thermal and EO cameras
-* [160408] : flight id
-* [000946.314] : timestamp  - sometimes formatted like 000946.314GMT
-* [THERM-16BIT]: image type = [THERM-16BIT] is for IR, [COLOR-8-BIT] is for RGB, [THERM-8-bit] is for thermal 8-bit
+* `[CHESS]` : project name
+* `[FL1]` : plane tail number
+* `[c]` : camera - plane caries 3 pairs of thermal and EO cameras
+* `[160408]` : flight id
+* `[000946.314]` : timestamp  - sometimes formatted like 000946.314GMT
+* `[THERM-16BIT]` : image type = [THERM-16BIT] is for IR, [COLOR-8-BIT] is for RGB, [THERM-8-bit] is for thermal 8-bit
 
 **NOTE:** timestamps are taken from thermal and applied to IR/therm image names
 
