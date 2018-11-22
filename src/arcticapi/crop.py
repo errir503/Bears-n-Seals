@@ -2,10 +2,12 @@ import os
 import cv2
 from random import randint
 
-
+# Config object for cropping/augmentation parameters
 class CropCfg(object):
-    def __init__(self, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly,
+    def __init__(self, csv, im_dir, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly,
                  debug=False):
+        self.csv = csv
+        self.im_dir = im_dir
         self.out_dir = out_dir
         self.bbox_size = bbox_size
         self.minShift = minShift
@@ -16,16 +18,6 @@ class CropCfg(object):
         self.make_bear = make_bear
         self.make_anomaly = make_anomaly
         self.debug = debug
-
-    def tostr(self):
-        return ("combine_seal = " + str(self.combine_seal) + "\n" +
-                "Generating polar bear crops = " + str(self.make_bear) + "\n" +
-                "generating anomaly crops crops = " + str(self.make_anomaly) + "\n\n" +
-                "bounding box w/h: " + str(self.bbox_size) + "\n" +
-                "crop size: " + str(self.crop_size) + "\n" +
-                "output to crops and labels saving to: " + self.out_dir + "\n" +
-                "training label list saving to: " + self.label)
-
 
 def crop_hotspot(cfg, hs):
     """
@@ -62,21 +54,24 @@ def crop_hotspot(cfg, hs):
     file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
     cv2.imwrite(file_name + ".jpg", crop_img)
 
-    # Generate negative image for training
+    # Generate negative image for training and label
     file_name_neg = cfg.out_dir + "crop_" + id + "_" + str(classIndex) + "_neg"
     open(file_name_neg + ".txt", 'a').close()
     cv2.imwrite(file_name_neg + ".jpg", crop_img_neg)
 
+    # Generate trainin label
     with open(file_name + ".txt", 'a') as file:
         file.write(str(classIndex) + " " + str((center_x + 0.0) / cropw) + " " +
                    str((center_y + 0.0) / croph) + " " +
                    str((cfg.bbox_size + 0.0) / cropw) + " " +
                    str((cfg.bbox_size + 0.0) / croph) + "\n")
 
-    with open(cfg.label, 'a') as file:
-        file.write(os.getcwd() + "/" + file_name + ".jpg" + "\n")
-        file.write(os.getcwd() + "/" + file_name_neg + ".jpg" + "\n")
+    write_label(file_name, cfg.label)
+    write_label(file_name_neg, cfg.label)
 
+def write_label(file_name, label_files_list):
+    with open(label_files_list, 'a') as file:
+        file.write(os.getcwd() + "/" + file_name + ".jpg" + "\n")
 
 def recalculate_crops(rgb_bb_b, rgb_bb_t, rgb_bb_l, rgb_bb_r, imgh, imgw, maxShift, minShift, crop_size):
     # center points of bounding box in the image

@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 from data_types import Image, HotSpot
 

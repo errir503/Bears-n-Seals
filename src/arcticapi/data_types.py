@@ -35,6 +35,11 @@ class HotSpot:
             print("Skipped " + self.id)
             return False
 
+    def free_all(self):
+        self.rgb.free()
+        self.ir.free()
+        self.thermal.free()
+
     def getRGBCenterPt(self):
         x = self.rgb_bb_l + ((self.rgb_bb_r - self.rgb_bb_l) / 2)
         y = self.rgb_bb_t + ((self.rgb_bb_b - self.rgb_bb_t) / 2)

@@ -1,6 +1,6 @@
 
 # Bears-n-Seals
-This a project collaboration between NOAA and XNOR AI.  The goal of this
+This project is a collaboration between NOAA and XNOR AI.  The goal of this
 project is to detect seals and polar bears in aerial imagery from different locations in the arctic.
 
 
@@ -33,8 +33,9 @@ Example: `CHESS_FL1_C_160408_000946.314_THERM-16BIT.PNG`
 
 **NOTE:** timestamps are taken from thermal and applied to IR/therm image names
 
-## Preprocessing:
-This script crops images and generates bounding box labels in darknet/yolo label foramt.
+## Preprocessing/Data augmentation:
+This script provides features to crop and augment images and generates bounding box labels in darknet/yolo label foramt.
+The input csv file must be in the same format as `_CHESS_ImagesSelected4Detection.csv` in the root of this repo.
 ```usage src/preprocess.py
 
 usage: preprocess.py
@@ -64,6 +65,8 @@ optional arguments:
   -d             debug: draws bounding box bounds (default: False)
 ```
 
+## Testing/Postprocess
+
 ## TODOs
 * Preprocess test/train split option
 * Darknet cfg file generator for quicker training
@@ -71,6 +74,7 @@ optional arguments:
 
 
 ###Info
+
 [afsc.noaa.gov/News/iceseal_pop_assess.htm](https://www.afsc.noaa.gov/News/iceseal_pop_assess.htm)
 
 ### Useful Commands:
@@ -79,7 +83,8 @@ Test/Train Split:
 `head -n 1000 training_list.txt > sealvalid.txt`
 `tail -n +1000 training_list.txt > sealtrain.txt`
 
-
+Make test set of all color images:
+`ls -l /data/noaa/NOAA_ImagesForDetectionDevelopment/CHESS/*_COLOR-8-BIT.JPG > colorvalid.jpg`
 
 Generat map score (Must use "AB Darknet fork")
 `./darknet detector map cfg/bearsnseals.data cfg/bearsnseals.cfg weights/backup.weights`
