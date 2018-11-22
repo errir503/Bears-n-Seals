@@ -75,6 +75,7 @@ def cli():
                         help='max shift: max value shift center point dx and dy, calculated as random value between min and max')
     parser.add_argument('--cs', type=int, default=512, help='crop size: size of croped region')
     parser.add_argument('--imtype', type=str, default="rgb", help='image type: rgb or ir')
+    parser.add_argument('--outlist', type=str, default="training_list.txt", help='List file to output all processed images to')
     parser.add_argument('-c', action='store_true', default=False,
                         help='global seal class: puts all seals as one class')
     parser.add_argument('-b', action='store_true', default=False, help='make bear crops/labels')

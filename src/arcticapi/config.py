@@ -4,7 +4,7 @@ from ConfigParser import SafeConfigParser
 from arcticapi.crop import CropCfg
 
 configKeys = ['csv', 'imdir', 'imout', 'bbox_size', 'min_shift', 'max_shift',
-                      'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug', 'image_type']
+                      'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug', 'image_type', 'output_list']
 
 cfgFileName = 'config.ini'
 def make_model_config(cfg, classes):
@@ -47,6 +47,7 @@ def make_config(args):
     config.set(name, configKeys[9], str(args.a))
     config.set(name, configKeys[10], str(args.d))
     config.set(name, configKeys[11], args.imtype)
+    config.set(name, configKeys[12], args.outlist)
 
     with open(cfgFileName, 'w') as configfile:
         config.write(configfile)
@@ -80,6 +81,7 @@ def load_config(name):
     make_anomaly = config.getboolean(name, configKeys[9])
     debug = config.getboolean(name, configKeys[10])
     imtype = config.get(name, configKeys[11])
-    return CropCfg(csv, imdir, imout, bbox_size, min_shift, max_shift, crop_size, "training_list.txt", merge_seal_classes,
+    outlist = config.get(name, configKeys[12])
+    return CropCfg(csv, imdir, imout, bbox_size, min_shift, max_shift, crop_size, outlist, merge_seal_classes,
                    make_bear, make_anomaly, debug, imtype, name)
 
