@@ -84,19 +84,11 @@ class Image():
         self.load_image()
 
     def imreadIR(self, fileIR, colorJet=False):
-        anyDepth = cv2.imread(fileIR, cv2.IMREAD_ANYDEPTH)
-        imgGlobalNorm = norm.normalize_ir_global(self.camerapos, fileIR)
-        imgLocalNorm = norm.normalize_ir_local(self.camerapos, fileIR)
-        imgNorm = norm.norm(anyDepth)
-
-        if (not anyDepth is None):
-            if colorJet:
-                imgNorm = cv2.applyColorMap(imgNorm.astype(np.uint8), cv2.COLORMAP_HSV)
-                anyDepth = cv2.applyColorMap(anyDepth.astype(np.uint8), cv2.COLORMAP_HSV)
-                imgGlobalNorm = cv2.applyColorMap(imgGlobalNorm.astype(np.uint8), cv2.COLORMAP_HSV)
-                imgLocalNorm = cv2.applyColorMap(imgLocalNorm.astype(np.uint8), cv2.COLORMAP_HSV)
-            return imgNorm.astype(np.uint8), imgGlobalNorm.astype(np.uint8), imgLocalNorm.astype(np.uint8), anyDepth
-        return None
+        imgLocalNorm = norm.normalize_ir_local(self.camerapos, fileIR, colorJet)
+        # imgGlobalNorm = norm.normalize_ir_global(self.camerapos, fileIR, colorJet)
+        # imgNorm = norm.norm(fileIR, colorJet)
+        # return imgNorm.astype(np.uint8), imgGlobalNorm.astype(np.uint8), imgLocalNorm.astype(np.uint8), anyDepth
+        return imgLocalNorm
 
 
 #

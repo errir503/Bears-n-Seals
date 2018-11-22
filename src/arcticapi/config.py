@@ -2,6 +2,7 @@ import collections
 from ConfigParser import SafeConfigParser
 
 from arcticapi.crop import CropCfg
+from arcticapi.visuals import bcolors
 
 configKeys = ['csv', 'imdir', 'imout', 'bbox_size', 'min_shift', 'max_shift',
                       'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug', 'image_type', 'output_list']
@@ -66,7 +67,13 @@ def load_config(name):
         if not config.has_option(name, candidate):
             print("Invalid config, missing option: " + candidate)
             return None
-        print('%-12s: %s' % (candidate, config.get(name, candidate)))
+
+        val = config.get(name, candidate)
+
+        if candidate == "debug":
+            print('%-12s: %s%s%s' % (candidate, bcolors.OKBLUE if val == 'False' else bcolors.RED, val, bcolors.ENDC))
+        else:
+            print('%-12s: %s' % (candidate, val))
     print("")
 
     csv = config.get(name, configKeys[0])

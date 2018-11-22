@@ -1,6 +1,8 @@
 """Functions for transforming 16-bit thermal images into 8-bits"""
+import cv2
 import numpy as np
 from PIL import Image as PILImage
+
 
 def norm_matrix(m):
     if m < 0:
@@ -8,6 +10,7 @@ def norm_matrix(m):
     if m > 1:
         return 1
     return m
+
 
 def norm_matrix2(m):
     if m < 0:
@@ -17,6 +20,7 @@ def norm_matrix2(m):
     if m > .5:
         return 0
     return m
+
 
 def lin_normalize_image(image_array, bit_8, bottom=None, top=None):
     """Linear normalization for an image array
@@ -42,6 +46,7 @@ def lin_normalize_image(image_array, bit_8, bottom=None, top=None):
 
     return scaled_image
 
+
 def camera_bounds(camera_pos, num_rows):
     # camera_pos S and default
     bottom = 51000
@@ -60,22 +65,39 @@ def camera_bounds(camera_pos, num_rows):
 
     return bottom, top
 
+
 ## Normalize for specific camera
-def normalize_ir_global(camerapos, filePath, bit_8 = True):
-    img =  np.array(PILImage.open(filePath))
+def normalize_ir_global(camerapos, filePath, colorJet, bit_8=True):
+    img = PILImage.open(filePath)
+    if img is None:
+        return None
+    img = np.array(img)
     bottom, top = camera_bounds(camerapos, img.shape[0])
     normalized = lin_normalize_image(img, bit_8, bottom, top)
+    if colorJet:
+        normalized = cv2.applyColorMap(normalized.astype(np.uint8), cv2.COLORMAP_HSV)
     return normalized
 
-def normalize_ir_local(camerapos, filePath, bit_8 = True):
-    img =  np.array(PILImage.open(filePath))
+
+def normalize_ir_local(camerapos, filePath, colorJet, bit_8=True):
+    img = PILImage.open(filePath)
+    if img is None:
+        return None
+    img = np.array(img)
     normalized = lin_normalize_image(img, bit_8)
+    if colorJet:
+        normalized = cv2.applyColorMap(normalized.astype(np.uint8), cv2.COLORMAP_HSV)
     return normalized
 
-def norm(img, percent=0.01):
-    return np.floor((img - np.percentile(img, percent)) / (
+
+def norm(fileIR, colorJet, percent=0.01):
+    img = cv2.imread(fileIR, cv2.IMREAD_ANYDEPTH, colorJet)
+    if img is None:
+        return None
+    img = np.floor((img - np.percentile(img, percent)) / (
             np.percentile(img, 100 - percent) - np.percentile(img, percent)) * 256)
 
-
-    
+    if colorJet:
+        img = cv2.applyColorMap(img.astype(np.uint8), cv2.COLORMAP_HSV)
+    return img
 

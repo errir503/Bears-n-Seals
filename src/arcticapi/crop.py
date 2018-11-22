@@ -31,7 +31,7 @@ def crop_ir_hotspot(cfg, hs):
 
     base_name = os.path.basename(hs.ir.path)
     file_name = cfg.out_dir + os.path.splitext(base_name)[0]
-    img = hs.ir.image[2]
+    img = hs.ir.image
 
     if cfg.debug:
         crop_path = file_name + ".jpg"
