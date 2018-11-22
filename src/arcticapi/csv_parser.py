@@ -1,5 +1,5 @@
 from datetime import datetime
-from data_types import Image, HotSpot
+from model import Image, HotSpot
 
 HOTSPOT_ID_COL_IDX = 0
 TIMESTAMP = 1

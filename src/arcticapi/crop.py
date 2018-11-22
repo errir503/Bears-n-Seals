@@ -1,7 +1,6 @@
 import os
 import cv2
 from random import randint
-
 # Config object for cropping/augmentation parameters
 class CropCfg(object):
     def __init__(self, csv, im_dir, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly,
@@ -30,7 +29,16 @@ def crop_ir_hotspot(cfg, hs):
     if not hs.ir.load_image():
         return
 
+    base_name = os.path.basename(hs.ir.path)
+    file_name = cfg.out_dir + os.path.splitext(base_name)[0]
     img = hs.ir.image[2]
+
+    if cfg.debug:
+        crop_path = file_name + ".jpg"
+        if os.path.isfile(crop_path):
+            hs.ir.free()
+            img = cv2.imread(crop_path)
+
     classIndex = hs.classIndex
     id = hs.id
     imgh = img.shape[0]
@@ -45,7 +53,6 @@ def crop_ir_hotspot(cfg, hs):
                       (center_x + cfg.bbox_size / 2, center_y + cfg.bbox_size / 2),
                       (0, 255, 0), 1)  # draw rect
 
-    file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
     cv2.imwrite(file_name + ".jpg", img)
 
     # Generate trainin label
@@ -238,9 +245,3 @@ def random_shift(topCrop, bottomCrop, leftCrop, rightCrop, w, h, minShift, maxSh
             dy = 0
 
     return dx, dy
-
-def random_augment(img):
-    m = (2, 2, 2)
-    s = (2, 2, 2)
-    cv2.randn(img, m, s)
-    return img

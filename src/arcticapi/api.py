@@ -1,7 +1,7 @@
 import os
 import csv
 
-from arcticapi import data_types, image_registration
+from arcticapi import model, image_registration
 from arcticapi.csv_parser import parse_hotspot
 from arcticapi.crop import CropCfg
 
@@ -18,7 +18,7 @@ class ArcticApi:
         del rows[0]  # remove col headers
 
 
-        hsm = data_types.HotSpotMap()
+        hsm = model.HotSpotMap()
 
         for row in rows:
             hotspot = parse_hotspot(row, im_path)
@@ -75,6 +75,12 @@ class ArcticApi:
             total_crops += 1
 
             classes[hs.classIndex] += 1
+
+            # shared = []
+            # for idx in self.hsm.images[hs.ir.path]:
+            #     nhs = self.hsm.hotspots[idx]
+            #     if not nhs.id == hs.id:
+            #         shared.append(nhs)
             hs.genCropsAndLables(cfg)
 
         if cfg.combine_seal:
