@@ -60,6 +60,7 @@ def camera_bounds(camera_pos, num_rows):
 
     return bottom, top
 
+## Normalize for specific camera
 def normalize_ir_global(camerapos, filePath, bit_8 = True):
     img =  np.array(PILImage.open(filePath))
     bottom, top = camera_bounds(camerapos, img.shape[0])

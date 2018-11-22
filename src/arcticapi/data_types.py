@@ -49,10 +49,10 @@ class HotSpot:
         """
         :type cfg: CropCfg
         """
-        if self.rgb.load_image():
-            crop.crop_hotspot(cfg, self)
-        self.rgb.free()
-
+        if cfg.imtype == "ir":
+            crop.crop_ir_hotspot(cfg, self)
+        elif cfg.imtype == "rgb":
+            crop.crop_rgb_hotspot(cfg, self)
 
 class Image():
     def __init__(self, path, type, camerapos):
@@ -85,10 +85,11 @@ class Image():
 
     def imreadIR(self, fileIR, colorJet=False):
         anyDepth = cv2.imread(fileIR, cv2.IMREAD_ANYDEPTH)
+        imgGlobalNorm = norm.normalize_ir_global(self.camerapos, fileIR)
+        imgLocalNorm = norm.normalize_ir_local(self.camerapos, fileIR)
+        imgNorm = norm.norm(anyDepth)
+
         if (not anyDepth is None):
-            imgGlobalNorm = norm.normalize_ir_global(self.camerapos, fileIR)
-            imgLocalNorm = norm.normalize_ir_local(self.camerapos, fileIR)
-            imgNorm = norm.norm(anyDepth)
             if colorJet:
                 imgNorm = cv2.applyColorMap(imgNorm.astype(np.uint8), cv2.COLORMAP_HSV)
                 anyDepth = cv2.applyColorMap(anyDepth.astype(np.uint8), cv2.COLORMAP_HSV)

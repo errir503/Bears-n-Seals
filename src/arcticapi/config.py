@@ -1,11 +1,32 @@
+import collections
 from ConfigParser import SafeConfigParser
 
 from arcticapi.crop import CropCfg
 
 configKeys = ['csv', 'imdir', 'imout', 'bbox_size', 'min_shift', 'max_shift',
-                      'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug']
+                      'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug', 'image_type']
 
 cfgFileName = 'config.ini'
+def make_model_config(cfg, classes):
+    config = SafeConfigParser()
+    config.read(cfgFileName)
+    name = cfg.name + "_model"
+
+    if config.has_section(name):
+        config.remove_section(name)
+
+    config.add_section(name)
+
+    config.set(name, "classes", str(classes))
+    config.set(name, "width", str(cfg.crop_size))
+    config.set(name, "height", str(cfg.crop_size))
+
+    with open(cfgFileName, 'w') as configfile:
+        config.write(configfile)
+    return True
+
+
+
 def make_config(args):
     config = SafeConfigParser()
     config.read(cfgFileName)
@@ -25,6 +46,7 @@ def make_config(args):
     config.set(name, configKeys[8], str(args.b))
     config.set(name, configKeys[9], str(args.a))
     config.set(name, configKeys[10], str(args.d))
+    config.set(name, configKeys[11], args.imtype)
 
     with open(cfgFileName, 'w') as configfile:
         config.write(configfile)
@@ -35,7 +57,7 @@ def load_config(name):
     config = SafeConfigParser()
     config.read(cfgFileName)
     if not config.has_section(name):
-        print("")
+        print("Config " + name + " was not found.")
         return None
 
     print("["+name+"]")
@@ -57,6 +79,7 @@ def load_config(name):
     make_bear = config.getboolean(name, configKeys[8])
     make_anomaly = config.getboolean(name, configKeys[9])
     debug = config.getboolean(name, configKeys[10])
+    imtype = config.get(name, configKeys[11])
     return CropCfg(csv, imdir, imout, bbox_size, min_shift, max_shift, crop_size, "training_list.txt", merge_seal_classes,
-                   make_bear, make_anomaly, debug)
+                   make_bear, make_anomaly, debug, imtype, name)
 

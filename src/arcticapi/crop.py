@@ -5,7 +5,7 @@ from random import randint
 # Config object for cropping/augmentation parameters
 class CropCfg(object):
     def __init__(self, csv, im_dir, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly,
-                 debug=False):
+                 debug, imtype, name):
         self.csv = csv
         self.im_dir = im_dir
         self.out_dir = out_dir
@@ -18,13 +18,56 @@ class CropCfg(object):
         self.make_bear = make_bear
         self.make_anomaly = make_anomaly
         self.debug = debug
+        self.imtype = imtype
+        self.name = name
 
-def crop_hotspot(cfg, hs):
+
+def crop_ir_hotspot(cfg, hs):
     """
-
     :param cfg: CropCfg
     :type hs: HotSpot
     """
+    if not hs.ir.load_image():
+        return
+
+    img = hs.ir.image[2]
+    classIndex = hs.classIndex
+    id = hs.id
+    imgh = img.shape[0]
+    imgw = img.shape[1]
+
+    center_x = hs.thermal_loc[0]
+    center_y = hs.thermal_loc[1]
+
+    if cfg.debug:
+        # cv2.circle(img, hs.thermal_loc, 5, (0, 255, 0), 2)
+        cv2.rectangle(img, (center_x - cfg.bbox_size / 2, center_y - cfg.bbox_size / 2),
+                      (center_x + cfg.bbox_size / 2, center_y + cfg.bbox_size / 2),
+                      (0, 255, 0), 1)  # draw rect
+
+    file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
+    cv2.imwrite(file_name + ".jpg", img)
+
+    # Generate trainin label
+    with open(file_name + ".txt", 'a') as file:
+        file.write(str(classIndex) + " " + str((center_x + 0.0) / imgw) + " " +
+                   str((center_y + 0.0) / imgh) + " " +
+                   str((cfg.bbox_size + 0.0) / imgw) + " " +
+                   str((cfg.bbox_size + 0.0) / imgh) + "\n")
+
+    write_label(file_name, cfg.label)
+
+    # free image from memory
+    hs.rgb.free()
+
+def crop_rgb_hotspot(cfg, hs):
+    """
+    :param cfg: CropCfg
+    :type hs: HotSpot
+    """
+    if not hs.rgb.load_image():
+        return
+
     img = hs.rgb.image
     classIndex = hs.classIndex
     id = hs.id
@@ -52,6 +95,7 @@ def crop_hotspot(cfg, hs):
     tcrop, bcrop, lcrop, rcrop = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh, cfg.crop_size)
     crop_img_neg = img[tcrop:bcrop, lcrop: rcrop]
     file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
+    # random_augment(crop_img)
     cv2.imwrite(file_name + ".jpg", crop_img)
 
     # Generate negative image for training and label
@@ -68,6 +112,10 @@ def crop_hotspot(cfg, hs):
 
     write_label(file_name, cfg.label)
     write_label(file_name_neg, cfg.label)
+
+    # free image from memory
+    hs.rgb.free()
+
 
 def write_label(file_name, label_files_list):
     with open(label_files_list, 'a') as file:
@@ -190,3 +238,9 @@ def random_shift(topCrop, bottomCrop, leftCrop, rightCrop, w, h, minShift, maxSh
             dy = 0
 
     return dx, dy
+
+def random_augment(img):
+    m = (2, 2, 2)
+    s = (2, 2, 2)
+    cv2.randn(img, m, s)
+    return img
