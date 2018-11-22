@@ -39,7 +39,6 @@ class ArcticApi:
     # Called with a CropCfg object it will crop and label all hotspots according to the given cfg
     def crop_label_all(self, cfg):
         """
-
         :type cfg: CropCfg
         """
         hs_ct = len(self.hsm.hotspots)

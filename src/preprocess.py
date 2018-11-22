@@ -1,7 +1,7 @@
 import argparse
 import sys
 from arcticapi import ArcticApi
-from arcticapi.config import get_config, make_config
+from arcticapi.config import load_config, make_config
 
 
 # Preprocess is an api with many features to crop, augment, and create darknet formatted labels for training.
@@ -10,9 +10,9 @@ from arcticapi.config import get_config, make_config
 # using the -d debug flag as it paints the bounding box so you can see if the augmentation values you've chosen don't break the system.
 # It's pretty good at figuring out how to crop but there are probably some issues that will occur if you start to use crop/shift values
 # that are close to the total height/width of the images.
+cfg = None  # CropCfg to be
 
 def main():
-    cfg = None  # CropCfg to be
     parser = argparse.ArgumentParser(description='Command line interface for cropping seal data.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -20,7 +20,7 @@ def main():
     args = parser.parse_args(sys.argv[1:1])
 
     if args.cfg is not None:
-        cfg = get_config(args.cfg)
+        cfg = load_config(args.cfg)
         if cfg is None:
             print("Config " + args.conf + " was not found.")
 
@@ -56,7 +56,7 @@ def main():
 
         # Make CropCfg
         make_config(args)
-        cfg = get_config(args.name)
+        cfg = load_config(args.name)
 
     if cfg == None:
         print("Error generating or getting the configuration")
