@@ -1,4 +1,3 @@
-import collections
 from ConfigParser import SafeConfigParser
 
 from arcticapi.crop import CropCfg

@@ -84,7 +84,7 @@ class Image():
         self.load_image()
 
     def imreadIR(self, fileIR, colorJet=False):
-        imgLocalNorm = norm.normalize_ir_local(self.camerapos, fileIR, colorJet)
+        imgLocalNorm = norm.normalize_ir_local(fileIR, colorJet)
         # imgGlobalNorm = norm.normalize_ir_global(self.camerapos, fileIR, colorJet)
         # imgNorm = norm.norm(fileIR, colorJet)
         # return imgNorm.astype(np.uint8), imgGlobalNorm.astype(np.uint8), imgLocalNorm.astype(np.uint8), anyDepth

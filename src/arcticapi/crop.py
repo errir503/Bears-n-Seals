@@ -46,7 +46,9 @@ def crop_ir_hotspot(cfg, hs):
 
     center_x = hs.thermal_loc[0]
     center_y = hs.thermal_loc[1]
-
+    if center_y == 0 or center_x == 0:
+        print("Cant parse id " + id + " because center x or y is 0 which is invalid darknet lablel")
+        return 
     if cfg.debug:
         # cv2.circle(img, hs.thermal_loc, 5, (0, 255, 0), 2)
         cv2.rectangle(img, (center_x - cfg.bbox_size / 2, center_y - cfg.bbox_size / 2),

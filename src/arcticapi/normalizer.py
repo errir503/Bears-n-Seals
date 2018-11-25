@@ -79,7 +79,7 @@ def normalize_ir_global(camerapos, filePath, colorJet, bit_8=True):
     return normalized
 
 
-def normalize_ir_local(camerapos, filePath, colorJet, bit_8=True):
+def normalize_ir_local(filePath, colorJet, bit_8=True):
     img = PILImage.open(filePath)
     if img is None:
         return None

@@ -51,7 +51,6 @@ def main():
 
     make_model_config(cfg, classes)
 
-
     api = ArcticApi(cfg.csv, cfg.im_dir)
     api.crop_label_all(cfg)
 
