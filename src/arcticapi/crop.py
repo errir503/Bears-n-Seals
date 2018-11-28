@@ -58,6 +58,7 @@ def crop_ir_hotspot(cfg, hs):
 
     cv2.imwrite(file_name + ".jpg", img)
 
+    fileExisted = not os.path.isfile(file_name + ".txt")
     # Generate trainin label
     with open(file_name + ".txt", 'a') as file:
         file.write(str(classIndex) + " " + str((center_x + 0.0) / imgw) + " " +
@@ -65,7 +66,9 @@ def crop_ir_hotspot(cfg, hs):
                    str((cfg.bbox_size + 0.0) / imgw) + " " +
                    str((cfg.bbox_size + 0.0) / imgh) + "\n")
 
-    write_label(file_name, cfg.label)
+    # if file doesnt already exist
+    if not fileExisted:
+        write_label(file_name, cfg.label)
 
     # free image from memory
     hs.rgb.free()
