@@ -132,7 +132,7 @@ def crop_rgb_hotspot(cfg, hs):
 
 def write_label(file_name, label_files_list):
     with open(label_files_list, 'a') as file:
-        file.write(os.getcwd() + "/" + file_name + ".jpg" + "\n")
+        file.write(os.getcwd() + "/" + file_name + ".PNG" + "\n")
 
 def recalculate_crops(rgb_bb_b, rgb_bb_t, rgb_bb_l, rgb_bb_r, imgh, imgw, maxShift, minShift, crop_size):
     # center points of bounding box in the image
