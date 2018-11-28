@@ -91,7 +91,7 @@ def normalize_ir_local(filePath, colorJet, bit_8=True):
 
 
 def norm(fileIR, colorJet, percent=0.01):
-    img = cv2.imread(fileIR, cv2.IMREAD_ANYDEPTH, colorJet)
+    img = cv2.imread(fileIR, cv2.IMREAD_ANYDEPTH)
     if img is None:
         return None
     img = np.floor((img - np.percentile(img, percent)) / (
@@ -100,4 +100,12 @@ def norm(fileIR, colorJet, percent=0.01):
     if colorJet:
         img = cv2.applyColorMap(img.astype(np.uint8), cv2.COLORMAP_HSV)
     return img
+
+def norm2(fileIR, colorJet, percent=0.01):
+    img = cv2.imread(fileIR)
+    normalizedImg = np.zeros(img.shape)
+    normalizedImg = cv2.normalize(img, normalizedImg, 0, 255, cv2.NORM_MINMAX)
+    if colorJet:
+        normalizedImg = cv2.applyColorMap(normalizedImg.astype(np.uint8), cv2.COLORMAP_HSV)
+    return normalizedImg
 

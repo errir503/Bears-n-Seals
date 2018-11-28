@@ -50,23 +50,28 @@ class ArcticApi:
         classes = [0,0,0,0,0]
         for hs in self.hsm.hotspots:
             i += 1
-            # don't make crops or labels for bears
-            if not cfg.make_bear and hs.classIndex == 3:
-                continue
 
-            # don't make crops or labels for anomalies
-            if not cfg.make_anomaly and hs.classIndex == 4:
-                continue
+            if cfg.combine_all:
+                hs.classIndex = 0
+            else:
+                # don't make crops or labels for bears
+                if not cfg.make_bear and hs.classIndex == 3:
+                    continue
 
-            # combine all seals (Ringed, Bearded, UNK) into one class for training
-            # this will be class 0
-            if cfg.combine_seal:
-                if hs.classIndex == 0 or hs.classIndex == 1 or hs.classIndex == 2:
-                    hs.classIndex = 0
-                if hs.classIndex == 3:
-                    hs.classIndex = 1
-                if hs.classIndex == 4:
-                    hs.classIndex = 3
+                # don't make crops or labels for anomalies
+                if not cfg.make_anomaly and hs.classIndex == 4:
+                    continue
+
+                # combine all seals (Ringed, Bearded, UNK) into one class for training
+                # this will be class 0
+                if cfg.combine_seal:
+                    if hs.classIndex == 0 or hs.classIndex == 1 or hs.classIndex == 2:
+                        hs.classIndex = 0
+                    if hs.classIndex == 3:
+                        hs.classIndex = 1
+                    if hs.classIndex == 4:
+                        hs.classIndex = 3
+
 
             if total_crops % 10 == 0:
                 print("Cropping hotspot:" + str(hs.id) + " -" + str(
@@ -83,7 +88,9 @@ class ArcticApi:
             #         shared.append(nhs)
             hs.genCropsAndLables(cfg)
 
-        if cfg.combine_seal:
+        if cfg.combine_all:
+            print("Hotspots: " + str(classes[0]))
+        elif cfg.combine_seal:
             print("Seals: " + str(classes[0]))
         else:
             print("Ringed Seals: " + str(classes[0]))

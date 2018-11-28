@@ -4,7 +4,7 @@ from arcticapi.crop import CropCfg
 from arcticapi.visuals import bcolors
 
 configKeys = ['csv', 'imdir', 'imout', 'bbox_size', 'min_shift', 'max_shift',
-                      'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug', 'image_type', 'output_list']
+                      'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug', 'image_type', 'output_list', 'merge_all_classes']
 
 cfgFileName = 'config.ini'
 def make_model_config(cfg, classes):
@@ -48,6 +48,7 @@ def make_config(args):
     config.set(name, configKeys[10], str(args.d))
     config.set(name, configKeys[11], args.imtype)
     config.set(name, configKeys[12], args.outlist)
+    config.set(name, configKeys[13], args.all)
 
     with open(cfgFileName, 'w') as configfile:
         config.write(configfile)
@@ -88,6 +89,7 @@ def load_config(name):
     debug = config.getboolean(name, configKeys[10])
     imtype = config.get(name, configKeys[11])
     outlist = config.get(name, configKeys[12])
+    combine_all = config.get(name, configKeys[13])
     return CropCfg(csv, imdir, imout, bbox_size, min_shift, max_shift, crop_size, outlist, merge_seal_classes,
-                   make_bear, make_anomaly, debug, imtype, name)
+                   make_bear, make_anomaly, debug, imtype, name, combine_all)
 

@@ -79,8 +79,11 @@ def cli():
                         help='global seal class: puts all seals as one class')
     parser.add_argument('-b', action='store_true', default=False, help='make bear crops/labels')
     parser.add_argument('-a', action='store_true', default=False, help='make anomaly crops/labels')
+    parser.add_argument('-all', action='store_true', default=False,
+                        help='Make all classes one class (for ir hotspots)')
     parser.add_argument('-d', action='store_true', default=False,
                         help='debug: draws bounding box bounds NOT FOR TRAINING')
+
 
     return parser.parse_args(sys.argv[1:])
 
