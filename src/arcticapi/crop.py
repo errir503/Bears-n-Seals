@@ -35,7 +35,7 @@ def crop_ir_hotspot(cfg, hs):
     img = hs.ir.image
 
     if cfg.debug:
-        crop_path = file_name + ".jpg"
+        crop_path = file_name + ".png"
         if os.path.isfile(crop_path):
             hs.ir.free()
             img = cv2.imread(crop_path)
@@ -56,7 +56,7 @@ def crop_ir_hotspot(cfg, hs):
                       (center_x + cfg.bbox_size / 2, center_y + cfg.bbox_size / 2),
                       (0, 255, 0), 1)  # draw rect
 
-    cv2.imwrite(file_name + ".jpg", img)
+    cv2.imwrite(file_name + ".png", img)
 
     fileExisted = os.path.isfile(file_name + ".txt")
     # Generate trainin label

@@ -4,6 +4,7 @@ import numpy as np
 import normalizer as norm
 from arcticapi import crop
 from arcticapi.crop import CropCfg
+from PIL import Image as PILImage
 
 SpeciesList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
 
@@ -84,10 +85,10 @@ class Image():
         self.load_image()
 
     def imreadIR(self, fileIR, colorJet=False):
-        img = norm.normalize_ir_local(fileIR, False).astype(np.uint8)
-        # img = norm.normalize_ir_global(self.camerapos, fileIR, True).astype(np.uint8)
-        # imgGlobalNorm = norm.normalize_ir_global(self.camerapos, fileIR, colorJet)
-        # img = norm.norm(fileIR, True).astype(np.uint8)
+        # return norm.raw16bit(fileIR)
+        img = norm.normalize_ir_local_lin_max(fileIR, False)
+        # img = norm.normalize_ir_global(self.camerapos, fileIR, False).astype(np.uint8)
+        # img = norm.norm(fileIR, False).astype(np.uint8)
         # return imgNorm.astype(np.uint8), imgGlobalNorm.astype(np.uint8), imgLocalNorm.astype(np.uint8), anyDepth
         return img
 

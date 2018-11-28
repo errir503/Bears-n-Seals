@@ -32,10 +32,12 @@ def lin_normalize_image(image_array, bit_8, bottom=None, top=None):
     Output:
         scaled_image: nd.ndarray, scaled image between 0 and 2^(bit_depth) - 1
     """
+
     if bottom is None:
         bottom = np.min(image_array)
     if top is None:
         top = np.max(image_array)
+
     scaled_image = (image_array - bottom + 0.0) / (top - bottom + 0.0)
     scaled_image = np.vectorize(norm_matrix)(scaled_image)
 
@@ -45,6 +47,21 @@ def lin_normalize_image(image_array, bit_8, bottom=None, top=None):
         scaled_image = np.floor(scaled_image * 65535).astype(np.uint16)  # Map to [0, 2^16 - 1]
 
     return scaled_image
+
+def narmalize_to_max(image_array, bit_8, bottom=None, top=None):
+    if top is None:
+        top = np.max(image_array)
+
+    delta_max = 65536 - top
+
+    image_array[image_array > 0] += delta_max
+
+    image_array = image_array
+    # bottom = np.min(image_array)
+    # top = np.max(image_array)
+    # print(bottom, top)
+
+    return image_array
 
 
 def camera_bounds(camera_pos, num_rows):
@@ -78,13 +95,31 @@ def normalize_ir_global(camerapos, filePath, colorJet, bit_8=True):
         normalized = cv2.applyColorMap(normalized.astype(np.uint8), cv2.COLORMAP_HSV)
     return normalized
 
-
-def normalize_ir_local(filePath, colorJet, bit_8=True):
+def raw16bit(filePath):
     img = PILImage.open(filePath)
     if img is None:
         return None
     img = np.array(img)
-    normalized = lin_normalize_image(img, bit_8)
+    return img.astype(np.uint16)
+
+
+def normalize_ir_local_lin(filePath, colorJet, bit_8=True):
+    img = PILImage.open(filePath)
+    if img is None:
+        return None
+    img = np.array(img)
+    # normalized = lin_normalize_image(img, bit_8)
+    normalized = lin_normalize_image(img, False)
+    if colorJet:
+        normalized = cv2.applyColorMap(normalized.astype(np.uint8), cv2.COLORMAP_HSV)
+    return normalized
+
+def normalize_ir_local_lin_max(filePath, colorJet, bit_8=True):
+    img = PILImage.open(filePath)
+    if img is None:
+        return None
+    img = np.array(img)
+    normalized = narmalize_to_max(img, False)
     if colorJet:
         normalized = cv2.applyColorMap(normalized.astype(np.uint8), cv2.COLORMAP_HSV)
     return normalized

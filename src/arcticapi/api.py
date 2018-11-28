@@ -92,10 +92,13 @@ class ArcticApi:
             print("Hotspots: " + str(classes[0]))
         elif cfg.combine_seal:
             print("Seals: " + str(classes[0]))
+            print("Polar Bears: " + str(classes[3]))
+            print("NA Animals: " + str(classes[4]))
         else:
             print("Ringed Seals: " + str(classes[0]))
             print("Bearded Seals: " + str(classes[1]))
             print("NA Seals: " + str(classes[2]))
-        print("Polar Bears: " + str(classes[3]))
-        print("NA Animals: " + str(classes[4]))
+            print("Polar Bears: " + str(classes[3]))
+            print("NA Animals: " + str(classes[4]))
+
 
