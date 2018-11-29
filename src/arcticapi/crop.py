@@ -1,6 +1,7 @@
 import os
 import cv2
 from random import randint
+
 # Config object for cropping/augmentation parameters
 class CropCfg(object):
     def __init__(self, csv, im_dir, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly,

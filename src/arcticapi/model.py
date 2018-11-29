@@ -86,7 +86,7 @@ class Image():
 
     def imreadIR(self, fileIR, colorJet=False):
         # return norm.raw16bit(fileIR)
-        img = norm.normalize_ir_local_lin_max(fileIR, False)
+        img = norm.normalize_percentile(fileIR, False)
         # img = norm.normalize_ir_global(self.camerapos, fileIR, False).astype(np.uint8)
         # img = norm.norm(fileIR, False).astype(np.uint8)
         # return imgNorm.astype(np.uint8), imgGlobalNorm.astype(np.uint8), imgLocalNorm.astype(np.uint8), anyDepth

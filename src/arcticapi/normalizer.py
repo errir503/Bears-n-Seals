@@ -2,6 +2,7 @@
 import cv2
 import numpy as np
 from PIL import Image as PILImage
+import matplotlib.pyplot as plt
 
 
 def norm_matrix(m):
@@ -114,7 +115,7 @@ def normalize_ir_local_lin(filePath, colorJet, bit_8=True):
         normalized = cv2.applyColorMap(normalized.astype(np.uint8), cv2.COLORMAP_HSV)
     return normalized
 
-def normalize_ir_local_lin_max(filePath, colorJet, bit_8=True):
+def normalize_ir_local_lin_max(filePath, colorJet):
     img = PILImage.open(filePath)
     if img is None:
         return None
@@ -124,6 +125,23 @@ def normalize_ir_local_lin_max(filePath, colorJet, bit_8=True):
         normalized = cv2.applyColorMap(normalized.astype(np.uint8), cv2.COLORMAP_HSV)
     return normalized
 
+def normalize_percentile(filePath, colorJet):
+    img = PILImage.open(filePath)
+    if img is None:
+        return None
+    img = np.array(img).astype(np.float32)
+    img /= 0.5 # create broader distribution
+    mi = np.percentile(img,1)
+    ma = np.percentile(img, 100)
+    normalized = (img - mi) / (ma - mi)
+    normalized = normalized * 65535
+    normalized[normalized < 0] = 0
+    normalized = normalized.astype(np.uint16)
+    # plt.imshow(normalized, vmin=0, vmax=65535, cmap="gray")
+    # plt.show()
+    if colorJet:
+        normalized = cv2.applyColorMap(img.astype(np.uint8), cv2.COLORMAP_HSV)
+    return normalized
 
 def norm(fileIR, colorJet, percent=0.01):
     img = cv2.imread(fileIR, cv2.IMREAD_ANYDEPTH)
