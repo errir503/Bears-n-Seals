@@ -36,7 +36,7 @@ def crop_ir_hotspot(cfg, hs):
     img = hs.ir.image
 
     if cfg.debug:
-        crop_path = file_name + ".PNG"
+        crop_path = file_name + ".tif"
         if os.path.isfile(crop_path):
             hs.ir.free()
             img = cv2.imread(crop_path)
@@ -57,7 +57,7 @@ def crop_ir_hotspot(cfg, hs):
                       (center_x + cfg.bbox_size / 2, center_y + cfg.bbox_size / 2),
                       (0, 255, 0), 1)  # draw rect
 
-    cv2.imwrite(file_name + ".PNG", img)
+    cv2.imwrite(file_name + ".tif", img)
 
     fileExisted = os.path.isfile(file_name + ".txt")
     # Generate trainin label
@@ -69,7 +69,8 @@ def crop_ir_hotspot(cfg, hs):
 
     # if file doesnt already exist
     if not fileExisted:
-        write_label(file_name, cfg.label)
+        with open(cfg.label, 'a') as file:
+            file.write(os.getcwd() + "/" + file_name + ".jpg" + "\n")
 
     # free image from memory
     hs.rgb.free()
@@ -133,7 +134,7 @@ def crop_rgb_hotspot(cfg, hs):
 
 def write_label(file_name, label_files_list):
     with open(label_files_list, 'a') as file:
-        file.write(os.getcwd() + "/" + file_name + ".PNG" + "\n")
+        file.write(os.getcwd() + "/" + file_name + ".jpg" + "\n")
 
 def recalculate_crops(rgb_bb_b, rgb_bb_t, rgb_bb_l, rgb_bb_r, imgh, imgw, maxShift, minShift, crop_size):
     # center points of bounding box in the image

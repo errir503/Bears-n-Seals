@@ -22,6 +22,80 @@ def norm_matrix2(m):
         return 0
     return m
 
+def camera_bounds(camera_pos, num_rows):
+    # camera_pos S and default
+    bottom = 51000
+    top = 57500
+
+    if camera_pos == "P":
+        if num_rows == 512:
+            bottom = 53500
+            top = 56500
+        elif num_rows == 480:
+            bottom = 50500
+            top = 58500
+    elif camera_pos == "C":
+        bottom = 50500
+        top = 58500
+
+    return bottom, top
+
+
+
+
+## ~70% AP by 8k iters on whole dataset with yolov3
+def normalize_percentile(filePath, colorJet):
+    img = PILImage.open(filePath)
+    if img is None:
+        return None
+    img = np.array(img).astype(np.float32)
+    img /= 0.5 # create broader distribution
+    mi = np.percentile(img,1)
+    ma = np.percentile(img, 100)
+    normalized = (img - mi) / (ma - mi)
+    normalized = normalized * 65535
+    normalized[normalized < 0] = 0
+    normalized = normalized.astype(np.uint16)
+    # plt.imshow(normalized, vmin=0, vmax=65535, cmap="gray")
+    # plt.show()
+    if colorJet:
+        normalized = cv2.applyColorMap(img.astype(np.uint8), cv2.COLORMAP_HSV)
+    return normalized
+
+
+def normalize_percentile2(filePath, colorJet):
+    img = PILImage.open(filePath)
+    if img is None:
+        return None
+    img = np.array(img).astype(np.float32)
+    # img[img] /= 0.1 # create broader distribution
+    # img = np.square(img) # create broader distribution
+    # mid = np.percentile(img, 98)
+    # img[img > mid] /= 0.1
+
+    # plot_px_distribution(img, "ORIG DISTRIBUTION")
+
+    mi = np.percentile(img,97)
+    ma = np.percentile(img, 100)
+    normalized = (img - mi) / (ma - mi)
+    normalized = normalized * 65535
+    normalized[normalized < 0] = 0
+    normalized = normalized.astype(np.uint16)
+    # plot_16bit_gray(normalized)
+    # plot_px_distribution(normalized, "NORM DISTRIBUTION")
+
+    if colorJet:
+        normalized = cv2.applyColorMap(img.astype(np.uint8), cv2.COLORMAP_HSV)
+    return normalized
+
+def plot_px_distribution(img, title):
+    plt.title(title)
+    plt.hist(img)
+    plt.show()
+def plot_16bit_gray(img):
+    plt.imshow(img, vmin=0, vmax=65535, cmap="gray")
+    plt.show()
+
 
 def lin_normalize_image(image_array, bit_8, bottom=None, top=None):
     """Linear normalization for an image array
@@ -65,24 +139,16 @@ def narmalize_to_max(image_array, bit_8, bottom=None, top=None):
     return image_array
 
 
-def camera_bounds(camera_pos, num_rows):
-    # camera_pos S and default
-    bottom = 51000
-    top = 57500
+def norm(fileIR, colorJet, percent=0.01):
+    img = cv2.imread(fileIR, cv2.IMREAD_ANYDEPTH)
+    if img is None:
+        return None
+    img = np.floor((img - np.percentile(img, percent)) / (
+            np.percentile(img, 100 - percent) - np.percentile(img, percent)) * 256)
 
-    if camera_pos == "P":
-        if num_rows == 512:
-            bottom = 53500
-            top = 56500
-        elif num_rows == 480:
-            bottom = 50500
-            top = 58500
-    elif camera_pos == "C":
-        bottom = 50500
-        top = 58500
-
-    return bottom, top
-
+    if colorJet:
+        img = cv2.applyColorMap(img.astype(np.uint8), cv2.COLORMAP_HSV)
+    return img
 
 ## Normalize for specific camera
 def normalize_ir_global(camerapos, filePath, colorJet, bit_8=True):
@@ -95,6 +161,7 @@ def normalize_ir_global(camerapos, filePath, colorJet, bit_8=True):
     if colorJet:
         normalized = cv2.applyColorMap(normalized.astype(np.uint8), cv2.COLORMAP_HSV)
     return normalized
+
 
 def raw16bit(filePath):
     img = PILImage.open(filePath)
@@ -124,41 +191,3 @@ def normalize_ir_local_lin_max(filePath, colorJet):
     if colorJet:
         normalized = cv2.applyColorMap(normalized.astype(np.uint8), cv2.COLORMAP_HSV)
     return normalized
-
-def normalize_percentile(filePath, colorJet):
-    img = PILImage.open(filePath)
-    if img is None:
-        return None
-    img = np.array(img).astype(np.float32)
-    img /= 0.5 # create broader distribution
-    mi = np.percentile(img,1)
-    ma = np.percentile(img, 100)
-    normalized = (img - mi) / (ma - mi)
-    normalized = normalized * 65535
-    normalized[normalized < 0] = 0
-    normalized = normalized.astype(np.uint16)
-    # plt.imshow(normalized, vmin=0, vmax=65535, cmap="gray")
-    # plt.show()
-    if colorJet:
-        normalized = cv2.applyColorMap(img.astype(np.uint8), cv2.COLORMAP_HSV)
-    return normalized
-
-def norm(fileIR, colorJet, percent=0.01):
-    img = cv2.imread(fileIR, cv2.IMREAD_ANYDEPTH)
-    if img is None:
-        return None
-    img = np.floor((img - np.percentile(img, percent)) / (
-            np.percentile(img, 100 - percent) - np.percentile(img, percent)) * 256)
-
-    if colorJet:
-        img = cv2.applyColorMap(img.astype(np.uint8), cv2.COLORMAP_HSV)
-    return img
-
-def norm2(fileIR, colorJet, percent=0.01):
-    img = cv2.imread(fileIR)
-    normalizedImg = np.zeros(img.shape)
-    normalizedImg = cv2.normalize(img, normalizedImg, 0, 255, cv2.NORM_MINMAX)
-    if colorJet:
-        normalizedImg = cv2.applyColorMap(normalizedImg.astype(np.uint8), cv2.COLORMAP_HSV)
-    return normalizedImg
-
