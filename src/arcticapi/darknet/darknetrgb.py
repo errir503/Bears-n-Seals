@@ -194,7 +194,8 @@ def tile_image(image):
 
             cropped_img = image[top: bot, left: right]
 
-            tiles.append(cropped_img)
+            tiles.append((cropped_img, top, bot, left, right))
+
 
     return tiles
 
@@ -230,7 +231,7 @@ if __name__ == "__main__":
                 print r
 
             i += 1
-            cv2.imwrite("cropped/"+basename+"_"+str(i)+".jpg", tile)
+            cv2.imwrite("cropped/"+basename+"_"+str(tile[1])+"_"+str(tile[3])+".jpg", tile[0])
 
             del tiles
         del img
