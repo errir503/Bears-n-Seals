@@ -43,7 +43,6 @@ def crop_ir_hotspot_8bit(cfg, hs):
     # mode = np.average(img)
     # img[img < mode] = 0
     img = norm.lin_normalize_image(img, True)
-    img = np.stack((img,) * 3, axis=-1)
     if cfg.debug:
         crop_path = file_name + ".jpg"
         if os.path.isfile(crop_path):
