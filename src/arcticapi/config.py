@@ -89,7 +89,7 @@ def load_config(name):
     debug = config.getboolean(name, configKeys[10])
     imtype = config.get(name, configKeys[11])
     outlist = config.get(name, configKeys[12])
-    combine_all = config.get(name, configKeys[13])
+    combine_all = config.getboolean(name, configKeys[13])
     return CropCfg(csv, imdir, imout, bbox_size, min_shift, max_shift, crop_size, outlist, merge_seal_classes,
                    make_bear, make_anomaly, debug, imtype, name, combine_all)
 
