@@ -1,4 +1,5 @@
 import cv2
+import matplotlib.pyplot as plt
 
 class bcolors:
     HEADER = '\033[95m'
@@ -20,3 +21,14 @@ def show_ir(hsm, colorJet = False):
         cv2.imshow('normglobal', hs.ir.image[2])
         cv2.imshow('normlocal', hs.ir.image[3])
         cv2.waitKey(0)
+
+
+def plot_px_distribution(img, title):
+    plt.title(title)
+    plt.hist(img)
+    plt.show()
+
+
+def plot_16bit_gray(img):
+    plt.imshow(img, vmin=0, vmax=65535, cmap="gray")
+    plt.show()

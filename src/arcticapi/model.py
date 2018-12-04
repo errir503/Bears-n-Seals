@@ -1,10 +1,9 @@
 import cv2
 import numpy as np
 
-import normalizer as norm
+from PIL import Image as PILImage
 from arcticapi import crop
 from arcticapi.crop import CropCfg
-from PIL import Image as PILImage
 
 SpeciesList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
 
@@ -51,7 +50,7 @@ class HotSpot:
         :type cfg: CropCfg
         """
         if cfg.imtype == "ir":
-            crop.crop_ir_hotspot(cfg, self)
+            crop.crop_ir_hotspot_8bit(cfg, self)
         elif cfg.imtype == "rgb":
             crop.crop_rgb_hotspot(cfg, self)
 
@@ -86,10 +85,15 @@ class Image():
 
     def imreadIR(self, fileIR, colorJet=False):
         # return norm.raw16bit(fileIR)
-        img = norm.normalize_percentile2(fileIR, False)
+        # img = norm.normalize_percentile2(fileIR, False)
         # img = norm.normalize_ir_global(self.camerapos, fileIR, False).astype(np.uint8)
         # img = norm.norm(fileIR, False).astype(np.uint8)
         # return imgNorm.astype(np.uint8), imgGlobalNorm.astype(np.uint8), imgLocalNorm.astype(np.uint8), anyDepth
+        img = PILImage.open(fileIR)
+        if img is None:
+            return None
+        img = np.array(img).astype(np.uint16)
+
         return img
 
 

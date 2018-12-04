@@ -2,8 +2,6 @@
 import cv2
 import numpy as np
 from PIL import Image as PILImage
-import matplotlib.pyplot as plt
-
 
 def norm_matrix(m):
     if m < 0:
@@ -63,15 +61,11 @@ def normalize_percentile(filePath, colorJet):
     return normalized
 
 
-def normalize_percentile2(filePath, colorJet):
+def normalize_percentile2_16bit(filePath, colorJet):
     img = PILImage.open(filePath)
     if img is None:
         return None
     img = np.array(img).astype(np.float32)
-    # img[img] /= 0.1 # create broader distribution
-    # img = np.square(img) # create broader distribution
-    # mid = np.percentile(img, 98)
-    # img[img > mid] /= 0.1
 
     # plot_px_distribution(img, "ORIG DISTRIBUTION")
 
@@ -88,14 +82,6 @@ def normalize_percentile2(filePath, colorJet):
         normalized = cv2.applyColorMap(img.astype(np.uint8), cv2.COLORMAP_HSV)
     return normalized
 
-def plot_px_distribution(img, title):
-    plt.title(title)
-    plt.hist(img)
-    plt.show()
-def plot_16bit_gray(img):
-    plt.imshow(img, vmin=0, vmax=65535, cmap="gray")
-    plt.show()
-
 
 def lin_normalize_image(image_array, bit_8, bottom=None, top=None):
     """Linear normalization for an image array
@@ -109,9 +95,11 @@ def lin_normalize_image(image_array, bit_8, bottom=None, top=None):
     """
 
     if bottom is None:
-        bottom = np.min(image_array)
+        # bottom = np.min(image_array)
+        bottom = np.percentile(image_array,1)
     if top is None:
-        top = np.max(image_array)
+        # top = np.max(image_array)
+        top = np.percentile(image_array,100)
 
     scaled_image = (image_array - bottom + 0.0) / (top - bottom + 0.0)
     scaled_image = np.vectorize(norm_matrix)(scaled_image)
@@ -122,21 +110,6 @@ def lin_normalize_image(image_array, bit_8, bottom=None, top=None):
         scaled_image = np.floor(scaled_image * 65535).astype(np.uint16)  # Map to [0, 2^16 - 1]
 
     return scaled_image
-
-def narmalize_to_max(image_array, bit_8, bottom=None, top=None):
-    if top is None:
-        top = np.max(image_array)
-
-    delta_max = 65536 - top
-
-    image_array[image_array > 0] += delta_max
-
-    image_array = image_array
-    # bottom = np.min(image_array)
-    # top = np.max(image_array)
-    # print(bottom, top)
-
-    return image_array
 
 
 def norm(fileIR, colorJet, percent=0.01):
@@ -169,25 +142,3 @@ def raw16bit(filePath):
         return None
     img = np.array(img)
     return img.astype(np.uint16)
-
-
-def normalize_ir_local_lin(filePath, colorJet, bit_8=True):
-    img = PILImage.open(filePath)
-    if img is None:
-        return None
-    img = np.array(img)
-    # normalized = lin_normalize_image(img, bit_8)
-    normalized = lin_normalize_image(img, False)
-    if colorJet:
-        normalized = cv2.applyColorMap(normalized.astype(np.uint8), cv2.COLORMAP_HSV)
-    return normalized
-
-def normalize_ir_local_lin_max(filePath, colorJet):
-    img = PILImage.open(filePath)
-    if img is None:
-        return None
-    img = np.array(img)
-    normalized = narmalize_to_max(img, False)
-    if colorJet:
-        normalized = cv2.applyColorMap(normalized.astype(np.uint8), cv2.COLORMAP_HSV)
-    return normalized
