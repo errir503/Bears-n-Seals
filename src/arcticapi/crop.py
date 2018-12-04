@@ -264,18 +264,17 @@ def recalculate_crops(rgb_bb_b, rgb_bb_t, rgb_bb_l, rgb_bb_r, imgh, imgw, maxShi
 def negative_bounds(topCrop, bottomCrop, leftCrop, rightCrop, w, h, crop_size):
     # TODO find points screen quadrant take from another quadrant
     offset = 50
-    if leftCrop > w / 2:
-        # take negative sample from right half
-        return topCrop + offset, bottomCrop + offset, w - crop_size, w
-    elif rightCrop < w / 2:
-        # take negative sample from left half
-        return topCrop + offset, bottomCrop + offset, 0, crop_size
+    mid_y = (bottomCrop - topCrop)/2 + topCrop
+    mid_x = (rightCrop - leftCrop)/2 + leftCrop
 
-    # elif topCrop < h / 2:
-    #     # take negative sample from left half
-    #     return bottomCrop, bottomCrop+512, leftCrop, rightCrop
+    if mid_x > 800 or mid_y > 800 :
+        # bottom left corner
+        return h-crop_size, h, 0, crop_size
+    else:
+        # top right corner
+        return 0, crop_size, h-crop_size, h
 
-    return 0, crop_size, 0, crop_size
+
 
 
 def random_shift(topCrop, bottomCrop, leftCrop, rightCrop, w, h, minShift, maxShift):
