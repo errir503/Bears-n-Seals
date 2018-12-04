@@ -6,7 +6,8 @@ import cv2
 import time
 import numpy as np
 import os
-
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 def sample(probs):
     s = sum(probs)
@@ -209,30 +210,36 @@ if __name__ == "__main__":
     # net = load_net(b"cfg/yolov3.cfg", b"yolov3.weights", 0)
     # meta = load_meta(b"cfg/coco.data")
 
-    net = load_net(b"cfg/irtest.cfg", b"seal_weights/ir_900.weights", 0)
+    net = load_net(b"cfg/sealsv3test.cfg", b"seal_weights/sealsv3.backup", 0)
     meta = load_meta(b"cfg/seals.data")
-
+    print(meta.names[0])
     i = 0
-    while i < len(files):
-        i += 1
-        file = files[i]
+    for file in files: 
         basename = os.path.splitext(os.path.basename(file))[0]
         img = cv2.imread(file, cv2.IMREAD_COLOR)
         if img is None:
             print("Could not read file " + file)
             continue
         tiles = tile_image(img)
-        i = 0
+
+	print("File: " + file + "\n")
         for tile in tiles:
-            r = detect(net, meta, tile)
-            if len(r) > 0 and r[0] > 0.3:
-                r.append(file)
-                detections.append(r)
-                print r
+            r = detect(net, meta, tile[0])
+	    fig,ax = plt.subplots(1)
+	    fig.set_size_inches(800,800)
+	    ax.imshow(tile[0])
+	    for k in range(len(r)):
+            	if len(r) > 0 and r[1] > 0.8:
+		    print r[k]
+	   	    print "Name: ",r[k][0],"Predict %: ",r[k][1],"X: ",r[k][2][0],"Y: ",r[k][2][1],"W: ",r[k][2][2],"H: ",r[k][2][3],'\n'
+                    detections.append((r[k], tile))
 
-            i += 1
-            cv2.imwrite("cropped/"+basename+"_"+str(tile[1])+"_"+str(tile[3])+".jpg", tile[0])
+    		    rect = patches.Rectangle((r[k][2][0],r[k][2][1]),r[k][2][2],r[k][2][3],linewidth=1,edgecolor='r',facecolor='none')
+    		    ax.add_patch(rect)
+	    plt.show()
+	    plt.savefig("res/"+basename+"_"+str(tile[1])+"_"+str(tile[3])+".jpg", tile[0])
 
-            del tiles
+ 
+        del tiles
         del img
 
