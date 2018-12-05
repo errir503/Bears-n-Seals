@@ -1,8 +1,10 @@
 # Given a csv that's been gone through with the validation_gui will generate
 # a new csv with only true positive results and "maybe seals"
+import sys
+sys.path.append("../../")
 from validate import Parser
 
-p = Parser('../new_file.csv')
+p = Parser('../finds.csv')
 
 rows = p.get_objects()
 for row in rows:

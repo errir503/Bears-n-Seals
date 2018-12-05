@@ -1,8 +1,9 @@
 import cv2
-
+import sys
+sys.path.append("../../")
 from validate import Parser
 
-p = Parser('../new_file.csv')
+p = Parser('good.csv')
 
 rows = p.get_objects()
 for row in rows:
