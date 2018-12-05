@@ -10,6 +10,8 @@ class Parser():
             rows.append(row)
         f.close()
 
+        del rows[0]
+
         row_objects = []
         d = {'SEAL': 0, 'NOTSEAL': 0, 'MAYBESEAL': 0, 'UNCHECKED': 0}
         for row in rows:
@@ -39,3 +41,10 @@ class Parser():
 
     def get_objects(self):
         return self.rows
+
+    def get_row_str(self, row):
+        row_txt = ",".join([str(row.num), row.file, str(row.pred), str(row.local_x),
+                              str(row.local_y), str(row.bbox_width), str(row.bbox_height), str(row.crop_top),
+                              str(row.crop_bot), str(row.crop_left),
+                              str(row.crop_right), row.status]) + "\n"
+        return row_txt
