@@ -1,4 +1,3 @@
-import csv
 import os
 import sys
 from PIL import Image
@@ -10,15 +9,7 @@ outDir = 'newlabels/'
 if not os.path.exists(outDir):
     os.mkdir(outDir)
 
-rows = []
-f = open(csv_file, 'r')
-reader = csv.reader(f)
-for row in reader:
-    rows.append(row)
-f.close()
-
-del rows[0]  # remove col headers
-p = Parser(file)
+p = Parser(csv_file)
 rows = p.get_objects()
 
 for row in rows:
