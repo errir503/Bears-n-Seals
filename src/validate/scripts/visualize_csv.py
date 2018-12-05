@@ -1,3 +1,4 @@
+from PIL import Image
 import cv2
 import sys
 sys.path.append("../../")
@@ -8,8 +9,10 @@ p = Parser('good.csv')
 rows = p.get_objects()
 for row in rows:
     img = cv2.imread(row.file)
-    cv2.rectangle(img, (row.local_x - row.bbox_width / 2, row.local_y - row.bbox_height / 2),
-                  (row.local_x + row.bbox_width / 2, row.local_y + row.bbox_height / 2),
+
+    img = img[row.crop_top:row.crop_bot,row.crop_left:row.crop_right]
+    cv2.rectangle(img, (int(row.local_x - row.bbox_width / 2), int(row.local_y - row.bbox_height / 2)),
+                  (int(row.local_x + row.bbox_width / 2), int(row.local_y + row.bbox_height / 2)),
                   (0, 255, 0), 1)  # draw rect
     cv2.imshow('Window', img)
 
