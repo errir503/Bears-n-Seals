@@ -8,6 +8,7 @@ p = Parser('good.csv')
 rows = p.get_objects()
 for row in rows:
     img = cv2.imread(row.file)
+    img = img.crop((row.crop_left, row.crop_top, row.crop_right, row.crop_bot))
     cv2.rectangle(img, (row.local_x - row.bbox_width / 2, row.local_y - row.bbox_height / 2),
                   (row.local_x + row.bbox_width / 2, row.local_y + row.bbox_height / 2),
                   (0, 255, 0), 1)  # draw rect
