@@ -179,16 +179,17 @@ def crop_rgb_hotspot(cfg, hs):
 
     write_label(file_name, cfg.label)
 
-    # Generate negative image(with no object) and labels for training
-    tcrop, bcrop, lcrop, rcrop = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh, cfg.crop_size)
-    crop_img_neg = img[tcrop:bcrop, lcrop: rcrop]
-    file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
-    cv2.imwrite(file_name + ".jpg", crop_img)
+    if False: #TODO temporary 
+        # Generate negative image(with no object) and labels for training
+        tcrop, bcrop, lcrop, rcrop = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh, cfg.crop_size)
+        crop_img_neg = img[tcrop:bcrop, lcrop: rcrop]
+        file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
+        cv2.imwrite(file_name + ".jpg", crop_img)
 
-    file_name_neg = cfg.out_dir + "crop_" + id + "_" + str(classIndex) + "_neg"
-    open(file_name_neg + ".txt", 'a').close()
-    cv2.imwrite(file_name_neg + ".jpg", crop_img_neg)
-    write_label(file_name_neg, cfg.label)
+        file_name_neg = cfg.out_dir + "crop_" + id + "_" + str(classIndex) + "_neg"
+        open(file_name_neg + ".txt", 'a').close()
+        cv2.imwrite(file_name_neg + ".jpg", crop_img_neg)
+        write_label(file_name_neg, cfg.label)
 
     # free image from memory
     hs.rgb.free()
