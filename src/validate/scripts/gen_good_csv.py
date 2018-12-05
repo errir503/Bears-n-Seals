@@ -1,6 +1,5 @@
 # Given a csv that's been gone through with the validation_gui will generate
 # a new csv with only true positive results and "maybe seals"
-
 from validate import Parser
 
 p = Parser('../new_file.csv')
