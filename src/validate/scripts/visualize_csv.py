@@ -1,4 +1,3 @@
-from PIL import Image
 import cv2
 import sys
 sys.path.append("../../")
@@ -9,9 +8,11 @@ bottomLeftCornerOfText = (10,500)
 fontScale              = 1
 fontColor              = (255,255,255)
 lineType               = 2
+file = sys.argv[1]
+start = sys.argv[2]
 
-p = Parser('good.csv')
-rows = p.get_objects()
+p = Parser(file)
+rows = p.get_objects()[start:]
 for row in rows:
     img = cv2.imread(row.file)
 

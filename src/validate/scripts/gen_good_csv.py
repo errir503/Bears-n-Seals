@@ -3,10 +3,12 @@
 import sys
 sys.path.append("../../")
 from validate import Parser
+file = sys.argv[1]
+start = sys.argv[2]
 
-p = Parser('../finds.csv')
+p = Parser(file)
+rows = p.get_objects()[start:]
 
-rows = p.get_objects()
 for row in rows:
     if row.status == "SEAL" or row.status == "MAYBESEAL":
         with open("good.csv", 'a') as file:

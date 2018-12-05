@@ -1,6 +1,9 @@
 import csv
 import os
+import sys
 from PIL import Image
+sys.path.append("../")
+from validate import Parser
 
 csv_file = 'new_file.csv'
 outDir = 'newlabels/'
@@ -15,34 +18,10 @@ for row in reader:
 f.close()
 
 del rows[0]  # remove col headers
-d = {'SEAL':0, 'NOTSEAL':0, 'MAYBESEAL':0, 'UNCHECKED':0}
+p = Parser(file)
+rows = p.get_objects()
 
-row_objects = []
 for row in rows:
-    status = row[11]
-    d[status] += 1
-    obj = lambda: None
-    obj.num = int(row[0])
-    obj.file = row[1]
-    obj.pred = float(row[2])
-    obj.local_x = float(row[3])
-    obj.local_y = float(row[4])
-    obj.bbox_width = float(row[5])
-    obj.bbox_height = float(row[6])
-    obj.crop_top = int(row[7])
-    obj.crop_bot = int(row[8])
-    obj.crop_left = int(row[9])
-    obj.crop_right = int(row[10])
-    if len(row) != 12:
-        obj.status = 'UNCHECKED'
-    else:
-        status = row[11]
-        obj.status = status
-    row_objects.append(obj)
-del rows
-print(d)
-
-for row in row_objects:
     status = row.status
     basename = os.path.splitext(os.path.basename(row.file))[0] + "_" + str(row.num)
     txtname = basename + ".txt"
@@ -51,7 +30,6 @@ for row in row_objects:
         # Marked as not a seal, generate negative
         img = Image.open(row.file)
         img = img.crop((row.crop_left, row.crop_top, row.crop_right, row.crop_bot))
-
 
         img.save(outDir + imgname)
         open(outDir + txtname, 'a').close()
