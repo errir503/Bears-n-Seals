@@ -9,6 +9,7 @@ from arcticapi.config import load_config, make_config, make_model_config
 # using the -d debug flag as it paints the bounding box so you can see if the augmentation values you've chosen don't break the system.
 # It's pretty good at figuring out how to crop but there are probably some issues that will occur if you start to use crop/shift values
 # that are close to the total height/width of the images.
+
 cfg = None  # CropCfg to be
 
 def main():

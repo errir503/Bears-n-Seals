@@ -6,6 +6,9 @@ from arcticapi.csv_parser import parse_hotspot
 from arcticapi.crop import CropCfg
 
 # This is the "model", it parses a NOAA seal formatted csv file and generates HotSpots - 1 per row.
+from arcticapi.visuals import printProgressBar
+
+
 class ArcticApi:
     def __init__(self, csv_path, im_path):
         rows = list()

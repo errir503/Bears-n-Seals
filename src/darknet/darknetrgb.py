@@ -10,6 +10,7 @@ cfg_file = b"cfg/sealsv3test.cfg"
 data_file = b"cfg/seals.data"
 weight_file = b"seal_weights/sealsv3_4000.weights"
 out_csv_file = "possible_color.csv"
+pred_thres = 0.5
 
 def sample(probs):
     s = sum(probs)
@@ -126,15 +127,6 @@ predict_image = lib.network_predict_image
 predict_image.argtypes = [c_void_p, IMAGE]
 predict_image.restype = POINTER(c_float)
 
-
-def convertBack(x, y, w, h):
-    xmin = int(round(x - (w / 2)))
-    xmax = int(round(x + (w / 2)))
-    ymin = int(round(y - (h / 2)))
-    ymax = int(round(y + (h / 2)))
-    return xmin, ymin, xmax, ymax
-
-
 def array_to_image(arr):
     # need to return old values to avoid python freeing memory
     arr = arr.transpose(2, 0, 1)
@@ -145,7 +137,7 @@ def array_to_image(arr):
     return im, arr
 
 
-def detect(net, meta, image, thresh=.7, hier_thresh=.7, nms=.45):
+def detect(net, meta, image, thresh=pred_thres, hier_thresh=pred_thres, nms=.45):
     im, image = array_to_image(image)
     rgbgr_image(im)
     num = c_int(0)
@@ -218,7 +210,6 @@ if __name__ == "__main__":
 
     net = load_net(cfg_file, weight_file, 0)
     meta = load_meta(data_file)
-    print(meta.names[0])
     start_el = int(sys.argv[2])
     files = files[start_el:]
     i = start_el
@@ -231,9 +222,9 @@ if __name__ == "__main__":
         start = time.time()
         tiles = tile_image(img)
         end = time.time()
-        print("Crop Time: " + str(end - start))
 
         print(str(i) + " File: " + file_name)
+        print("Crop Time: " + str(end - start))
         start = time.time()
         for tile in tiles:
             detections = []
@@ -251,12 +242,12 @@ if __name__ == "__main__":
                     detections.append((r[k], tile[1], file_name))
                     csv_row = str(i) + "," + file_name + "," + str(pred) + "," + str(x) + "," + str(y) + "," + \
                               str(width) + "," + str(height) + "," + \
-                              str(top) + "," + str(bot) + "," + str(left) + "," + str(right)
+                              str(top) + "," + str(bot) + "," + str(left) + "," + str(right) + ",UNCHECKED"+"\n"
 
                     with open(out_csv_file, 'a') as fd:
-                        if os.stat("file").st_size == 0:
+                        if os.stat(out_csv_file).st_size == 0:
                             fd.write(
-                                "fnum, file,prediction,local_x,local_y,bbox_width,bbox_height,crop_top,crop_bot,crop_left,crop_right")
+                                "fnum,file_name,prediction,local_x,local_y,bbox_width,bbox_height,crop_top,crop_bot,crop_left,crop_right,status\n")
                         fd.write(csv_row)
 
                     cv2.imwrite("res/" + basename + "_" + str(tile[1][0]) + "_" + str(tile[1][2]) + ".jpg", tile[0])
@@ -264,7 +255,7 @@ if __name__ == "__main__":
             del tile
         end = time.time()
         total_time = end - start
-        print("Detect Time: " + str(total_time) + " (" + str(len(tiles)) + " frames) -" + str(len(tiles)/total_time) + "fps")
+        print("Detect Time: " + str(total_time) + " (" + str(len(tiles)) + " frames)  " + str(round(len(tiles)/total_time,2)) + "fps")
         print("")
         i += 1
         del tiles

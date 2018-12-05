@@ -3,6 +3,9 @@ import cv2
 import numpy as np
 from PIL import Image as PILImage
 
+from arcticapi.visuals import plot_px_distribution
+
+
 def norm_matrix(m):
     if m < 0:
         return 0
@@ -61,15 +64,15 @@ def normalize_percentile(filePath, colorJet):
     return normalized
 
 
-def normalize_percentile2_16bit(filePath, colorJet):
-    img = PILImage.open(filePath)
-    if img is None:
-        return None
-    img = np.array(img).astype(np.float32)
+def normalize_percentile_16bit(img, colorJet):
+    # img = PILImage.open(filePath)
+    # if img is None:
+    #     return None
+    # img = np.array(img).astype(np.float32)
 
     # plot_px_distribution(img, "ORIG DISTRIBUTION")
 
-    mi = np.percentile(img,97)
+    mi = np.percentile(img,1)
     ma = np.percentile(img, 100)
     normalized = (img - mi) / (ma - mi)
     normalized = normalized * 65535
@@ -108,6 +111,7 @@ def lin_normalize_image(image_array, bit_8, bottom=None, top=None):
         scaled_image = np.floor(scaled_image * 255).astype(np.uint8)  # Map to [0, 2^8 - 1]
     else:
         scaled_image = np.floor(scaled_image * 65535).astype(np.uint16)  # Map to [0, 2^16 - 1]
+
 
     return scaled_image
 

@@ -3,9 +3,10 @@ import cv2
 import arcticapi.normalizer as norm
 import numpy as np
 from random import randint
-from scipy import stats
 
 # Config object for cropping/augmentation parameters
+from arcticapi.visuals import plot_px_distribution
+
 
 class CropCfg(object):
     def __init__(self, csv, im_dir, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly,
@@ -37,12 +38,13 @@ def crop_ir_hotspot_8bit(cfg, hs):
     base_name = os.path.basename(hs.ir.path)
     file_name = cfg.out_dir + os.path.splitext(base_name)[0]
     img = hs.ir.image
-
-    img = img.astype(np.uint32)
+    img = img.astype(np.uint16)
+    # img = np.array(img).astype(np.float32)
     # img = np.square(img)
-    # mode = np.average(img)
-    # img[img < mode] = 0
     img = norm.lin_normalize_image(img, True)
+
+    # plot_px_distribution(imgpre, img, "POST NORM DISTRIBUTION", 10000)
+
     if cfg.debug:
         crop_path = file_name + ".jpg"
         if os.path.isfile(crop_path):
@@ -168,17 +170,6 @@ def crop_rgb_hotspot(cfg, hs):
     file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
     cv2.imwrite(file_name + ".jpg", crop_img)
 
-    tcrop, bcrop, lcrop, rcrop = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh, cfg.crop_size)
-    crop_img_neg = img[tcrop:bcrop, lcrop: rcrop]
-    file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
-    # random_augment(crop_img)
-    cv2.imwrite(file_name + ".jpg", crop_img)
-
-    # Generate negative image for training and label
-    file_name_neg = cfg.out_dir + "crop_" + id + "_" + str(classIndex) + "_neg"
-    open(file_name_neg + ".txt", 'a').close()
-    cv2.imwrite(file_name_neg + ".jpg", crop_img_neg)
-
     # Generate trainin label
     with open(file_name + ".txt", 'a') as file:
         file.write(str(classIndex) + " " + str((center_x + 0.0) / cropw) + " " +
@@ -187,6 +178,16 @@ def crop_rgb_hotspot(cfg, hs):
                    str((cfg.bbox_size + 0.0) / croph) + "\n")
 
     write_label(file_name, cfg.label)
+
+    # Generate negative image(with no object) and labels for training
+    tcrop, bcrop, lcrop, rcrop = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh, cfg.crop_size)
+    crop_img_neg = img[tcrop:bcrop, lcrop: rcrop]
+    file_name = cfg.out_dir + "crop_" + id + "_" + str(classIndex)
+    cv2.imwrite(file_name + ".jpg", crop_img)
+
+    file_name_neg = cfg.out_dir + "crop_" + id + "_" + str(classIndex) + "_neg"
+    open(file_name_neg + ".txt", 'a').close()
+    cv2.imwrite(file_name_neg + ".jpg", crop_img_neg)
     write_label(file_name_neg, cfg.label)
 
     # free image from memory
