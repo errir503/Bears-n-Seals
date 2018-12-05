@@ -1,34 +1,39 @@
 import sys
 from ctypes import *
-import math
 import random
 import cv2
-import time
 import numpy as np
 import os
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+import time
+
+cfg_file = b"cfg/sealsv3test.cfg"
+data_file = b"cfg/seals.data"
+weight_file = b"seal_weights/sealsv3_4000.weights"
+out_csv_file = "possible_color.csv"
 
 def sample(probs):
     s = sum(probs)
-    probs = [a/s for a in probs]
+    probs = [a / s for a in probs]
     r = random.uniform(0, 1)
     for i in range(len(probs)):
         r = r - probs[i]
         if r <= 0:
             return i
-    return len(probs)-1
+    return len(probs) - 1
+
 
 def c_array(ctype, values):
-    arr = (ctype*len(values))()
+    arr = (ctype * len(values))()
     arr[:] = values
     return arr
+
 
 class BOX(Structure):
     _fields_ = [("x", c_float),
                 ("y", c_float),
                 ("w", c_float),
                 ("h", c_float)]
+
 
 class DETECTION(Structure):
     _fields_ = [("bbox", BOX),
@@ -45,13 +50,13 @@ class IMAGE(Structure):
                 ("c", c_int),
                 ("data", POINTER(c_float))]
 
+
 class METADATA(Structure):
     _fields_ = [("classes", c_int),
                 ("names", POINTER(c_char_p))]
 
 
-
-#lib = CDLL("/home/pjreddie/documents/darknet/libdarknet.so", RTLD_GLOBAL)
+# lib = CDLL("/home/pjreddie/documents/darknet/libdarknet.so", RTLD_GLOBAL)
 lib = CDLL("./libdarknet.so", RTLD_GLOBAL)
 lib.network_width.argtypes = [c_void_p]
 lib.network_width.restype = c_int
@@ -129,16 +134,18 @@ def convertBack(x, y, w, h):
     ymax = int(round(y + (h / 2)))
     return xmin, ymin, xmax, ymax
 
+
 def array_to_image(arr):
     # need to return old values to avoid python freeing memory
-    arr = arr.transpose(2,0,1)
+    arr = arr.transpose(2, 0, 1)
     c, h, w = arr.shape[0:3]
     arr = np.ascontiguousarray(arr.flat, dtype=np.float32) / 255.0
     data = arr.ctypes.data_as(POINTER(c_float))
-    im = IMAGE(w,h,c,data)
+    im = IMAGE(w, h, c, data)
     return im, arr
 
-def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
+
+def detect(net, meta, image, thresh=.7, hier_thresh=.7, nms=.45):
     im, image = array_to_image(image)
     rgbgr_image(im)
     num = c_int(0)
@@ -157,7 +164,7 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
             for i in ai:
                 b = dets[j].bbox
                 res.append((meta.names[i], dets[j].prob[i],
-                           (b.x, b.y, b.w, b.h)))
+                            (b.x, b.y, b.w, b.h)))
 
     res = sorted(res, key=lambda x: -x[1])
     if isinstance(image, bytes): free_image(im)
@@ -195,51 +202,71 @@ def tile_image(image):
 
             cropped_img = image[top: bot, left: right]
 
-            tiles.append((cropped_img, top, bot, left, right))
-
+            tiles.append((cropped_img, (top, bot, left, right)))
 
     return tiles
 
 
 if __name__ == "__main__":
     files = []
-    detections = []
+
     with open(sys.argv[1], 'r') as my_file:
         files = my_file.read().splitlines()
 
     # net = load_net(b"cfg/yolov3.cfg", b"yolov3.weights", 0)
     # meta = load_meta(b"cfg/coco.data")
 
-    net = load_net(b"cfg/sealsv3test.cfg", b"seal_weights/sealsv3.backup", 0)
-    meta = load_meta(b"cfg/seals.data")
+    net = load_net(cfg_file, weight_file, 0)
+    meta = load_meta(data_file)
     print(meta.names[0])
-    i = 0
-    for file in files: 
-        basename = os.path.splitext(os.path.basename(file))[0]
-        img = cv2.imread(file, cv2.IMREAD_COLOR)
+    start_el = int(sys.argv[2])
+    files = files[start_el:]
+    i = start_el
+    for file_name in files:
+        basename = os.path.splitext(os.path.basename(file_name))[0]
+        img = cv2.imread(file_name, cv2.IMREAD_COLOR)
         if img is None:
-            print("Could not read file " + file)
+            print("Could not read file " + file_name)
             continue
+        start = time.time()
         tiles = tile_image(img)
+        end = time.time()
+        print("Crop Time: " + str(end - start))
 
-	print("File: " + file + "\n")
+        print(str(i) + " File: " + file_name)
+        start = time.time()
         for tile in tiles:
+            detections = []
             r = detect(net, meta, tile[0])
-	    fig,ax = plt.subplots(1)
-	    fig.set_size_inches(800,800)
-	    ax.imshow(tile[0])
-	    for k in range(len(r)):
-            	if len(r) > 0 and r[1] > 0.8:
-		    print r[k]
-	   	    print "Name: ",r[k][0],"Predict %: ",r[k][1],"X: ",r[k][2][0],"Y: ",r[k][2][1],"W: ",r[k][2][2],"H: ",r[k][2][3],'\n'
-                    detections.append((r[k], tile))
+            for k in range(len(r)):
+                if len(r) > 0:
+                    x = r[k][2][0]
+                    y = r[k][2][1]
+                    pred = r[k][1]
+                    width = r[k][2][2]
+                    height = r[k][2][3]
+                    top, bot, left, right = tile[1]
 
-    		    rect = patches.Rectangle((r[k][2][0],r[k][2][1]),r[k][2][2],r[k][2][3],linewidth=1,edgecolor='r',facecolor='none')
-    		    ax.add_patch(rect)
-	    plt.show()
-	    plt.savefig("res/"+basename+"_"+str(tile[1])+"_"+str(tile[3])+".jpg", tile[0])
+                    print "Name: ", r[k][0], "Predict %: ", pred, "X: ", x, "Y: ", y, "W: ", width, "H: ", height, '\n'
+                    detections.append((r[k], tile[1], file_name))
+                    csv_row = str(i) + "," + file_name + "," + str(pred) + "," + str(x) + "," + str(y) + "," + \
+                              str(width) + "," + str(height) + "," + \
+                              str(top) + "," + str(bot) + "," + str(left) + "," + str(right)
 
- 
+                    with open(out_csv_file, 'a') as fd:
+                        if os.stat("file").st_size == 0:
+                            fd.write(
+                                "fnum, file,prediction,local_x,local_y,bbox_width,bbox_height,crop_top,crop_bot,crop_left,crop_right")
+                        fd.write(csv_row)
+
+                    cv2.imwrite("res/" + basename + "_" + str(tile[1][0]) + "_" + str(tile[1][2]) + ".jpg", tile[0])
+
+            del tile
+        end = time.time()
+        total_time = end - start
+        print("Detect Time: " + str(total_time) + " (" + str(len(tiles)) + " frames) -" + str(len(tiles)/total_time) + "fps")
+        print("")
+        i += 1
         del tiles
         del img
-
+    i += 1
