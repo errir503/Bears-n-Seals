@@ -1,6 +1,6 @@
 from ConfigParser import SafeConfigParser
 
-from arcticapi.crop import CropCfg
+from arcticapi.augmentation import CropCfg
 from arcticapi.visuals import bcolors
 
 configKeys = ['csv', 'imdir', 'imout', 'bbox_size', 'min_shift', 'max_shift',

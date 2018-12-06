@@ -1,5 +1,6 @@
 from datetime import datetime
-from model import Image, HotSpot
+
+from arcticapi.model import AerialImage, HotSpot
 
 HOTSPOT_ID_COL_IDX = 0
 TIMESTAMP = 1
@@ -16,7 +17,7 @@ HOTSPOT_TYPE_COL_IDX = 11
 SPECIES_ID_COL_IDX = 12
 
 
-def parse_meta_deta(filename):
+def parse_meta_data(filename):
     tokens = filename.split('_')
     if (len(tokens) < 3):
         return None, None, None
@@ -47,13 +48,13 @@ def parse_ts(ts):
 def parse_hotspot(row, res_path):
     # get camera positions, project name, and aircraft
     time = parse_ts(row[TIMESTAMP])
-    project_name, aircraft, rgb_pos = parse_meta_deta(row[IMG_RGB_COL_IDX])
-    project_name, aircraft, thermal_pos = parse_meta_deta(row[IMG_THERMAL8_COL_IDX])
-    project_name, aircraft, ir_pos = parse_meta_deta(row[IMG_THERMAL16_COL_IDX])
+    project_name, aircraft, rgb_pos = parse_meta_data(row[IMG_RGB_COL_IDX])
+    project_name, aircraft, thermal_pos = parse_meta_data(row[IMG_THERMAL8_COL_IDX])
+    project_name, aircraft, ir_pos = parse_meta_data(row[IMG_THERMAL16_COL_IDX])
     # create each image object
-    rgb = Image(res_path + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
-    thermal = Image(res_path + row[IMG_THERMAL8_COL_IDX], "thermal", thermal_pos)
-    ir = Image(res_path + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
+    rgb = AerialImage(res_path + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
+    thermal = AerialImage(res_path + row[IMG_THERMAL8_COL_IDX], "thermal", thermal_pos)
+    ir = AerialImage(res_path + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
     return HotSpot(row[HOTSPOT_ID_COL_IDX],
                    int(row[XPOS_IDX]),
                    int(row[YPOS_IDX]),

@@ -1,12 +1,12 @@
 import os
 import csv
 
-from arcticapi import model, image_registration
 from arcticapi.csv_parser import parse_hotspot
-from arcticapi.crop import CropCfg
+from arcticapi.registration import image_registration
+from arcticapi.augmentation import CropCfg
 
 # This is the "model", it parses a NOAA seal formatted csv file and generates HotSpots - 1 per row.
-from arcticapi.visuals import printProgressBar
+from arcticapi.model.HotSpotMap import HotSpotMap
 
 
 class ArcticApi:
@@ -21,7 +21,7 @@ class ArcticApi:
         del rows[0]  # remove col headers
 
 
-        hsm = model.HotSpotMap()
+        hsm = HotSpotMap()
 
         for row in rows:
             hotspot = parse_hotspot(row, im_path)

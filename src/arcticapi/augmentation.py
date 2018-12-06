@@ -158,7 +158,7 @@ def crop_rgb_hotspot(cfg, hs):
                                                                        cfg.crop_size)
 
     crop_img = img[tcrop:bcrop, lcrop: rcrop]
-
+    crop_img = brightness_adjustment(crop_img)
     if cfg.debug:
         cv2.circle(crop_img, (center_x, center_y), 5, (0, 255, 0), 2)
         cv2.rectangle(crop_img, (center_x - cfg.bbox_size /2, center_y - cfg.bbox_size /2),
@@ -179,7 +179,7 @@ def crop_rgb_hotspot(cfg, hs):
 
     write_label(file_name, cfg.label)
 
-    if False: #TODO temporary 
+    if False: #TODO temporary
         # Generate negative image(with no object) and labels for training
         tcrop, bcrop, lcrop, rcrop = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh, cfg.crop_size)
         crop_img_neg = img[tcrop:bcrop, lcrop: rcrop]
@@ -315,3 +315,16 @@ def random_shift(topCrop, bottomCrop, leftCrop, rightCrop, w, h, minShift, maxSh
             dy = 0
 
     return dx, dy
+
+def brightness_adjustment(img):
+    # turn the image into the HSV space
+    hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    # creates a random bright
+    ratio = .7 + np.random.uniform()
+    # convert to int32, so you don't get uint8 overflow
+    # multiply the HSV Value channel by the ratio
+    # clips the result between 0 and 255
+    # convert again to uint8
+    hsv[:,:,2] =  np.clip(hsv[:,:,2].astype(np.int32) * ratio, 0, 255).astype(np.uint8)
+    # return the image int the BGR color space
+    return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
