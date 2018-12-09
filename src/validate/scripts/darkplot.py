@@ -46,8 +46,8 @@ def main(argv):
     if args.log:
         ax.set_yscale('log')
     ax.plot(iters, losses)
-    plt.xlabel('iters')
-    plt.ylabel('loss')
+    plt.xlabel('Iterations current:' + str(len(iters)))
+    plt.ylabel('Loss')
     plt.grid()
 
 
