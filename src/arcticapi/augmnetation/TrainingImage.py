@@ -21,7 +21,7 @@ class TrainingImage():
         # if no labels, still a training image save with empty label file for darknet
         if len(self.bboxes) == 0:
             write_label(self.filename + ".jpg", self.cfg.label)
-            write_label(" ".join(self.crops), self.cfg.label + "_orig")
+            write_label(" ".join([str(i) for i in self.crops]), self.cfg.label + "_orig")
             open(self.filename + ".txt", 'a').close()
             cv2.imwrite(self.filename + ".jpg", self.image)
             return
@@ -52,7 +52,7 @@ class TrainingImage():
 
         cv2.imwrite(self.filename + ".jpg", self.image)
         write_label(self.filename + ".jpg", self.cfg.label)
-        write_label(" ".join(self.crops), self.cfg.label + "_orig")
+        write_label(" ".join([str(i) for i in self.crops]), self.cfg.label + "_orig")
 
     def random_hue_adjustment(self, ratio):
         hsv = cv2.cvtColor(self.image, cv2.COLOR_RGB2HSV)
