@@ -50,7 +50,7 @@ def crop_rgb_hotspot(cfg, aeral_image):
         for item in todraw:
             ids += item.id + "_"
         file_name = cfg.out_dir + "crop_" + ids + str(classIndex)
-        tr = TrainingImage(crop_img, cfg, file_name)
+        tr = TrainingImage(crop_img, cfg, file_name, (tcrop, bcrop, lcrop, rcrop))
         for hs in todraw:
             x, y = hs.getRGBCenterPt()
             y = y - tcrop
