@@ -31,7 +31,8 @@ class TrainingImage():
 
                 if self.cfg.combine_seal:
                     if classIndex == 0 or classIndex == 1 or classIndex == 2:
-                        box[0] = 0
+                        x,y,w,h =box[1:]
+                        box = (0, x,y,w,h )
 
                 file.write(" ".join([str(i) for i in box]) + "\n")
                 if self.cfg.debug:  # draws same as yolo so will prove labels are correct
