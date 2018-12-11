@@ -5,11 +5,15 @@ import cv2
 import numpy as np
 import os
 import time
+cfg_file = sys.argv[1]
+cfg_file = sys.argv[2]
+weight_file = sys.argv[3]
+out_csv_file = sys.argv[4]
 
-cfg_file = b"cfg/sealsv3test.cfg"
-data_file = b"cfg/seals.data"
-weight_file = b"seal_weights/sealsv3_4000.weights"
-out_csv_file = "possible_color.csv"
+# cfg_file = b"cfg/sealsv3test.cfg"
+# data_file = b"cfg/seals.data"
+# weight_file = b"seal_weights/sealsv3_4000.weights"
+# out_csv_file = "possible_color.csv"
 pred_thres = 0.5
 
 def sample(probs):

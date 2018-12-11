@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 from PIL import Image as PILImage
 
+from arcticapi.augmnetation import AugRgb, AugIR
+
+
 class AerialImage():
     def __init__(self, path, type, camerapos):
         self.path = path
@@ -39,3 +42,24 @@ class AerialImage():
         img = np.array(img).astype(np.uint16)
 
         return img
+
+    def genCropsAndLables(self, cfg):
+        """
+        :type cfg: CropCfg
+        """
+        if cfg.imtype == "ir":
+            AugIR.crop_ir_hotspot_8bit(cfg, self)
+        elif cfg.imtype == "rgb":
+            AugRgb.crop_rgb_hotspot(cfg, self)
+
+    def getHotSpots(self, cfg):
+        hotspots = []
+        for hs in self.hotspots:
+            # don't make crops or labels for bears
+            if not cfg.make_bear and hs.classIndex == 3:
+                continue
+            # don't make crops or labels for anomalies
+            if not cfg.make_anomaly and hs.classIndex == 4:
+                continue
+            hotspots.append(hs)
+        return hotspots

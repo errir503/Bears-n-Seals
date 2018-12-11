@@ -3,7 +3,6 @@ import csv
 
 from arcticapi.csv_parser import parse_hotspot
 from arcticapi.registration import image_registration
-from arcticapi.augmentation import CropCfg
 
 # This is the "model", it parses a NOAA seal formatted csv file and generates HotSpots - 1 per row.
 from arcticapi.model.HotSpotMap import HotSpotMap
@@ -20,13 +19,17 @@ class ArcticApi:
         f.close()
         del rows[0]  # remove col headers
 
-
-        hsm = HotSpotMap()
-
+        hsm = []
+        images = {}
         for row in rows:
             hotspot = parse_hotspot(row, im_path)
             hsm.add(hotspot)
+            if not hotspot.rgb.path in images:
+                images[hotspot.rgb.path] = hotspot.rgb
+            images[hotspot.rgb.path].hotspots.append(hotspot)
 
+
+        self.images = images
         self.hsm = hsm
         del rows
 
@@ -38,6 +41,17 @@ class ArcticApi:
             hs = self.hsm.get_hs(id)
             if hs is not None:
                 image_registration.register_images(hs, showFigures, showImgs)
+
+    def crop_label_images(self, cfg):
+        img_ct = len(self.images)
+        print("processing " + str(img_ct) + " images")
+        if not os.path.exists(cfg.out_dir):
+            os.mkdir(cfg.out_dir)
+
+        for image in self.images:
+            self.images[image].genCropsAndLables(cfg)
+
+
 
     # Called with a CropCfg object it will crop and label all hotspots according to the given cfg
     def crop_label_all(self, cfg):

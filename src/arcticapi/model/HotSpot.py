@@ -1,6 +1,5 @@
-from arcticapi import augmentation
-
 SpeciesList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
+
 
 class HotSpot:
     def __init__(self, id, xpos, ypos, thumb_left, thumb_top, thumb_right, thumb_bottom, type, species_id, rgb,
@@ -12,6 +11,8 @@ class HotSpot:
         self.rgb_bb_r = thumb_right
         self.rgb_bb_t = thumb_top
         self.rgb_bb_b = thumb_bottom
+        self.center_x = thumb_left + ((thumb_right - thumb_left) / 2)
+        self.center_y = thumb_bottom + ((thumb_top - thumb_bottom) / 2)
         self.type = type
         self.species = species_id
         self.classIndex = SpeciesList.index(species_id)
@@ -39,11 +40,5 @@ class HotSpot:
         y = self.rgb_bb_t + ((self.rgb_bb_b - self.rgb_bb_t) / 2)
         return (x, y)
 
-    def genCropsAndLables(self, cfg):
-        """
-        :type cfg: CropCfg
-        """
-        if cfg.imtype == "ir":
-            augmentation.crop_ir_hotspot_8bit(cfg, self)
-        elif cfg.imtype == "rgb":
-            augmentation.crop_rgb_hotspot(cfg, self)
+    def getIRCenterPt(self):
+        return (self.center_x, self.center_y)

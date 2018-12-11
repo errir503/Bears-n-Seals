@@ -1,12 +1,31 @@
 from ConfigParser import SafeConfigParser
 
-from arcticapi.augmentation import CropCfg
 from arcticapi.visuals import bcolors
 
 configKeys = ['csv', 'imdir', 'imout', 'bbox_size', 'min_shift', 'max_shift',
                       'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug', 'image_type', 'output_list', 'merge_all_classes']
 
 cfgFileName = 'config.ini'
+
+class CropCfg(object):
+    def __init__(self, csv, im_dir, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly,
+                 debug, imtype, name, combine_all):
+        self.csv = csv
+        self.im_dir = im_dir
+        self.out_dir = out_dir
+        self.bbox_size = bbox_size
+        self.minShift = minShift
+        self.maxShift = maxShift
+        self.crop_size = crop_size
+        self.label = label
+        self.combine_seal = combine_seal
+        self.make_bear = make_bear
+        self.make_anomaly = make_anomaly
+        self.combine_all = combine_all
+        self.debug = debug
+        self.imtype = imtype
+        self.name = name
+
 def make_model_config(cfg, classes):
     config = SafeConfigParser()
     config.read(cfgFileName)
