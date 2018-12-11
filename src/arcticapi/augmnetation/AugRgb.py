@@ -66,7 +66,7 @@ def crop_rgb_hotspot(cfg, aeral_image):
         tcrop, bcrop, lcrop, rcrop = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh, cfg.crop_size)
         crop_img_neg = img[tcrop:bcrop, lcrop: rcrop]
         file_name_neg = file_name + "_neg"
-        tr_neg = TrainingImage(crop_img_neg, cfg, file_name_neg)
+        tr_neg = TrainingImage(crop_img_neg, cfg, file_name_neg, file_name, (tcrop, bcrop, lcrop, rcrop))
         tr.random_hue_adjustment(0.05)
         tr_neg.save()
 
