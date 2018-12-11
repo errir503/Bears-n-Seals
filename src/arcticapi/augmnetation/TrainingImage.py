@@ -21,6 +21,7 @@ class TrainingImage():
         if len(self.bboxes) == 0:
             write_label(self.filename + ".jpg", self.cfg.label)
             open(self.filename + ".txt", 'a').close()
+            cv2.imwrite(self.filename + ".jpg", self.image)
             return
 
         # Generate trainin label

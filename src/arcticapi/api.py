@@ -19,7 +19,7 @@ class ArcticApi:
         f.close()
         del rows[0]  # remove col headers
 
-        hsm = []
+        hsm = HotSpotMap()
         images = {}
         for row in rows:
             hotspot = parse_hotspot(row, im_path)
