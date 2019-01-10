@@ -49,26 +49,25 @@ def crop_rgb_hotspot(cfg, aeral_image):
         ids = ""
         for item in todraw:
             ids += item.id + "_"
-        file_name = cfg.out_dir + "crop_" + ids + str(classIndex)
-        tr = TrainingImage(crop_img, cfg, file_name, (tcrop, bcrop, lcrop, rcrop))
+        bboxes = []
         for hs in todraw:
             x, y = hs.getRGBCenterPt()
             y = y - tcrop
             x = x - lcrop
-            tr.bboxes.append((classIndex, (x + 0.0) / cropw, (y + 0.0) / croph, (cfg.bbox_size + 0.0) / cropw,
+            bboxes.append((hs.id, classIndex, (x + 0.0) / cropw, (y + 0.0) / croph, (cfg.bbox_size + 0.0) / cropw,
                            (cfg.bbox_size + 0.0) / croph))
 
+        tr = TrainingImage(crop_img, cfg, aeral_image.path, bboxes, (tcrop, bcrop, lcrop, rcrop))
 
-        tr.random_hue_adjustment(0.05)
+        # tr.random_hue_adjustment(0.05)
         tr.save()
 
-        # Generate negative image(with no object) and labels for training
-        tcrop, bcrop, lcrop, rcrop = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh, cfg.crop_size)
-        crop_img_neg = img[tcrop:bcrop, lcrop: rcrop]
-        file_name_neg = file_name + "_neg"
-        tr_neg = TrainingImage(crop_img_neg, cfg, file_name_neg, (tcrop, bcrop, lcrop, rcrop))
-        tr.random_hue_adjustment(0.05)
-        tr_neg.save()
+        # # Generate negative image(with no object) and labels for training
+        # tcrop, bcrop, lcrop, rcrop = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh, cfg.crop_size)
+        # crop_img_neg = img[tcrop:bcrop, lcrop: rcrop]
+        # tr_neg = TrainingImage(crop_img_neg, cfg, [], (tcrop, bcrop, lcrop, rcrop))
+        # # tr.random_hue_adjustment(0.05)
+        # tr_neg.save()
 
     # free image from memory
     aeral_image.free()
