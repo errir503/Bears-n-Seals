@@ -31,6 +31,20 @@ def norm_matrix(m):
         return 1
     return m
 
+def drawBBoxYolo(img, x, y, w, h):
+    (imh, imw, imc) = img.shape
+    x = int(x * imw)
+    y = int(y * imh)
+    w = int(w * imw)
+    h = int(h * imh)
+    cv2.circle(img, (x, y), 5, (0, 255, 0), 2)
+    cv2.rectangle(img, (x - w / 2, y - h / 2),
+                  (x + w / 2, y + h / 2),
+                  (0, 255, 0), 2)  # draw rect
+
+def pltIm(img):
+    imgplot = plt.imshow(img)
+    plt.show()
 
 def plot_px_distribution(imgpre, imgpost, title, bins):
     # bottom = np.percentile(imgpre, 1)
@@ -62,27 +76,3 @@ def plot_16bit_gray(img, cmap="gray"):
     """
     plt.imshow(img, vmin=0, vmax=65535, cmap=cmap)
     plt.show()
-
-# Print iterations progress
-# w/modifications from https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '#'):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    sys.stdout.write('\r')
-    sys.stdout.write('%s |%s| %s%% %s' % (prefix, bar, percent, suffix))
-    sys.stdout.flush()
-    # Print New Line on Complete
-    if iteration == total:
-        print()

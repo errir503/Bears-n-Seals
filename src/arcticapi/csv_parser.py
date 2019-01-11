@@ -2,6 +2,7 @@ from datetime import datetime
 
 from arcticapi.model import AerialImage, HotSpot
 
+# Original columns
 HOTSPOT_ID_COL_IDX = 0
 TIMESTAMP = 1
 IMG_THERMAL16_COL_IDX = 2
@@ -15,6 +16,13 @@ RIGHT_IDX = 9
 BOT_IDX = 10
 HOTSPOT_TYPE_COL_IDX = 11
 SPECIES_ID_COL_IDX = 12
+# New columns that I added
+UPDATED_TOP_IDX = 13
+UPDATED_BOT_IDX = 14
+UPDATED_LEFT_IDX = 15
+UPDATED_RIGHT_IDX = 16
+UPDATED_IDX = 17
+STATUS_IDX = 18
 
 
 def parse_meta_data(filename):
@@ -55,19 +63,42 @@ def parse_hotspot(row, res_path):
     rgb = AerialImage(res_path + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
     thermal = AerialImage(res_path + row[IMG_THERMAL8_COL_IDX], "thermal", thermal_pos)
     ir = AerialImage(res_path + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
-    return HotSpot(row[HOTSPOT_ID_COL_IDX],
-                   int(row[XPOS_IDX]),
-                   int(row[YPOS_IDX]),
-                   int(row[LEFT_IDX]),
-                   int(row[TOP_IDX]),
-                   int(row[RIGHT_IDX]),
-                   int(row[BOT_IDX]),
-                   row[HOTSPOT_TYPE_COL_IDX],
-                   row[SPECIES_ID_COL_IDX],
-                   rgb,
-                   thermal,
-                   ir,
-                   time,
-                   project_name, aircraft)
+
+    if len(row) == 13:
+        return HotSpot(row[HOTSPOT_ID_COL_IDX],
+                       int(row[XPOS_IDX]),
+                       int(row[YPOS_IDX]),
+                       int(row[LEFT_IDX]),
+                       int(row[TOP_IDX]),
+                       int(row[RIGHT_IDX]),
+                       int(row[BOT_IDX]),
+                       row[HOTSPOT_TYPE_COL_IDX],
+                       row[SPECIES_ID_COL_IDX],
+                       rgb,
+                       thermal,
+                       ir,
+                       time,
+                       project_name, aircraft)
+    else:
+        return HotSpot(row[HOTSPOT_ID_COL_IDX],
+                       int(row[XPOS_IDX]),
+                       int(row[YPOS_IDX]),
+                       int(row[LEFT_IDX]),
+                       int(row[TOP_IDX]),
+                       int(row[RIGHT_IDX]),
+                       int(row[BOT_IDX]),
+                       row[HOTSPOT_TYPE_COL_IDX],
+                       row[SPECIES_ID_COL_IDX],
+                       rgb,
+                       thermal,
+                       ir,
+                       time,
+                       project_name, aircraft,
+                       int(row[UPDATED_TOP_IDX]),
+                       int(row[UPDATED_BOT_IDX]),
+                       int(row[UPDATED_LEFT_IDX]),
+                       int(row[UPDATED_RIGHT_IDX]),
+                       bool(row[UPDATED_IDX]),
+                       row[STATUS_IDX])
 
 

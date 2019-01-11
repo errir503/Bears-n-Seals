@@ -5,6 +5,7 @@ import numpy as np
 
 
 from arcticapi.augmnetation.utils import write_label
+from arcticapi.visuals import drawBBoxYolo
 
 
 class TrainingImage():
@@ -48,17 +49,8 @@ class TrainingImage():
                            " ".join([str(i) for i in self.crops]) + "\n")
 
                 if self.cfg.debug:  # draws same as yolo so will prove labels are correct
-                    (imw,imh, imc) = self.image.shape
                     (hsId, classId, x, y, w, h) = box
-
-                    x = int(x * imw)
-                    y = int(y * imh)
-                    w = int(w * imw)
-                    h = int(h * imh)
-                    cv2.circle(self.image, (x, y), 5, (0, 255, 0), 2)
-                    cv2.rectangle(self.image, (x - w / 2, y - h / 2),
-                                  (x + w / 2, y + h / 2),
-                                  (0, 255, 0), 2)  # draw rect
+                    drawBBoxYolo(self.image, x, y, w, h)
 
         cv2.imwrite(self.filename + ".jpg", self.image)
         write_label(self.filename + ".jpg", self.cfg.label)

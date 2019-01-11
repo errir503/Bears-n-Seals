@@ -1,9 +1,13 @@
+import os
+
 SpeciesList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
 
 
 class HotSpot:
     def __init__(self, id, xpos, ypos, thumb_left, thumb_top, thumb_right, thumb_bottom, type, species_id, rgb,
-                 thermal, ir, timestamp, project_name, aircraft):
+                 thermal, ir, timestamp, project_name, aircraft,
+                 updated_top = -1, updated_bot = -1, updated_left = -1, updated_right = -1,
+                 updated = False, status = "none"):
         self.id = id  # id_hotspot
         self.thermal_loc = (xpos, ypos)  # location in thermal image
         # Bounding box
@@ -11,17 +15,25 @@ class HotSpot:
         self.rgb_bb_r = thumb_right
         self.rgb_bb_t = thumb_top
         self.rgb_bb_b = thumb_bottom
+        # Center point
         self.center_x = thumb_left + ((thumb_right - thumb_left) / 2)
         self.center_y = thumb_bottom + ((thumb_top - thumb_bottom) / 2)
-        self.type = type
-        self.species = species_id
-        self.classIndex = SpeciesList.index(species_id)
-        self.rgb = rgb
-        self.thermal = thermal
-        self.ir = ir
-        self.timestamp = timestamp
-        self.project_name = project_name
-        self.aircraft = aircraft
+        self.type = type # type of hotspot (Animal, Anomaly...)
+        self.species = species_id # species (Ringed, Bearded..)
+        self.classIndex = SpeciesList.index(species_id) # class index
+        self.rgb = rgb # RGB AerialImage
+        self.thermal = thermal  # thermal AerialImage
+        self.ir = ir  # IR AerialImage
+        self.timestamp = timestamp # timestamp
+        self.project_name = project_name # name of the projects usually CHESS
+        self.aircraft = aircraft # aircraft tail number
+        # New columns for re-labeled csv files
+        self.updated_top = updated_top
+        self.updated_bot = updated_bot
+        self.updated_left = updated_left
+        self.updated_right = updated_right
+        self.updated = updated
+        self.status = status
 
     def load_all(self):
         if self.thermal.load_image() and self.rgb.load_image() and self.ir.load_image():
@@ -42,3 +54,37 @@ class HotSpot:
 
     def getIRCenterPt(self):
         return (self.center_x, self.center_y)
+
+    def toCSVRow(self):
+        _, thermpath = os.path.split(self.thermal.path)
+        _, irpath = os.path.split(self.ir.path)
+        _, rgbpath = os.path.split(self.rgb.path)
+        cols = [str(self.id), str(self.timestamp), irpath, thermpath, rgbpath, str(self.thermal_loc[0]), str(self.thermal_loc[1]),
+                str(self.rgb_bb_l), str(self.rgb_bb_t), str(self.rgb_bb_r), str(self.rgb_bb_b), str(self.type),
+                str(self.species), str(self.updated_top), str(self.updated_bot), str(self.updated_left),
+                str(self.updated_right), str.lower(str(self.updated)), str(self.status)]
+        return ",".join(cols) + "\n"
+
+    def getYoloBBox(self):
+        if not self.rgb.load_image():
+            return None
+
+        img = self.rgb.image
+        l = self.rgb_bb_l
+        r = self.rgb_bb_r
+        t = self.rgb_bb_t
+        b = self.rgb_bb_b
+        if self.updated:
+            l = self.updated_left
+            r = self.updated_right
+            t = self.updated_top
+            b = self.updated_bot
+        w = r - l
+        h = b - t
+        cx = l + (w / 2.0)
+        cy = t + (h / 2.0)
+        yolox = float(cx) / float(img.shape[1])
+        yolow = float(w) / float(img.shape[1])
+        yoloy = float(cy) / float(img.shape[0])
+        yoloh = float(h) / float(img.shape[0])
+        return (yolox, yoloy, yolow, yoloh)

@@ -17,6 +17,7 @@ class ArcticApi:
         for row in reader:
             rows.append(row)
         f.close()
+        header = rows[0]
         del rows[0]  # remove col headers
 
         hsm = HotSpotMap()
@@ -28,7 +29,7 @@ class ArcticApi:
                 images[hotspot.rgb.path] = hotspot.rgb
             images[hotspot.rgb.path].hotspots.append(hotspot)
 
-
+        self.csvheader = header
         self.images = images
         self.hsm = hsm
         del rows
@@ -117,5 +118,13 @@ class ArcticApi:
             print("NA Seals: " + str(classes[2]))
             print("Polar Bears: " + str(classes[3]))
             print("NA Animals: " + str(classes[4]))
+
+    # Use to save all hotspots in the standard seal csv format
+    def saveHotspotsToCSV(self, out_file):
+        with open(out_file, 'w') as temp_file:
+            temp_file.write(",".join(self.csvheader) + "\n")
+            for hs in self.hsm.hotspots:
+                newrowtxt = hs.toCSVRow()
+                temp_file.write(newrowtxt)
 
 
