@@ -84,7 +84,7 @@ Test/Train Split:
 `tail -n +1000 training_list.txt > sealtrain.txt`
 
 Make test set of all color images:
-`ls -l /data/noaa/NOAA_ImagesForDetectionDevelopment/CHESS/*_COLOR-8-BIT.JPG > colorvalid.jpg`
+`ls -l /data/noaa/NOAA_ImagesForDetectionDevelopment/CHESS/*_COLOR-8-BIT.JPG > colorvalid.txt`
 
 Generat map score (Must use "AB Darknet fork")
 `./darknet detector map cfg/bearsnseals.data cfg/bearsnseals.cfg weights/backup.weights`
