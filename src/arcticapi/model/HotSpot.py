@@ -65,6 +65,7 @@ class HotSpot:
                 str(self.updated_right), str.lower(str(self.updated)), str(self.status)]
         return ",".join(cols) + "\n"
 
+    # returns (x, y, w, h) in yolo format
     def getYoloBBox(self):
         if not self.rgb.load_image():
             return None

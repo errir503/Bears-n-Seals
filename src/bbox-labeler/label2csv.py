@@ -4,10 +4,12 @@ import os
 import cv2
 
 from arcticapi import ArcticApi
-from arcticapi.visuals import drawBBoxYolo, pltIm
+from arcticapi.visuals import drawBBoxYolo
 
 csv = '/Users/yuval/Documents/XNOR/bounding-box-labeler-yolo/_CHESS_ImagesSelected4Detection.csv'
 img_path = '/Users/yuval/Documents/XNOR/Bears-n-Seals/images/CHESS/'
+output_csv = 'out.csv'
+
 # csv = 'out.csv'
 api = ArcticApi(csv, img_path)
 hotspots = api.hsm.hotspots
@@ -102,4 +104,4 @@ for file in crop_txt_files:
 
         hotspots[idx] = hs
 
-api.saveHotspotsToCSV('out.csv')
+api.saveHotspotsToCSV(output_csv)
