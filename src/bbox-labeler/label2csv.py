@@ -95,7 +95,7 @@ for file in crop_txt_files:
         hs.updated = True
 
         # debug
-        if False and x != 0.5:
+        if True and x != 0.5:
             if hs.rgb.load_image():
                 img = hs.rgb.image
                 (yolox, yoloy, yolow, yoloh) = hs.getYoloBBox()

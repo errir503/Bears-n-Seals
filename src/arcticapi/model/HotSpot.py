@@ -48,8 +48,9 @@ class HotSpot:
         self.thermal.free()
 
     def getRGBCenterPt(self):
-        x = self.rgb_bb_l + ((self.rgb_bb_r - self.rgb_bb_l) / 2)
-        y = self.rgb_bb_t + ((self.rgb_bb_b - self.rgb_bb_t) / 2)
+        b, t, l, r = self.getBTLR()
+        x = l + ((r - l) / 2)
+        y = t + ((b - t) / 2)
         return (x, y)
 
     def getIRCenterPt(self):
@@ -89,4 +90,10 @@ class HotSpot:
         yoloy = float(cy) / float(img.shape[0])
         yoloh = float(h) / float(img.shape[0])
         return (yolox, yoloy, yolow, yoloh)
+
+    def getBTLR(self):
+        if self.updated == True:
+            return (self.updated_bot, self.updated_top, self.updated_left, self.updated_right)
+        else:
+            return (self.rgb_bb_b, self.rgb_bb_t, self.rgb_bb_l, self.rgb_bb_r)
 

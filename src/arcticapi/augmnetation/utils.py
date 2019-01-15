@@ -14,6 +14,8 @@ def recalculate_crops(rgb_bb_b, rgb_bb_t, rgb_bb_l, rgb_bb_r, imgh, imgw, maxShi
     tcrop_orig = center_y_global - crop_size/2
     bcrop_orig = center_y_global + crop_size/2
 
+
+
     dx, dy = random_shift(tcrop_orig, bcrop_orig, lcrop_orig, rcrop_orig, imgw, imgh, minShift, maxShift)
 
     lcrop = lcrop_orig + dx

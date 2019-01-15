@@ -1,4 +1,5 @@
 from arcticapi.augmnetation.TrainingImage import TrainingImage
+from arcticapi.visuals import drawBBoxYolo
 from utils import *
 
 from imgaug import augmenters as iaa
@@ -30,10 +31,11 @@ def augment_image(cfg, aeral_image):
         classIndex = hs.classIndex
         imgh = img.shape[0]
         imgw = img.shape[1]
-        tcrop, bcrop, lcrop, rcrop, center_x, center_y, dx, dy = recalculate_crops(hs.rgb_bb_b, hs.rgb_bb_t, hs.rgb_bb_l,
-                                                                           hs.rgb_bb_r,
+        b,t,l,r = hs.getBTLR()
+        tcrop, bcrop, lcrop, rcrop, center_x, center_y, dx, dy = recalculate_crops(b, t, l, r,
                                                                            imgh, imgw, cfg.maxShift, cfg.minShift,
                                                                            cfg.crop_size)
+
         todraw = []
         for hs in hotspots:
             isinbox = is_in_box(hs, tcrop, bcrop, lcrop, rcrop)
@@ -53,8 +55,8 @@ def augment_image(cfg, aeral_image):
             x, y = hs.getRGBCenterPt()
             y = y - tcrop
             x = x - lcrop
-            bboxes.append((hs.id, classIndex, (x + 0.0) / cropw, (y + 0.0) / croph, (cfg.bbox_size + 0.0) / cropw,
-                           (cfg.bbox_size + 0.0) / croph))
+            bboxes.append((hs.id, classIndex, (x + 0.0) / cropw, (y + 0.0) / croph, (r-l + 0.0) / cropw,
+                           (b-t + 0.0) / croph))
 
         tr = TrainingImage(crop_img, cfg, aeral_image.path, bboxes, (tcrop, bcrop, lcrop, rcrop))
 
