@@ -50,11 +50,13 @@ class AerialImage():
         if cfg.imtype == "ir":
             AugIR.crop_ir_hotspot_8bit(cfg, self)
         elif cfg.imtype == "rgb":
-            AugRgb.crop_rgb_hotspot(cfg, self)
+            AugRgb.augment_image(cfg, self)
 
     def getHotSpots(self, cfg):
         hotspots = []
         for hs in self.hotspots:
+            if hs.status == 'removed':
+                continue
             # don't make crops or labels for bears
             if not cfg.make_bear and hs.classIndex == 3:
                 continue

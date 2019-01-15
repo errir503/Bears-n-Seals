@@ -89,3 +89,4 @@ class HotSpot:
         yoloy = float(cy) / float(img.shape[0])
         yoloh = float(h) / float(img.shape[0])
         return (yolox, yoloy, yolow, yoloh)
+

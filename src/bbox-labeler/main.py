@@ -193,8 +193,8 @@ class LabelTool(tkinter.Frame):
                     h = self.tkImg.height()
                     box_w = self.rint(float(bbox.w * w) * self.zoom)
                     box_h = float(bbox.h * h) * self.zoom
-                    center_x = self.rint(bbox.x * self.zoom  * w)
-                    center_y = self.rint(bbox.y * self.zoom  * h)
+                    center_x = self.rint(bbox.x * self.zoom * w)
+                    center_y = self.rint(bbox.y * self.zoom * h)
 
                     tmpId = self.mainPanel.create_rectangle(self.rint(center_x - box_w/2),
                                                             self.rint(center_y - box_h/2),
@@ -249,6 +249,10 @@ class LabelTool(tkinter.Frame):
                 self.append_new_bbox(x1, x2, y1, y2)
             else:
                 self.update_bbox(selected_idx[0], x1, x2, y1, y2)
+            if len(selected_idx) > 0:
+                new_idx = selected_idx[0]+1
+                if not len(self.bboxList) <= new_idx:
+                    self.listbox.selection_set(new_idx)
         self.STATE['click'] = 1 - self.STATE['click']
 
     def append_new_bbox(self, x1, x2, y1, y2):

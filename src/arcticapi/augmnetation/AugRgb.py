@@ -1,13 +1,13 @@
 from arcticapi.augmnetation.TrainingImage import TrainingImage
 from utils import *
 
-
+from imgaug import augmenters as iaa
 
 def is_in_box(hotspot, top, bot, left, right):
     x, y = hotspot.getRGBCenterPt()
     return left < x < right and bot > y > top
 
-def crop_rgb_hotspot(cfg, aeral_image):
+def augment_image(cfg, aeral_image):
     """
     :param cfg: CropCfg
     :type hs: HotSpot
@@ -30,7 +30,6 @@ def crop_rgb_hotspot(cfg, aeral_image):
         classIndex = hs.classIndex
         imgh = img.shape[0]
         imgw = img.shape[1]
-
         tcrop, bcrop, lcrop, rcrop, center_x, center_y, dx, dy = recalculate_crops(hs.rgb_bb_b, hs.rgb_bb_t, hs.rgb_bb_l,
                                                                            hs.rgb_bb_r,
                                                                            imgh, imgw, cfg.maxShift, cfg.minShift,

@@ -6,6 +6,8 @@ import cv2
 from arcticapi import ArcticApi
 from arcticapi.visuals import drawBBoxYolo
 
+# Using the existing CSV goes through all labels in the Images directory and updates the existing CSV file
+# with updates from the labels
 csv = '/Users/yuval/Documents/XNOR/bounding-box-labeler-yolo/_CHESS_ImagesSelected4Detection.csv'
 img_path = '/Users/yuval/Documents/XNOR/Bears-n-Seals/images/CHESS/'
 output_csv = 'out.csv'
@@ -47,6 +49,7 @@ for file in crop_txt_files:
             hs.status = "removed"
             continue
 
+    # go through each line and calculate the global coordinates
     for line in lines:
         items = line.split(" ")
         idx = None
@@ -79,7 +82,6 @@ for file in crop_txt_files:
         bboxh = h * chiph
         centerx = l + (chipw * x)
         centery = t + (chiph * y)
-
 
 
         left = centerx - bboxw/2
