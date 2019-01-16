@@ -68,14 +68,14 @@ class AerialImage():
         for hs in self.hotspots:
             if hs.status == 'removed':
                 continue
-            if hs.updated and hs.updated_bot == -1 and hs.updated_left == -1 and hs.updated_right == -1 and hs.updated_top == -1:
-                print("Hotspot " + hs.id + " not included because updated, not removed, but still -1 values")
-                continue
             # don't make crops or labels for bears
             if not cfg.make_bear and hs.classIndex == 3:
                 continue
             # don't make crops or labels for anomalies
             if not cfg.make_anomaly and hs.classIndex == 4:
+                continue
+            if hs.updated and hs.updated_bot == -1 and hs.updated_left == -1 and hs.updated_right == -1 and hs.updated_top == -1:
+                print("Hotspot " + hs.id + " not included because updated, not removed, but still -1 values")
                 continue
             hotspots.append(hs)
         return hotspots
