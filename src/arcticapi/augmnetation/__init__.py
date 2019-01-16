@@ -1,3 +1,3 @@
-from arcticapi.augmnetation import AugIR, AugRgb, utils, TrainingImage
+from arcticapi.augmnetation import AugIR, AugRgb, utils, TrainingChip
 
-__all__ = [AugIR, AugRgb, utils, TrainingImage]
+__all__ = [AugIR, AugRgb, utils, TrainingChip]

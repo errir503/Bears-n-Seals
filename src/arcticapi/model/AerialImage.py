@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import imgaug as ia
 from PIL import Image as PILImage
 
 from arcticapi.augmnetation import AugRgb, AugIR
@@ -50,12 +51,25 @@ class AerialImage():
         if cfg.imtype == "ir":
             AugIR.crop_ir_hotspot_8bit(cfg, self)
         elif cfg.imtype == "rgb":
-            AugRgb.augment_image(cfg, self)
+            AugRgb.prepare_chips(cfg, self)
+
+    def getBboxes(self, cfg):
+        iabboxs = []
+        for hs in self.getHotSpots(cfg):
+            iabboxs.append(hs.rgb_bb)
+        if self.load_image():
+            return ia.BoundingBoxesOnImage(iabboxs, shape=self.image)
+        return None
+
+
 
     def getHotSpots(self, cfg):
         hotspots = []
         for hs in self.hotspots:
             if hs.status == 'removed':
+                continue
+            if hs.updated and hs.updated_bot == -1 and hs.updated_left == -1 and hs.updated_right == -1 and hs.updated_top == -1:
+                print("Hotspot " + hs.id + " not included because updated, not removed, but still -1 values")
                 continue
             # don't make crops or labels for bears
             if not cfg.make_bear and hs.classIndex == 3:
@@ -65,3 +79,4 @@ class AerialImage():
                 continue
             hotspots.append(hs)
         return hotspots
+

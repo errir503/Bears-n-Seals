@@ -80,39 +80,36 @@ def random_shift(topCrop, bottomCrop, leftCrop, rightCrop, w, h, minShift, maxSh
     dy = 0
 
     # make dx
-    if randint(0, 1) == 1:
-        if leftCrop != 0 and randint(0, 1) == 1:
-            dx -= randint(minShift, maxShift)
+    if leftCrop != 0 and randint(0, 1) == 1:
+        dx -= randint(minShift, maxShift)
 
-        elif rightCrop != 0 and randint(0, 1) == 1:
-            dx += randint(minShift, maxShift)
+    elif rightCrop != 0 and randint(0, 1) == 1:
+        dx += randint(minShift, maxShift)
 
-        # left crop outside image bounds
-        if not leftCrop + dx > 0:
-            dx = 0
-        if not rightCrop + dx < w:
-            dx = 0
+    # left crop outside image bounds
+    if not leftCrop + dx > 0:
+        dx = 0
+    if not rightCrop + dx < w:
+        dx = 0
 
     # make dy
-    if randint(0, 1) == 1:
-        if topCrop != 0 and randint(0, 1) == 1:
-            dy -= randint(minShift, maxShift)
+    if topCrop != 0 and randint(0, 1) == 1:
+        dy -= randint(minShift, maxShift)
 
-        elif bottomCrop != 0 and randint(0, 1) == 1:
-            dy += randint(minShift, maxShift)
+    elif bottomCrop != 0 and randint(0, 1) == 1:
+        dy += randint(minShift, maxShift)
 
-        # left crop outside iomage bounds
-        if topCrop + dy < 0:
-            dy = 0
-        if bottomCrop + dx > h:
-            dy = 0
+    # left crop outside iomage bounds
+    if topCrop + dy < 0:
+        dy = 0
+    if bottomCrop + dx > h:
+        dy = 0
 
     return dx, dy
 
 def write_label(file_name, label_files_list):
     with open(label_files_list, 'a') as file:
         file.write(os.getcwd() + "/" + file_name + "\n")
-
 
 
 
@@ -128,3 +125,22 @@ def negative_bounds(topCrop, bottomCrop, leftCrop, rightCrop, w, h, crop_size):
     else:
         # top right corner
         return 0, crop_size, h-crop_size, h
+
+def getRectFromYolo(img, x, y, w, h):
+    (imh, imw, imc) = img.shape
+    x = int(x * imw)
+    y = int(y * imh)
+    w = int(w * imw)
+    h = int(h * imh)
+    return x - w / 2, y - h / 2, x + w / 2, y + h / 2  # x1, y1, x2, y2
+
+def getYoloFromRect(imgh, imgw, x1, y1, x2, y2):
+    w = x2 - x1
+    h = y2 - y1
+    cx = x1 + (w / 2.0)
+    cy = y1 + (h / 2.0)
+    yolox = float(cx) / float(imgw)
+    yolow = float(w) / float(imgw)
+    yoloy = float(cy) / float(imgh)
+    yoloh = float(h) / float(imgh)
+    return yolox, yoloy, yolow, yoloh

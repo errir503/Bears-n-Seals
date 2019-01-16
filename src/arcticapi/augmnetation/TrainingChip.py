@@ -2,54 +2,51 @@ import random
 
 import cv2
 import numpy as np
+import imgaug as ia
 
-
-from arcticapi.augmnetation.utils import write_label
+from arcticapi.augmnetation.utils import write_label, getYoloFromRect
 from arcticapi.visuals import drawBBoxYolo
 
 
-class TrainingImage():
+class TrainingChip():
     def __init__(self, image, cfg, imgpath, bboxes, crops):
         self.image = image
         # format [(classname, x, y, w, h, hotspotId),...] in yolo with additional hotspot id
-        self.bboxes = bboxes
         self.cfg = cfg
         self.crops = crops # (topcrop, bottomcrop, leftcrop, rightcrop)
         self.imgpath = imgpath
-        ids = [x[0] for x in self.bboxes]
+        ids = [x.hsId for x in bboxes]
         self.filename = cfg.out_dir + "crop_" + "_".join(ids)
-
+        self.bboxes = ia.BoundingBoxesOnImage(bboxes, shape=image.shape)
 
     def save(self):
         # if no labels, still a training image save with empty label file for darknet
-        if len(self.bboxes) == 0:
+        if len(self.bboxes.bounding_boxes) == 0:
             write_label(self.filename + ".jpg", self.cfg.label)
-            write_label(" ".join([str(i) for i in self.crops]), self.cfg.label + "_orig")
             open(self.filename + ".txt", 'a').close()
             cv2.imwrite(self.filename + ".jpg", self.image)
             return
 
         # Generate trainin label
-        for box in self.bboxes:
+        for bbs in self.bboxes.bounding_boxes:
             with open(self.filename + ".txt", 'a') as file:
-                classIndex = box[0]
+                classIndex = bbs.label
 
-                if self.cfg.combine_seal:
-                    if classIndex == 0 or classIndex == 1 or classIndex == 2:
-                        x,y,w,h =box[2:]
-                        box = (box[0], 0, x,y,w,h )
+                if self.cfg.combine_seal and (classIndex == 0 or classIndex == 1 or classIndex == 2):
+                    bbs.label = 0
 
-                file.write(" ".join([str(i) for i in box[1:]]) + "\n")
+                x,y,w,h = getYoloFromRect(self.bboxes.height, self.bboxes.width, bbs.x1, bbs.y1, bbs.x2, bbs.y2)
+                yoloLabel = (bbs.hsId, bbs.label, x, y, w, h)
+                file.write(" ".join([str(i) for i in yoloLabel[1:]]) + "\n")
                 # create 2label file which allows to use the bounding box labeler tool to
                 # go through crops and to re-label.  .2label file formatted as
                 # hsid classid x y w h topcrop bottomcrop leftcrop rightcrop
                 # (last 4 are tile's location in original image)
                 with open(self.filename + ".2label", 'a') as file:
-                    file.write(" ".join([str(i) for i in box]) + " " +
+                    file.write(" ".join([str(i) for i in yoloLabel]) + " " +
                            " ".join([str(i) for i in self.crops]) + "\n")
 
                 if self.cfg.debug:  # draws same as yolo so will prove labels are correct
-                    (hsId, classId, x, y, w, h) = box
                     drawBBoxYolo(self.image, x, y, w, h)
 
         cv2.imwrite(self.filename + ".jpg", self.image)
@@ -60,3 +57,22 @@ class TrainingImage():
         ratio = random.uniform(1-ratio, 1 + ratio)
         hsv[:,:,2] =  np.clip(hsv[:,:,2].astype(np.int32) * ratio, 0, 255).astype(np.uint8)
         return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+
+
+    # extend the size of all bbox sides by px
+    def extend(self, px):
+        new = []
+        for bbox in self.bboxes.bounding_boxes:
+            new_box = bbox.extend(all_sides=px)
+            new_box.hsId = bbox.hsId
+            new.append(new_box)
+        self.bboxes = ia.BoundingBoxesOnImage(new, shape=self.image.shape)
+
+    def augment(self):
+        self.image = ia.imresize_single_image(self.image, (320, 320))
+        self.bbs = self.bbs.on(self.image)
+        if self.cfg.debug:
+            image_bbs = self.bbs.draw_on_image(self.image, thickness=2)
+            bbs_rescaled = self.bbs.draw_on_image(self.image, thickness=2)
+        return bbs_rescaled

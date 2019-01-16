@@ -49,8 +49,8 @@ class ArcticApi:
         if not os.path.exists(cfg.out_dir):
             os.mkdir(cfg.out_dir)
 
-        for image in self.images:
-            self.images[image].genCropsAndLables(cfg)
+        for image_path in self.images:
+            self.images[image_path].genCropsAndLables(cfg)
 
 
 

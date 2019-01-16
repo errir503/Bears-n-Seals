@@ -1,76 +1,75 @@
-from arcticapi.augmnetation.TrainingImage import TrainingImage
-from arcticapi.visuals import drawBBoxYolo
+import imgaug as ia
+
+from arcticapi.augmnetation.TrainingChip import TrainingChip
 from utils import *
 
-from imgaug import augmenters as iaa
-
-def is_in_box(hotspot, top, bot, left, right):
-    x, y = hotspot.getRGBCenterPt()
-    return left < x < right and bot > y > top
-
-def augment_image(cfg, aeral_image):
+def prepare_chips(cfg, aeral_image):
     """
     :param cfg: CropCfg
     :type hs: HotSpot
     """
     if not aeral_image.load_image():
         return
+
+    bboxes = aeral_image.getBboxes(cfg)
     img = aeral_image.image
-    hotspots = aeral_image.getHotSpots(cfg)
+
+    chips = []
     drawn = []
-    for hs in hotspots:
+    for bbox in bboxes.bounding_boxes:
         # already drawn skip
         found = False
-        for hs in drawn:
-            for hs2 in hotspots:
-                if hs.id == hs2.id:
-                    found = True
+        for hsId in drawn:
+            if bbox.hsId == hsId:
+                found = True
         if found:
             continue
 
-        classIndex = hs.classIndex
-        imgh = img.shape[0]
-        imgw = img.shape[1]
-        b,t,l,r = hs.getBTLR()
-        tcrop, bcrop, lcrop, rcrop, center_x, center_y, dx, dy = recalculate_crops(b, t, l, r,
-                                                                           imgh, imgw, cfg.maxShift, cfg.minShift,
-                                                                           cfg.crop_size)
+        tcrop, bcrop, lcrop, rcrop, center_x, center_y, dx, dy = recalculate_crops(bbox.y2, bbox.y1, bbox.x1, bbox.x2,
+                                                                                   img.shape[0], img.shape[1], cfg.maxShift,
+                                                                                   cfg.minShift,
+                                                                                   cfg.crop_size)
 
-        todraw = []
-        for hs in hotspots:
-            isinbox = is_in_box(hs, tcrop, bcrop, lcrop, rcrop)
-            if isinbox:
-                drawn.append(hs)
-                todraw.append(hs)
-
+        # create crop
         crop_img = img[tcrop:bcrop, lcrop: rcrop]
 
-        croph = crop_img.shape[0]
-        cropw = crop_img.shape[1]
-        ids = ""
-        for item in todraw:
-            ids += item.id + "_"
-        bboxes = []
-        for hs in todraw:
-            x, y = hs.getRGBCenterPt()
-            y = y - tcrop
-            x = x - lcrop
-            bboxes.append((hs.id, classIndex, (x + 0.0) / cropw, (y + 0.0) / croph, (r-l + 0.0) / cropw,
-                           (b-t + 0.0) / croph))
+        # shift bounding boxes that fit the new crop dimensions
+        shifted_bboxs = []
+        for bb in bboxes.bounding_boxes:
+            bbs_shifted = bb.shift(left=-lcrop, top=-tcrop)
+            bbs_shifted.hsId = bb.hsId
+            shifted_bboxs.append(bbs_shifted)
 
-        tr = TrainingImage(crop_img, cfg, aeral_image.path, bboxes, (tcrop, bcrop, lcrop, rcrop))
+        if not bbox.shift(left=-lcrop, top=-tcrop).is_fully_within_image(crop_img):
+            print("WAAA")
 
-        # tr.random_hue_adjustment(0.05)
-        tr.save()
+        # check if
+        to_draw = []
+        for bb in shifted_bboxs:
+            # TODO is fully or is_partly_within_image?
+            if bb.is_partly_within_image(crop_img):
+                to_draw.append(bb)
+            if bb.is_fully_within_image(crop_img):
+                drawn.append(bb.hsId)
 
-        # # Generate negative image(with no object) and labels for training
-        # tcrop, bcrop, lcrop, rcrop = negative_bounds(tcrop, bcrop, lcrop, rcrop, imgw, imgh, cfg.crop_size)
-        # crop_img_neg = img[tcrop:bcrop, lcrop: rcrop]
-        # tr_neg = TrainingImage(crop_img_neg, cfg, [], (tcrop, bcrop, lcrop, rcrop))
-        # # tr.random_hue_adjustment(0.05)
-        # tr_neg.save()
+        tr = TrainingChip(crop_img, cfg, aeral_image.path, to_draw, (tcrop, bcrop, lcrop, rcrop))
+        tr.extend(5)
+        chips.append(tr)
 
     # free image from memory
     aeral_image.free()
+    for bbox in bboxes.bounding_boxes:
+        contains = False
+        for drawnid in drawn:
+            if bbox.hsId == drawnid:
+                contains = True
+
+        if not contains:
+            print("Did not draw " + bbox.hsId) # todo 78376
+
+    for chip in chips:
+        chip.save()
+
+
 
 

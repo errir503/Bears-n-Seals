@@ -1,4 +1,5 @@
 import os
+import imgaug as ia
 
 SpeciesList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
 
@@ -35,6 +36,11 @@ class HotSpot:
         self.updated = updated
         self.status = status
 
+        b,t,l,r = self.getBTLR()
+        b = ia.BoundingBox(x1=l, y1=t, x2=r, y2=b, label=self.classIndex)
+        b.hsId = self.id
+        self.rgb_bb = b
+
     def load_all(self):
         if self.thermal.load_image() and self.rgb.load_image() and self.ir.load_image():
             return True
@@ -47,15 +53,6 @@ class HotSpot:
         self.ir.free()
         self.thermal.free()
 
-    def getRGBCenterPt(self):
-        b, t, l, r = self.getBTLR()
-        x = l + ((r - l) / 2)
-        y = t + ((b - t) / 2)
-        return (x, y)
-
-    def getIRCenterPt(self):
-        return (self.center_x, self.center_y)
-
     def toCSVRow(self):
         _, thermpath = os.path.split(self.thermal.path)
         _, irpath = os.path.split(self.ir.path)
@@ -65,6 +62,15 @@ class HotSpot:
                 str(self.species), str(self.updated_top), str(self.updated_bot), str(self.updated_left),
                 str(self.updated_right), str.lower(str(self.updated)), str(self.status)]
         return ",".join(cols) + "\n"
+
+    def getRGBCenterPt(self):
+        b, t, l, r = self.getBTLR()
+        x = l + ((r - l) / 2)
+        y = t + ((b - t) / 2)
+        return (x, y)
+
+    def getIRCenterPt(self):
+        return (self.center_x, self.center_y)
 
     # returns (x, y, w, h) in yolo format
     def getYoloBBox(self):
@@ -90,6 +96,7 @@ class HotSpot:
         yoloy = float(cy) / float(img.shape[0])
         yoloh = float(h) / float(img.shape[0])
         return (yolox, yoloy, yolow, yoloh)
+
 
     def getBTLR(self):
         if self.updated == True:
