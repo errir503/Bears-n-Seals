@@ -17,7 +17,13 @@ class TrainingChip():
         self.imgpath = imgpath
         ids = [x.hsId for x in bboxes]
         self.filename = cfg.out_dir + "crop_" + "_".join(ids)
-        self.bboxes = ia.BoundingBoxesOnImage(bboxes, shape=image.shape)
+        boxes = []
+        for bbox in bboxes:
+            new = bbox.cut_out_of_image(image)
+            new.hsId = bbox.hsId
+            boxes.append(new)
+
+        self.bboxes = ia.BoundingBoxesOnImage(boxes, shape=image.shape)
 
     def save(self):
         # if no labels, still a training image save with empty label file for darknet
