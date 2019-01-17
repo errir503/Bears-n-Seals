@@ -72,6 +72,7 @@ class TrainingChip():
         for bbox in self.bboxes.bounding_boxes:
             new_box = bbox.extend(all_sides=px)
             new_box.hsId = bbox.hsId
+            new_box.label = bbox.label
             new.append(new_box)
         self.bboxes = ia.BoundingBoxesOnImage(new, shape=self.image.shape)
 
