@@ -113,6 +113,10 @@ class LabelTool(tkinter.Frame):
         self.idxEntry.pack(side=LEFT)
         self.goBtn = Button(self.ctrPanel, text='Go', command=self.gotoImage)
         self.goBtn.pack(side=LEFT)
+        self.idEntry = Entry(self.ctrPanel, width=5)
+        self.idEntry.pack(side=LEFT)
+        self.goBtn = Button(self.ctrPanel, text='Go', command=self.gotoImageId)
+        self.goBtn.pack(side=LEFT)
 
         self.imglbl = Label(self.ctrPanel, text='Image:')
         self.imglbl.pack(side=LEFT)
@@ -360,6 +364,18 @@ class LabelTool(tkinter.Frame):
     def gotoImage(self):
         idx = int(self.idxEntry.get())
         if 1 <= idx <= self.total:
+            self.saveImage()
+            self.cur = idx
+            self.loadImage()
+
+    def gotoImageId(self):
+        id = str(self.idEntry.get())
+        idx = None
+        for imidx, imgpath in enumerate(self.imageList):
+            if id in imgpath:
+                idx = imidx
+
+        if 1 <= idx <= self.total and idx is not None:
             self.saveImage()
             self.cur = idx
             self.loadImage()
