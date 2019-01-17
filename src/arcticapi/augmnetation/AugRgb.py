@@ -66,8 +66,18 @@ def prepare_chips(cfg, aeral_image):
 
         if not contains:
             print("Did not draw " + bbox.hsId) # todo 78376
-
-    for chip in chips:
+    uniquechips = []
+    for idx, chip in enumerate(chips):
+        found = False
+        for uchip in uniquechips:
+            if chip.filename == uchip:
+                found = True
+        if not found:
+            uniquechips.append(chip)
+        else:
+            chip.filename = chip.filename + "-" + str(idx)
+            uniquechips.append(chip)
+    for chip in uniquechips:
         chip.save()
 
 
