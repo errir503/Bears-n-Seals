@@ -74,8 +74,8 @@ class AerialImage():
             # don't make crops or labels for anomalies
             if not cfg.make_anomaly and hs.classIndex == 4:
                 continue
-            if hs.updated and hs.updated_bot == -1 and hs.updated_left == -1 and hs.updated_right == -1 and hs.updated_top == -1:
-                print("Hotspot " + hs.id + " not included because updated, not removed, but still -1 values")
+            if not hs.updated:
+                print("Hotspot " + hs.id + " not updated")
                 continue
             hotspots.append(hs)
         return hotspots
