@@ -70,7 +70,7 @@ def prepare_chips(cfg, aeral_image):
     for idx, chip in enumerate(chips):
         found = False
         for uchip in uniquechips:
-            if chip.filename == uchip:
+            if chip.filename == uchip.filename:
                 found = True
         if not found:
             uniquechips.append(chip)
