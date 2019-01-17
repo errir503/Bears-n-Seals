@@ -80,6 +80,8 @@ def parse_hotspot(row, res_path):
                        time,
                        project_name, aircraft)
     else:
+        updated =  row[UPDATED_IDX]
+        isUpdated = (updated == 'true')
         return HotSpot(row[HOTSPOT_ID_COL_IDX],
                        int(row[XPOS_IDX]),
                        int(row[YPOS_IDX]),
@@ -98,7 +100,7 @@ def parse_hotspot(row, res_path):
                        int(row[UPDATED_TOP_IDX]),
                        int(row[UPDATED_LEFT_IDX]),
                        int(row[UPDATED_RIGHT_IDX]),
-                       bool(row[UPDATED_IDX]),
+                       isUpdated,
                        row[STATUS_IDX])
 
 

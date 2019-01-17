@@ -99,7 +99,7 @@ class HotSpot:
 
 
     def getBTLR(self):
-        if self.updated == True:
+        if self.updated and self.updated_bot != -1 and self.updated_left != -1 and self.updated_right != -1 and self.updated_top != -1:
             return (self.updated_bot, self.updated_top, self.updated_left, self.updated_right)
         else:
             return (self.rgb_bb_b, self.rgb_bb_t, self.rgb_bb_l, self.rgb_bb_r)
