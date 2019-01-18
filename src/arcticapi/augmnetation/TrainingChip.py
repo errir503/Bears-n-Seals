@@ -64,16 +64,6 @@ class TrainingChip():
         for idx in range(len(self.bboxes.bounding_boxes)):
             new_boxes.bounding_boxes[idx].hsId = self.bboxes.bounding_boxes[idx].hsId
 
-        for i in range(len(self.bboxes.bounding_boxes)):
-            before = self.bboxes.bounding_boxes[i]
-            after = new_boxes.bounding_boxes[i]
-            print("BB %d: (%.4f, %.4f, %.4f, %.4f) -> (%.4f, %.4f, %.4f, %.4f)" % (
-                i,
-                before.x1, before.y1, before.x2, before.y2,
-                after.x1, after.y1, after.x2, after.y2)
-                  )
-
-
         self.bboxes = new_boxes
 
         self.aeral_image.free()
