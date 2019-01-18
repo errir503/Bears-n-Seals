@@ -68,6 +68,7 @@ class ArcticApi:
         for chip in train:
             chip.load() # load image
             copy = chip.copy()
+            copy.load()
             copy.filename = copy.filename + "_b"
             chips = [chip, copy]
             for c in chips:

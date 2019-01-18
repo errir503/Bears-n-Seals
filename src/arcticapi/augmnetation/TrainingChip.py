@@ -132,4 +132,6 @@ class TrainingChip():
         self.bboxes = new
 
     def copy(self):
-        return copy.deepcopy(self)
+        new = copy.deepcopy(self)
+        new.image =  self.image
+        return new
