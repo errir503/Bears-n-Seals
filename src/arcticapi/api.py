@@ -111,7 +111,7 @@ class ArcticApi:
                 write_label(chip.filename + ".jpg", label_base + "_test.txt")
 
             print("COMPLETE")
-            return 
+            return
 
 
     def print_bbox_stats(self, boxes):

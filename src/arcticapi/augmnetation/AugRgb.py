@@ -16,7 +16,7 @@ def prepare_chips(cfg, aeral_image):
     chips = []
     drawn = []
     for bbox in bboxes:
-        # already drawn skip
+        # if already drawn skip
         found = False
         for hsId in drawn:
             if bbox.hsId == hsId:
@@ -46,7 +46,8 @@ def prepare_chips(cfg, aeral_image):
         for bb in shifted_bboxs:
             if bb.is_partly_within_image(crop_img):
                 new = bb.cut_out_of_image(crop_img)
-                if new.area < bbox.area * 0.7:
+                if new.area < bbox.area * 0.5:
+                    print("TOO MUCH REMOVED FROM %s" % bb.hsId)
                     continue
                 new.hsId = bbox.hsId
                 to_draw.append(new)
