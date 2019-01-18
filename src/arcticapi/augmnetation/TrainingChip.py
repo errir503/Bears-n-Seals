@@ -32,7 +32,7 @@ class TrainingChip():
     # loads the chip
     def load(self):
         if self.image is None:
-            self.image = cv2.imread(self.filename + ".jpg")
+            self.image = cv2.imread(self.filename + ".jpg").astype(np.uint8)
 
     # free the chip from memory
     def free(self):
@@ -46,9 +46,8 @@ class TrainingChip():
     def save(self):
         # if no labels, still a training image save with empty label file for darknet
         if len(self.bboxes.bounding_boxes) == 0:
-            # write_label(self.filename + ".jpg", self.cfg.label)
-            # open(self.filename + ".txt", 'a').close()
-            # cv2.imwrite(self.filename + ".jpg", self.image)
+            open(self.filename + ".txt", 'a').close()
+            cv2.imwrite(self.filename + ".jpg", self.image)
             return
 
         # Generate trainin label
@@ -133,5 +132,5 @@ class TrainingChip():
 
     def copy(self):
         new = copy.deepcopy(self)
-        new.image = np.array(self.image)
+        new.image = np.array(self.image).astype(np.uint8)
         return new
