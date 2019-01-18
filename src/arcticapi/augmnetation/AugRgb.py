@@ -49,12 +49,17 @@ def prepare_chips(cfg, aeral_image):
             if bb.is_fully_within_image(crop_img):
                 drawn.append(bb.hsId)
 
+
         boxes = []
         for bbox in to_draw:
             new = bbox.cut_out_of_image(crop_img)
+            # if cut box is less than half of original then remove
+            if new.area < bbox.area * .7:
+                continue
             new.hsId = bbox.hsId
             boxes.append(new)
         if len(boxes) == 0:
+            print("0 bboxes")
             continue
         tr = TrainingChip(aeral_image, crop_img.shape, cfg, aeral_image.path, boxes, (tcrop, bcrop, lcrop, rcrop))
         del crop_img

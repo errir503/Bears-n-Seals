@@ -24,11 +24,58 @@ class TrainingChip():
         self.bboxes = ia.BoundingBoxesOnImage(bboxes, shape=crop_shape)
 
     # loads the chip
-    def load(self):
+    def load(self, zoom_factor):
+        zoom_factor = random.uniform(0, 1) * zoom_factor
+        t,b,l,r = self.crops
+        shifted_boxes = []
+        if zoom_factor != 0 :
+            dy = int(((r - l) * zoom_factor) / 2)
+            dx = int(((t - b) * zoom_factor) / 2)
+            l = l - dx
+            r = r + dx
+            t = t + dy
+            b = b - dy
+            if l < 0 or t < 0 or b > self.aeral_image.h or r > self.aeral_image.w:
+                t, b, l, r = self.crops
+                shifted_boxes = self.bboxes.bounding_boxes
+
+            else:
+                for bb in self.bboxes.bounding_boxes:
+                    bbs_shifted = bb.shift(left=dx, top=-dy)
+                    bbs_shifted.hsId = bb.hsId
+                    shifted_boxes.append(bbs_shifted)
+
         res = self.aeral_image.load_image()
         if not res:
             return False
-        self.image = self.aeral_image.image[self.crops[0]:self.crops[1], self.crops[2]: self.crops[3]].astype(np.uint8)
+        self.image = self.aeral_image.image[t:b, l: r].astype(np.uint8)
+        if zoom_factor == 0:
+            return True
+
+
+        bbs = ia.BoundingBoxesOnImage(shifted_boxes, shape=self.image.shape)
+        seq = iaa.Sequential([
+            iaa.Scale({"height": self.bboxes.shape[0], "width": self.bboxes.shape[1]})
+        ])
+        seq_det = seq.to_deterministic()
+        self.image = seq_det.augment_images([self.image])[0]
+        new_boxes = seq_det.augment_bounding_boxes([bbs])[0]
+
+        for idx in range(len(self.bboxes.bounding_boxes)):
+            new_boxes.bounding_boxes[idx].hsId = self.bboxes.bounding_boxes[idx].hsId
+
+        for i in range(len(self.bboxes.bounding_boxes)):
+            before = self.bboxes.bounding_boxes[i]
+            after = new_boxes.bounding_boxes[i]
+            print("BB %d: (%.4f, %.4f, %.4f, %.4f) -> (%.4f, %.4f, %.4f, %.4f)" % (
+                i,
+                before.x1, before.y1, before.x2, before.y2,
+                after.x1, after.y1, after.x2, after.y2)
+                  )
+
+
+        self.bboxes = new_boxes
+
         self.aeral_image.free()
         return True
 
@@ -101,7 +148,7 @@ class TrainingChip():
     def rotate(self):
         rotations = [0, 90, 180, 270]
         seq = iaa.Sequential([
-            iaa.Affine(rotate=rotations),
+            iaa.Affine(rotate=rotations, fit_output=True),
         ])
         seq_det = seq.to_deterministic()
         im = seq_det.augment_images([self.image])[0]
@@ -130,5 +177,5 @@ class TrainingChip():
 
     def copy(self):
         new = copy.deepcopy(self)
-        new.image = np.array(self.image).astype(np.uint8)
+        new.image = None
         return new

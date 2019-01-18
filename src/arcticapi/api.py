@@ -71,11 +71,11 @@ class ArcticApi:
         print("Chipping complete %d chips created" % len(chips))
         print("Starting data augmentation, cropping, and label generation")
         for chip in train:
-            if not chip.load():
+            copy = chip.copy()
+            if not chip.load(-0.2):
                 print("Chip not loaded in api.py :( %s" % chip.filename)
                 continue
-            copy = chip.copy()
-            copy.load()
+            copy.load(0.2)
             copy.filename = copy.filename + "_b"
             chips = [chip, copy]
             for c in chips:
