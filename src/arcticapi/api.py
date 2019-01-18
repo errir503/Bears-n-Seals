@@ -1,6 +1,8 @@
 import os
 import csv
 import random
+import sys
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -51,56 +53,66 @@ class ArcticApi:
                 image_registration.register_images(hs, showFigures, showImgs)
 
     def crop_label_images(self, cfg):
-        img_ct = len(self.images)
-        print("processing " + str(img_ct) + " images")
-        if not os.path.exists(cfg.out_dir):
-            os.mkdir(cfg.out_dir)
+            img_ct = len(self.images)
+            print("processing " + str(img_ct) + " images")
+            if not os.path.exists(cfg.out_dir):
+                os.mkdir(cfg.out_dir)
 
-        label_base = cfg.label.split(".")[0]
-        chips = []
-        for image_path in self.images:
-            chips = chips + self.images[image_path].generate_chips(cfg)
+            label_base = cfg.label.split(".")[0]
+            chips = []
+            for image_path in self.images:
+                chips = chips + self.images[image_path].generate_chips(cfg)
 
-        all_bboxes = [b for c in chips for b in c.bboxes.bounding_boxes ]
-        self.print_bbox_stats(all_bboxes)
+            all_bboxes = [b for c in chips for b in c.bboxes.bounding_boxes ]
+            self.print_bbox_stats(all_bboxes)
 
-        random.shuffle(chips)
-        x = int(len(chips)/4) * 3  # 3/4 train 1/4 test
-        train = chips[:x]
-        test = chips[x:]
-        print("Chipping complete %d chips created" % len(chips))
-        print("Starting data augmentation, cropping, and label generation")
-        for chip in train:
-            copy = chip.copy()
-            if not chip.load(-0.2):
-                print("Chip not loaded in api.py :( %s" % chip.filename)
-                continue
-            copy.load(0.2)
-            copy.filename = copy.filename + "_b"
-            chips = [chip, copy]
-            for c in chips:
-                if c.image is None:
-                    print "Skipped " + c.imgpath
+            random.shuffle(chips)
+            x = int(len(chips)/4) * 3  # 3/4 train 1/4 test
+            train = chips[:x]
+            test = chips[x:]
+            print("Chipping complete %d chips created" % len(chips))
+            print("Starting data augmentation, cropping, duplication, and label generation")
+            duplicates = []
+            for chip in train:
+                copy = chip.copy()
+                chip.filename = chip.filename + "_a"
+                copy.filename = copy.filename + "_b"
+                duplicates.append(copy)
+                duplicates.append(chip)
+            train = duplicates
+
+            zoom_bounds = [-0.2, 0.2]
+            print("Generating training set...")
+            for idx, c in enumerate(train):
+                pct = ((idx + 0.0)/len(train)) * 100.0
+                sys.stdout.write("\r|%-73s| %3d%%" % ('#' * int(pct * .73), pct))
+                zoom = random.choice(zoom_bounds)
+                if not c.load(zoom):
+                    print("Chip not loaded in api.py :( %s" % c.filename)
                     continue
                 # augmentations
                 c.color_change(-10, 10, False)
                 c.extend(5)
                 c.flip()
                 c.rotate()
-                c.save() # save image
+                c.save()  # save image
                 write_label(c.filename + ".jpg", label_base + "_train.txt")
-            chip.free()  # free image
-            copy.free()  # free image
+                c.free()
 
-        for chip in test:
-            if not chip.load():
-                print("Chip not loaded in api.py :(")
-                continue
-            chip.load() # load image
-            chip.extend(5)
-            chip.save() # save image and labels
-            chip.free() # free image
-            write_label(chip.filename + ".jpg", label_base + "_test.txt")
+            print("Generating test set...")
+            for chip in test:
+                if not chip.load():
+                    print("Chip not loaded in api.py :(")
+                    continue
+                chip.load() # load image
+                chip.extend(5)
+                chip.save() # save image and labels
+                chip.free() # free image
+                write_label(chip.filename + ".jpg", label_base + "_test.txt")
+
+            print("COMPLETE")
+            return 
+
 
     def print_bbox_stats(self, boxes):
         dict = {}

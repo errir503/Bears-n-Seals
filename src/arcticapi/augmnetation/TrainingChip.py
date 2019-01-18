@@ -24,7 +24,7 @@ class TrainingChip():
         self.bboxes = ia.BoundingBoxesOnImage(bboxes, shape=crop_shape)
 
     # loads the chip
-    def load(self, zoom_factor):
+    def load(self, zoom_factor = 0):
         zoom_factor = random.uniform(0, 1) * zoom_factor
         t,b,l,r = self.crops
         shifted_boxes = []
@@ -48,6 +48,12 @@ class TrainingChip():
         res = self.aeral_image.load_image()
         if not res:
             return False
+        emptyim = np.zeros([b-t, r-l, 3], dtype=np.uint8)
+        for bb in shifted_boxes:
+            if not bb.is_partly_within_image(emptyim):
+                t, b, l, r = self.crops
+                shifted_boxes = self.bboxes.bounding_boxes
+
         self.image = self.aeral_image.image[t:b, l: r].astype(np.uint8)
         if zoom_factor == 0:
             return True
@@ -57,6 +63,7 @@ class TrainingChip():
         seq = iaa.Sequential([
             iaa.Scale({"height": self.bboxes.shape[0], "width": self.bboxes.shape[1]})
         ])
+
         seq_det = seq.to_deterministic()
         self.image = seq_det.augment_images([self.image])[0]
         new_boxes = seq_det.augment_bounding_boxes([bbs])[0]
