@@ -81,7 +81,7 @@ optional arguments:
 
 Test/Train Split:
 `head -n 500 rgb_640u.txt > ../seal-darknet/sealvalid_640.txt`
-`tail -n +500 rgb_640u.txt > ../seal-darknet/sealtrain.txt`  
+`tail -n +500 rgb_640u.txt > ../seal-darknet/sealtrain_640.txt`  
 
 Make test set of all color images:
 `ls -l /data/noaa/NOAA_ImagesForDetectionDevelopment/CHESS/*_COLOR-8-BIT.JPG > colorvalid.txt`

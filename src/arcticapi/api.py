@@ -56,8 +56,8 @@ class ArcticApi:
         label_base = cfg.label.split(".")[0]
         chips = []
         for image_path in self.images:
-            if cfg.debug and len(chips) > 100:
-                break
+            # if cfg.debug and len(chips) > 100:
+            #     break
             chips = chips + self.images[image_path].generate_chips(cfg)
 
         random.shuffle(chips)
@@ -72,6 +72,9 @@ class ArcticApi:
             copy.filename = copy.filename + "_b"
             chips = [chip, copy]
             for c in chips:
+                if c.image is None:
+                    print "Skipped " + c.imgpath
+                    continue
                 # augmentations
                 c.color_change(-10, 10, False)
                 c.extend(5)

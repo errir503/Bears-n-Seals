@@ -133,5 +133,5 @@ class TrainingChip():
 
     def copy(self):
         new = copy.deepcopy(self)
-        new.image =  self.image
+        new.image = np.array(self.image)
         return new
