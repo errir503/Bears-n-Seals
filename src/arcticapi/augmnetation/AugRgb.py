@@ -1,5 +1,3 @@
-import imgaug as ia
-
 from arcticapi.augmnetation.TrainingChip import TrainingChip
 from utils import *
 
@@ -9,7 +7,7 @@ def prepare_chips(cfg, aeral_image):
     :type hs: HotSpot
     """
     if not aeral_image.load_image():
-        return
+        return []
 
     bboxes = aeral_image.getBboxes(cfg)
     img = aeral_image.image
@@ -41,21 +39,19 @@ def prepare_chips(cfg, aeral_image):
             shifted_bboxs.append(bbs_shifted)
 
         if not bbox.shift(left=-lcrop, top=-tcrop).is_fully_within_image(crop_img):
-            print("WAAA")
+            print("For an odd reason hotspot " + bbox.hsId + " did not fully fit in the crop")
 
-        # check if
+        # check if is within image, only add to drawn if is fully in image
         to_draw = []
         for bb in shifted_bboxs:
-            # TODO is fully or is_partly_within_image?
             if bb.is_partly_within_image(crop_img):
                 to_draw.append(bb)
             if bb.is_fully_within_image(crop_img):
                 drawn.append(bb.hsId)
 
         tr = TrainingChip(crop_img, cfg, aeral_image.path, to_draw, (tcrop, bcrop, lcrop, rcrop))
-        tr.extend(5)
+        tr.free() # free the image
         chips.append(tr)
-
     # free image from memory
     aeral_image.free()
     for bbox in bboxes.bounding_boxes:
@@ -65,7 +61,7 @@ def prepare_chips(cfg, aeral_image):
                 contains = True
 
         if not contains:
-            print("Did not draw " + bbox.hsId) # todo 78376
+            print("Did not draw " + bbox.hsId)
     uniquechips = []
     for idx, chip in enumerate(chips):
         found = False
@@ -77,8 +73,8 @@ def prepare_chips(cfg, aeral_image):
         else:
             chip.filename = chip.filename + "-" + str(idx)
             uniquechips.append(chip)
-    for chip in uniquechips:
-        chip.save()
+
+    return uniquechips
 
 
 

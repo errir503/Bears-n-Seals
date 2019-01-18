@@ -1,14 +1,17 @@
 import random
-
+import copy
 import cv2
 import numpy as np
 import imgaug as ia
 
-from arcticapi.augmnetation.utils import write_label, getYoloFromRect
+from imgaug import augmenters as iaa
+from arcticapi.augmnetation.utils import getYoloFromRect
 from arcticapi.visuals import drawBBoxYolo
 
 
 class TrainingChip():
+    # constructs a training chip with imgaug bounding boxes and saves the image to filename so that it is not
+    # stored in memory.  later on can use load, augmentations, and save for the data augmentation step
     def __init__(self, image, cfg, imgpath, bboxes, crops):
         self.image = image
         # format [(classname, x, y, w, h, hotspotId),...] in yolo with additional hotspot id
@@ -24,6 +27,21 @@ class TrainingChip():
             boxes.append(new)
 
         self.bboxes = ia.BoundingBoxesOnImage(boxes, shape=image.shape)
+        self.save_image() # save the image
+
+    # loads the chip
+    def load(self):
+        if self.image is None:
+            self.image = cv2.imread(self.filename + ".jpg")
+
+    # free the chip from memory
+    def free(self):
+        del self.image
+        self.image = None
+
+    # save the
+    def save_image(self):
+        cv2.imwrite(self.filename + ".jpg", self.image)
 
     def save(self):
         # if no labels, still a training image save with empty label file for darknet
@@ -52,11 +70,10 @@ class TrainingChip():
                     file.write(" ".join([str(i) for i in yoloLabel]) + " " +
                            " ".join([str(i) for i in self.crops]) + "\n")
 
-                if self.cfg.debug:  # draws same as yolo so will prove labels are correct
+                if self.cfg.debug:  # draws same as yolo so guaranteed to show if labels are correct
                     drawBBoxYolo(self.image, x, y, w, h)
 
-        cv2.imwrite(self.filename + ".jpg", self.image)
-        write_label(self.filename + ".jpg", self.cfg.label)
+        self.save_image()
 
     def random_hue_adjustment(self, ratio):
         hsv = cv2.cvtColor(self.image, cv2.COLOR_RGB2HSV)
@@ -76,10 +93,43 @@ class TrainingChip():
             new.append(new_box)
         self.bboxes = ia.BoundingBoxesOnImage(new, shape=self.image.shape)
 
-    def augment(self):
-        self.image = ia.imresize_single_image(self.image, (320, 320))
-        self.bbs = self.bbs.on(self.image)
-        if self.cfg.debug:
-            image_bbs = self.bbs.draw_on_image(self.image, thickness=2)
-            bbs_rescaled = self.bbs.draw_on_image(self.image, thickness=2)
-        return bbs_rescaled
+    # adds random values between min and max to the hue and saturation of the image
+    # if per_channel is true then adds independently per channel and the same value for all pixels within that channel
+    def color_change(self, min, max, per_channel = False):
+        img = cv2.cvtColor(self.image.astype(np.uint8), cv2.COLOR_BGR2RGB)
+        self.image = iaa.AddToHueAndSaturation((min, max), per_channel=per_channel).augment_image(img)
+
+
+    # rotate image either 0, 90, 180, or 290 degrees
+    def rotate(self):
+        rotations = [0, 90, 180, 270]
+        seq = iaa.Sequential([
+            iaa.Affine(rotate=rotations),
+        ])
+        seq_det = seq.to_deterministic()
+        im = seq_det.augment_images([self.image])[0]
+        self.image = np.ascontiguousarray(im, dtype=np.uint8)
+        new = seq_det.augment_bounding_boxes([self.bboxes])[0]
+        for i in range(len(self.bboxes.bounding_boxes)):
+            new.bounding_boxes[i].hsId = self.bboxes.bounding_boxes[i].hsId
+
+        self.bboxes = new
+
+    # 50% chance to flip horizontally and 50% chance to flip vertically
+    def flip(self):
+        seq = iaa.Sequential([
+            iaa.Fliplr(0.5),
+            iaa.Flipud(0.5)
+            ])
+
+        seq_det = seq.to_deterministic()
+        im = seq_det.augment_images([self.image])[0]
+        self.image = np.ascontiguousarray(im, dtype=np.uint8)
+        new = seq_det.augment_bounding_boxes([self.bboxes])[0]
+        for i in range(len(self.bboxes.bounding_boxes)):
+            new.bounding_boxes[i].hsId = self.bboxes.bounding_boxes[i].hsId
+
+        self.bboxes = new
+
+    def copy(self):
+        return copy.deepcopy(self)

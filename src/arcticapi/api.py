@@ -1,13 +1,17 @@
 import os
 import csv
+import random
 
+from arcticapi.augmnetation.utils import write_label
 from arcticapi.csv_parser import parse_hotspot
 from arcticapi.registration import image_registration
 
-# This is the "model", it parses a NOAA seal formatted csv file and generates HotSpots - 1 per row.
 from arcticapi.model.HotSpotMap import HotSpotMap
 
-
+# This is the controller of the api which is created using the path of the full resolution image directory
+# and the path to the NOAA hotspot csv file.
+# Once created contains a list of hotspots and a list of AerialImages which contain all information about the image,
+# and hotspots within that image
 class ArcticApi:
     def __init__(self, csv_path, im_path):
         rows = list()
@@ -49,8 +53,40 @@ class ArcticApi:
         if not os.path.exists(cfg.out_dir):
             os.mkdir(cfg.out_dir)
 
+        label_base = cfg.label.split(".")[0]
+        chips = []
         for image_path in self.images:
-            self.images[image_path].genCropsAndLables(cfg)
+            if cfg.debug and len(chips) > 100:
+                break
+            chips = chips + self.images[image_path].generate_chips(cfg)
+
+        random.shuffle(chips)
+        x = int(len(chips)/4) * 3  # 3/4 train 1/4 test
+        train = chips[:x]
+        test = chips[x:]
+
+        for chip in train:
+            chip.load() # load image
+            copy = chip.copy()
+            copy.filename = copy.filename + "_b"
+            chips = [chip, copy]
+            for c in chips:
+                # augmentations
+                c.color_change(-10, 10, False)
+                c.extend(5)
+                c.flip()
+                c.rotate()
+                c.save() # save image
+                write_label(c.filename + ".jpg", label_base + "_train.txt")
+            chip.free()  # free image
+            copy.free()  # free image
+
+        for chip in test:
+            chip.load() # load image
+            chip.extend(5)
+            chip.save() # save image and labels
+            chip.free() # free image
+            write_label(chip.filename + ".jpg", label_base + "_test.txt")
 
 
 
@@ -98,13 +134,7 @@ class ArcticApi:
             total_crops += 1
 
             classes[hs.classIndex] += 1
-
-            # shared = []
-            # for idx in self.hsm.images[hs.ir.path]:
-            #     nhs = self.hsm.hotspots[idx]
-            #     if not nhs.id == hs.id:
-            #         shared.append(nhs)
-            hs.genCropsAndLables(cfg)
+            hs.generate_chips(cfg)
 
         if cfg.combine_all:
             print("Hotspots: " + str(classes[0]))
@@ -119,7 +149,7 @@ class ArcticApi:
             print("Polar Bears: " + str(classes[3]))
             print("NA Animals: " + str(classes[4]))
 
-    # Use to save all hotspots in the standard seal csv format
+    # Save all hotspots unfiltered in the standard seal csv format
     def saveHotspotsToCSV(self, out_file):
         with open(out_file, 'w') as temp_file:
             temp_file.write(",".join(self.csvheader) + "\n")

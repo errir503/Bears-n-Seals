@@ -2,6 +2,7 @@ import os
 import imgaug as ia
 
 SpeciesList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
+ColorsList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
 
 
 class HotSpot:

@@ -31,6 +31,7 @@ def norm_matrix(m):
         return 1
     return m
 
+# draw a bbox and center point of bbox on image given yolo labels
 def drawBBoxYolo(img, x, y, w, h):
     (imh, imw, imc) = img.shape
     x = int(x * imw)

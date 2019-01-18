@@ -44,14 +44,14 @@ class AerialImage():
 
         return img
 
-    def genCropsAndLables(self, cfg):
+    def generate_chips(self, cfg):
         """
         :type cfg: CropCfg
         """
         if cfg.imtype == "ir":
             AugIR.crop_ir_hotspot_8bit(cfg, self)
         elif cfg.imtype == "rgb":
-            AugRgb.prepare_chips(cfg, self)
+            return AugRgb.prepare_chips(cfg, self)
 
     def getBboxes(self, cfg):
         iabboxs = []
@@ -60,8 +60,6 @@ class AerialImage():
         if self.load_image():
             return ia.BoundingBoxesOnImage(iabboxs, shape=self.image)
         return None
-
-
 
     def getHotSpots(self, cfg):
         hotspots = []
@@ -74,7 +72,7 @@ class AerialImage():
             # don't make crops or labels for anomalies
             if not cfg.make_anomaly and hs.classIndex == 4:
                 continue
-            if not hs.updated:
+            if not hs.updated: # TODO: find a better spot for this
                 print("Hotspot " + hs.id + " not updated")
                 continue
             hotspots.append(hs)
