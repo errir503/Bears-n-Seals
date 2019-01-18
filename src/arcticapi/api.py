@@ -64,7 +64,8 @@ class ArcticApi:
         x = int(len(chips)/4) * 3  # 3/4 train 1/4 test
         train = chips[:x]
         test = chips[x:]
-
+        print("Chipping complete %d chips created" % len(chips))
+        print("Starting data augmentation and yolo label generation")
         for chip in train:
             chip.load() # load image
             copy = chip.copy()

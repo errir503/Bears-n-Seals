@@ -32,7 +32,9 @@ class TrainingChip():
     # loads the chip
     def load(self):
         if self.image is None:
-            self.image = cv2.imread(self.filename + ".jpg").astype(np.uint8)
+            self.image = cv2.imread(self.filename + ".jpg")
+            if self.image is not None:
+                self.image = self.image.astype(np.uint8)
 
     # free the chip from memory
     def free(self):
