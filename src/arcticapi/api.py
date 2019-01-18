@@ -1,9 +1,12 @@
 import os
 import csv
 import random
+import numpy as np
+import matplotlib.pyplot as plt
 
 from arcticapi.augmnetation.utils import write_label
 from arcticapi.csv_parser import parse_hotspot
+from arcticapi.model.HotSpot import SpeciesList
 from arcticapi.registration import image_registration
 
 from arcticapi.model.HotSpotMap import HotSpotMap
@@ -56,18 +59,21 @@ class ArcticApi:
         label_base = cfg.label.split(".")[0]
         chips = []
         for image_path in self.images:
-            if cfg.debug and len(chips) > 100:
-                break
             chips = chips + self.images[image_path].generate_chips(cfg)
+
+        all_bboxes = [b for c in chips for b in c.bboxes.bounding_boxes ]
+        self.print_bbox_stats(all_bboxes)
 
         random.shuffle(chips)
         x = int(len(chips)/4) * 3  # 3/4 train 1/4 test
         train = chips[:x]
         test = chips[x:]
         print("Chipping complete %d chips created" % len(chips))
-        print("Starting data augmentation and yolo label generation")
+        print("Starting data augmentation, cropping, and label generation")
         for chip in train:
-            chip.load() # load image
+            if not chip.load():
+                print("Chip not loaded in api.py :( %s" % chip.filename)
+                continue
             copy = chip.copy()
             copy.load()
             copy.filename = copy.filename + "_b"
@@ -87,72 +93,37 @@ class ArcticApi:
             copy.free()  # free image
 
         for chip in test:
+            if not chip.load():
+                print("Chip not loaded in api.py :(")
+                continue
             chip.load() # load image
             chip.extend(5)
             chip.save() # save image and labels
             chip.free() # free image
             write_label(chip.filename + ".jpg", label_base + "_test.txt")
 
+    def print_bbox_stats(self, boxes):
+        dict = {}
+        for box in boxes:
+            if box.label not in dict:
+                dict[box.label] = []
+
+            dict[box.label].append(box.area)
+
+        for k in dict:
+            vals = dict[k]
+            # plt.title(SpeciesList[k])
+            # plt.hist(vals, fc='red', rwidth=1, bins=20)
+            # plt.show()
+
+            arr = np.asarray(vals)
+            avg = np.mean(arr)
+            stddev = np.std(arr, ddof=1)
+            if np.isnan(stddev):
+                stddev = -1
+            print("Class:%s Count:%d Avg_area:%d Stddev_area:%d" % (SpeciesList[k], len(vals), int(avg), int(stddev)))
 
 
-    # Called with a CropCfg object it will crop and label all hotspots according to the given cfg
-    def crop_label_all(self, cfg):
-        """
-        :type cfg: CropCfg
-        """
-        hs_ct = len(self.hsm.hotspots)
-        print("processing " + str(hs_ct) + " hotspots")
-        if not os.path.exists(cfg.out_dir):
-            os.mkdir(cfg.out_dir)
-        i = 0
-        total_crops = 0
-        classes = [0,0,0,0,0]
-        for hs in self.hsm.hotspots:
-            i += 1
-
-            if cfg.combine_all:
-                hs.classIndex = 0
-            else:
-                # don't make crops or labels for bears
-                if not cfg.make_bear and hs.classIndex == 3:
-                    continue
-
-                # don't make crops or labels for anomalies
-                if not cfg.make_anomaly and hs.classIndex == 4:
-                    continue
-
-                # combine all seals (Ringed, Bearded, UNK) into one class for training
-                # this will be class 0
-                if cfg.combine_seal:
-                    if hs.classIndex == 0 or hs.classIndex == 1 or hs.classIndex == 2:
-                        hs.classIndex = 0
-                    if hs.classIndex == 3:
-                        hs.classIndex = 1
-                    if hs.classIndex == 4:
-                        hs.classIndex = 3
-
-
-            if total_crops % 10 == 0:
-                print("Cropping hotspot:" + str(hs.id) + " -" + str(
-                    round((i + 0.0) / hs_ct, 2) * 100) + "% complete | " + str(total_crops) + "/" + str(hs_ct))
-
-            total_crops += 1
-
-            classes[hs.classIndex] += 1
-            hs.generate_chips(cfg)
-
-        if cfg.combine_all:
-            print("Hotspots: " + str(classes[0]))
-        elif cfg.combine_seal:
-            print("Seals: " + str(classes[0]))
-            print("Polar Bears: " + str(classes[3]))
-            print("NA Animals: " + str(classes[4]))
-        else:
-            print("Ringed Seals: " + str(classes[0]))
-            print("Bearded Seals: " + str(classes[1]))
-            print("NA Seals: " + str(classes[2]))
-            print("Polar Bears: " + str(classes[3]))
-            print("NA Animals: " + str(classes[4]))
 
     # Save all hotspots unfiltered in the standard seal csv format
     def saveHotspotsToCSV(self, out_file):

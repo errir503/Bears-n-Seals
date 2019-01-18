@@ -12,29 +12,25 @@ from arcticapi.visuals import drawBBoxYolo
 class TrainingChip():
     # constructs a training chip with imgaug bounding boxes and saves the image to filename so that it is not
     # stored in memory.  later on can use load, augmentations, and save for the data augmentation step
-    def __init__(self, image, cfg, imgpath, bboxes, crops):
-        self.image = image
-        # format [(classname, x, y, w, h, hotspotId),...] in yolo with additional hotspot id
+    def __init__(self, aeral_image, crop_shape, cfg, imgpath, bboxes, crops):
+        self.aeral_image = aeral_image
+        self.image = None
         self.cfg = cfg
         self.crops = crops # (topcrop, bottomcrop, leftcrop, rightcrop)
         self.imgpath = imgpath
         ids = [x.hsId for x in bboxes]
         self.filename = cfg.out_dir + "crop_" + "_".join(ids)
-        boxes = []
-        for bbox in bboxes:
-            new = bbox.cut_out_of_image(image)
-            new.hsId = bbox.hsId
-            boxes.append(new)
 
-        self.bboxes = ia.BoundingBoxesOnImage(boxes, shape=image.shape)
-        self.save_image() # save the image
+        self.bboxes = ia.BoundingBoxesOnImage(bboxes, shape=crop_shape)
 
     # loads the chip
     def load(self):
-        if self.image is None:
-            self.image = cv2.imread(self.filename + ".jpg")
-            if self.image is not None:
-                self.image = self.image.astype(np.uint8)
+        res = self.aeral_image.load_image()
+        if not res:
+            return False
+        self.image = self.aeral_image.image[self.crops[0]:self.crops[1], self.crops[2]: self.crops[3]].astype(np.uint8)
+        self.aeral_image.free()
+        return True
 
     # free the chip from memory
     def free(self):

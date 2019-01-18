@@ -1,9 +1,10 @@
 import cv2
 import numpy as np
-import imgaug as ia
+import traceback
 from PIL import Image as PILImage
 
 from arcticapi.augmnetation import AugRgb, AugIR
+from arcticapi.augmnetation.utils import get_image_size
 
 
 class AerialImage():
@@ -13,6 +14,17 @@ class AerialImage():
         self.image = None  # not loaded
         self.camerapos = camerapos  # camera position
         self.hotspots = [] # hotspots in image
+        self.w = None
+        self.h = None
+        self.file_exists = False
+
+        try:
+            self.w, self.h = get_image_size(self.path)
+            if self.w is not None and self.h is not None:
+                self.file_exists = True
+        except Exception:
+            traceback.print_exc()
+
 
     # Loads image to memory, returns true if success, false if not
     def load_image(self, colorJet=False):
@@ -27,6 +39,7 @@ class AerialImage():
         ret = self.image is not None
         if not ret:
             print("Failed to load image " + self.path)
+        self.h, self.w = self.image.shape[:2]
         return ret
 
     def free(self):
@@ -57,9 +70,7 @@ class AerialImage():
         iabboxs = []
         for hs in self.getHotSpots(cfg):
             iabboxs.append(hs.rgb_bb)
-        if self.load_image():
-            return ia.BoundingBoxesOnImage(iabboxs, shape=self.image)
-        return None
+        return iabboxs
 
     def getHotSpots(self, cfg):
         hotspots = []

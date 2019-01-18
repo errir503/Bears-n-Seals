@@ -1,20 +1,21 @@
 from arcticapi.augmnetation.TrainingChip import TrainingChip
 from utils import *
+import numpy as np
 
 def prepare_chips(cfg, aeral_image):
     """
     :param cfg: CropCfg
     :type hs: HotSpot
     """
-    if not aeral_image.load_image():
+    if not aeral_image.file_exists:
         return []
 
     bboxes = aeral_image.getBboxes(cfg)
-    img = aeral_image.image
+    w, h = aeral_image.w, aeral_image.h
 
     chips = []
     drawn = []
-    for bbox in bboxes.bounding_boxes:
+    for bbox in bboxes:
         # already drawn skip
         found = False
         for hsId in drawn:
@@ -24,16 +25,15 @@ def prepare_chips(cfg, aeral_image):
             continue
 
         tcrop, bcrop, lcrop, rcrop, center_x, center_y, dx, dy = recalculate_crops(bbox.y2, bbox.y1, bbox.x1, bbox.x2,
-                                                                                   img.shape[0], img.shape[1], cfg.maxShift,
+                                                                                   h, w, cfg.maxShift,
                                                                                    cfg.minShift,
                                                                                    cfg.crop_size)
-
         # create crop
-        crop_img = img[tcrop:bcrop, lcrop: rcrop]
+        crop_img = np.zeros([bcrop-tcrop, rcrop-lcrop, 3], dtype=np.uint8)
 
         # shift bounding boxes that fit the new crop dimensions
         shifted_bboxs = []
-        for bb in bboxes.bounding_boxes:
+        for bb in bboxes:
             bbs_shifted = bb.shift(left=-lcrop, top=-tcrop)
             bbs_shifted.hsId = bb.hsId
             shifted_bboxs.append(bbs_shifted)
@@ -49,12 +49,20 @@ def prepare_chips(cfg, aeral_image):
             if bb.is_fully_within_image(crop_img):
                 drawn.append(bb.hsId)
 
-        tr = TrainingChip(crop_img, cfg, aeral_image.path, to_draw, (tcrop, bcrop, lcrop, rcrop))
-        tr.free() # free the image
+        boxes = []
+        for bbox in to_draw:
+            new = bbox.cut_out_of_image(crop_img)
+            new.hsId = bbox.hsId
+            boxes.append(new)
+        if len(boxes) == 0:
+            continue
+        tr = TrainingChip(aeral_image, crop_img.shape, cfg, aeral_image.path, boxes, (tcrop, bcrop, lcrop, rcrop))
+        del crop_img
+
         chips.append(tr)
     # free image from memory
-    aeral_image.free()
-    for bbox in bboxes.bounding_boxes:
+    # aeral_image.free() TODO remove
+    for bbox in bboxes:
         contains = False
         for drawnid in drawn:
             if bbox.hsId == drawnid:
