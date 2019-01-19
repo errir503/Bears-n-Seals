@@ -16,7 +16,7 @@ class TrainingChip():
         self.aeral_image = aeral_image
         self.image = None
         self.cfg = cfg
-        self.crops = crops # (topcrop, bottomcrop, leftcrop, rightcrop)
+        self.crops = crops  # (topcrop, bottomcrop, leftcrop, rightcrop)
         self.imgpath = imgpath
         ids = [x.hsId for x in bboxes]
         self.filename = cfg.out_dir + "crop_" + "_".join(ids)
@@ -24,11 +24,11 @@ class TrainingChip():
         self.bboxes = ia.BoundingBoxesOnImage(bboxes, shape=crop_shape)
 
     # loads the chip
-    def load(self, zoom_factor = 0):
+    def load(self, zoom_factor=0):
         zoom_factor = random.uniform(0, 1) * zoom_factor
-        t,b,l,r = self.crops
+        t, b, l, r = self.crops
         shifted_boxes = []
-        if zoom_factor != 0 :
+        if zoom_factor != 0:
             dy = int(((r - l) * zoom_factor) / 2)
             dx = int(((t - b) * zoom_factor) / 2)
             l = l - dx
@@ -48,7 +48,7 @@ class TrainingChip():
         res = self.aeral_image.load_image()
         if not res:
             return False
-        emptyim = np.zeros([b-t, r-l, 3], dtype=np.uint8)
+        emptyim = np.zeros([b - t, r - l, 3], dtype=np.uint8)
         for bb in shifted_boxes:
             if not bb.is_partly_within_image(emptyim):
                 t, b, l, r = self.crops
@@ -57,7 +57,6 @@ class TrainingChip():
         self.image = self.aeral_image.image[t:b, l: r].astype(np.uint8)
         if zoom_factor == 0:
             return True
-
 
         bbs = ia.BoundingBoxesOnImage(shifted_boxes, shape=self.image.shape)
         seq = iaa.Sequential([
@@ -72,7 +71,6 @@ class TrainingChip():
             new_boxes.bounding_boxes[idx].hsId = self.bboxes.bounding_boxes[idx].hsId
 
         self.bboxes = new_boxes
-
         self.aeral_image.free()
         return True
 
@@ -100,7 +98,7 @@ class TrainingChip():
                 if self.cfg.combine_seal and (classIndex == 0 or classIndex == 1 or classIndex == 2):
                     bbs.label = 0
 
-                x,y,w,h = getYoloFromRect(self.bboxes.height, self.bboxes.width, bbs.x1, bbs.y1, bbs.x2, bbs.y2)
+                x, y, w, h = getYoloFromRect(self.bboxes.height, self.bboxes.width, bbs.x1, bbs.y1, bbs.x2, bbs.y2)
                 yoloLabel = (bbs.hsId, bbs.label, x, y, w, h)
                 file.write(" ".join([str(i) for i in yoloLabel[1:]]) + "\n")
                 # create 2label file which allows to use the bounding box labeler tool to
@@ -109,20 +107,18 @@ class TrainingChip():
                 # (last 4 are tile's location in original image)
                 with open(self.filename + ".2label", 'a') as file:
                     file.write(" ".join([str(i) for i in yoloLabel]) + " " +
-                           " ".join([str(i) for i in self.crops]) + "\n")
+                               " ".join([str(i) for i in self.crops]) + "\n")
 
                 if self.cfg.debug:  # draws same as yolo so guaranteed to show if labels are correct
-                    drawBBoxYolo(self.image, x, y, w, h)
+                    drawBBoxYolo(self.image, x, y, w, h, bbs.label)
 
         self.save_image()
 
     def random_hue_adjustment(self, ratio):
         hsv = cv2.cvtColor(self.image, cv2.COLOR_RGB2HSV)
-        ratio = random.uniform(1-ratio, 1 + ratio)
-        hsv[:,:,2] =  np.clip(hsv[:,:,2].astype(np.int32) * ratio, 0, 255).astype(np.uint8)
+        ratio = random.uniform(1 - ratio, 1 + ratio)
+        hsv[:, :, 2] = np.clip(hsv[:, :, 2].astype(np.int32) * ratio, 0, 255).astype(np.uint8)
         return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-
-
 
     # extend the size of all bbox sides by px
     def extend(self, px):
@@ -136,10 +132,9 @@ class TrainingChip():
 
     # adds random values between min and max to the hue and saturation of the image
     # if per_channel is true then adds independently per channel and the same value for all pixels within that channel
-    def color_change(self, min, max, per_channel = False):
+    def color_change(self, min, max, per_channel=False):
         img = cv2.cvtColor(self.image.astype(np.uint8), cv2.COLOR_BGR2RGB)
         self.image = iaa.AddToHueAndSaturation((min, max), per_channel=per_channel).augment_image(img)
-
 
     # rotate image either 0, 90, 180, or 290 degrees
     def rotate(self):
@@ -161,7 +156,7 @@ class TrainingChip():
         seq = iaa.Sequential([
             iaa.Fliplr(0.5),
             iaa.Flipud(0.5)
-            ])
+        ])
 
         seq_det = seq.to_deterministic()
         im = seq_det.augment_images([self.image])[0]

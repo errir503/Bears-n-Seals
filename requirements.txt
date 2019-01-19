@@ -1,0 +1,5 @@
+Pillow==5.4.1
+imgaug==0.2.7
+matplotlib==2.2.3
+numpy==1.15.1
+opencv-python==3.4.4.19

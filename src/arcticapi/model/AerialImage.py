@@ -83,7 +83,7 @@ class AerialImage():
             # don't make crops or labels for anomalies
             if not cfg.make_anomaly and hs.classIndex == 4:
                 continue
-            if not hs.updated: # TODO: find a better spot for this
+            if not hs.updated: # TODO: find a better spot for this and maybe save non-updated ones
                 print("Hotspot " + hs.id + " not updated")
                 continue
             hotspots.append(hs)

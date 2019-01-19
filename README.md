@@ -3,7 +3,7 @@
 This project is a collaboration between NOAA and XNOR AI.  The goal of this
 project is to detect seals and polar bears in aerial imagery from different locations in the arctic.
 
-
+All tools require Python2.7
 ## Data
 All images were gathered from a plane flying ~1,000 feet above the ice.
 
@@ -68,35 +68,39 @@ optional arguments:
 ## Testing/Postprocess
 
 ## TODOs
-* Preprocess test/train split option
-* Darknet cfg file generator for quicker training
-* Image registration?
-
+* Test out focal loss
+* Make good negative set from FPs
+* Image registration
+* IR normalization
+* Label more seals
+* Read more papers
 
 ###Info
 
 [afsc.noaa.gov/News/iceseal_pop_assess.htm](https://www.afsc.noaa.gov/News/iceseal_pop_assess.htm)
 
+
+##### Speed tests accuracy (mAP and F1 on test set for now)
+| Model         | Dims          | Frames| fps   | mAP   | F1    |
+|:-------------:|:-------------:|:-----:|:-----:|:-----:|:-----:|
+| yolov3        | 640x640       |   77  |  ~18  |  78%  | .84   |
+
+
 ### Useful Commands:
 
-Test/Train Split:
-`head -n 500 rgb_640u.txt > ../seal-darknet/sealvalid_640.txt`
-`tail -n +500 rgb_640u.txt > ../seal-darknet/sealtrain_640.txt`  
-
 Make test set of all color images:
-`ls -l /data/noaa/NOAA_ImagesForDetectionDevelopment/CHESS/*_COLOR-8-BIT.JPG > colorvalid.txt`
+* `ls -l /data/noaa/NOAA_ImagesForDetectionDevelopment/CHESS/*_COLOR-8-BIT.JPG > colorvalid.txt`
 
-Generat map score (Must use "AB Darknet fork")
-`./darknet detector map cfg/bearsnseals.data cfg/bearsnseals.cfg weights/backup.weights`
+Generat map score, calc anchors (Must use AB Darknet fork)
+* `./darknet detector map cfg/bearsnseals.data cfg/bearsnseals.cfg weights/backup.weights`
+* `./darknet detector calc_anchors cfg/seals_640.data  -num_of_clusters 9 -width 640 -height 640`
 
 Get size of all 16 bit thermals
-`du -ch /data/noaa/NOAA_ImagesForDetectionDevelopment/CHESS/*THERM-16BIT.PNG | grep total`
+* `du -ch /data/noaa/NOAA_ImagesForDetectionDevelopment/CHESS/*THERM-16BIT.PNG | grep total`
 
-find $(pwd) -type f |  ../../darknet/test.txt
-find $PWD * -name *.jpg > ../test.txt
-
- find $PWD -name '*COLOR-8-BIT.JPG'
+Train, print append to text file
+* `./darknet detector train cfg/seals_640.data cfg/seals_640.cfg ../darknet/darknet53.conv.74 | tee -a 640loss.out`
  
- ./darknet detector train cfg/seals_640.data cfg/seals_640.cfg ../darknet/darknet53.conv.74 | tee -a 640loss.out
- 
- ../AB-darknet/darknet detector calc_anchors cfg/seals_640.data  -num_of_clusters 9 -width 640 -height 640
+Test/Train Split:
+* `head -n 500 rgb_640u.txt > ../seal-darknet/sealvalid_640.txt`
+* `tail -n +500 rgb_640u.txt > ../seal-darknet/sealtrain_640.txt` 

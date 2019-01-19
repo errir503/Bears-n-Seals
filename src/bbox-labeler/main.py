@@ -1,5 +1,7 @@
-import tkinter
-from tkinter import *
+import io
+
+import Tkinter
+from Tkinter import *
 
 import numpy as np
 from PIL import Image, ImageTk
@@ -11,13 +13,13 @@ COLORS = ['#a661b6','#3bb218','#e6ee7f']
 CLASSES = ["Ringed", "Bearded", "UNK"]
 
 # noinspection PyUnusedLocal
-class LabelTool(tkinter.Frame):
+class LabelTool(Tkinter.Frame):
     def __init__(self, master):
-        tkinter.Frame.__init__(self, master)
+        Tkinter.Frame.__init__(self, master)
         self.pack()
         # set up the main frame
         self.parent = master
-        self.parent.title("LabelTool")
+        self.parent.title("Seal LabelTool")
         self.frame = Frame(self.parent)
         self.frame.pack(fill=BOTH, expand=1)
         self.parent.resizable(width=True, height=True)
@@ -74,7 +76,7 @@ class LabelTool(tkinter.Frame):
 
         # choose class
         if os.path.exists(self.classCandidateFileName):
-            with open(self.classCandidateFileName, encoding='utf-8-sig') as cf:
+            with io.open(self.classCandidateFileName, encoding="utf-8") as cf:
                 for line in cf.readlines():
                     tmp = line.strip('\n')
                     self.cla_can_temp.append(tmp)
@@ -129,27 +131,10 @@ class LabelTool(tkinter.Frame):
         self.frame.columnconfigure(1, weight=1)
         self.frame.rowconfigure(4, weight=1)
 
-
-        # CSV
-        # self.csvlines = {}
-        # idx = 1
-        # rows = list()
-        # f = open("_CHESS_ImagesSelected4Detection.csv", 'r')
-        # reader = csv.reader(f)
-        # for row in reader:
-        #     rows.append(row)
-        # f.close()
-        # del rows[0]  # remove col headers
-        # for row in rows:
-        #     row.append(idx)
-        #     self.csvlines[row[0]] = row
-        #     idx+=1
-        #
-        #
     def loadDir(self, dbg=False):
         # get image list
         self.imageDir = os.path.join(r'./Images')
-        self.imageList = glob.glob(os.path.join(self.imageDir, '*.jpg'), recursive=True)
+        self.imageList = glob.glob(os.path.join(self.imageDir, '*.jpg'))
         if len(self.imageList) == 0:
             print('No .JPG images found in the specified dir!')
             return
@@ -157,11 +142,6 @@ class LabelTool(tkinter.Frame):
         # default to the 1st image in the collection
         self.cur = 1
         self.total = len(self.imageList)
-
-        # set up output dir
-        # self.outDir = os.path.join(r'./Labels', '%s' % self.category)
-        # if not os.path.exists(self.outDir):
-        #     os.mkdir(self.outDir)
 
         self.loadImage()
         print('%d images loaded from %s' % (self.total, './Images'))
@@ -188,7 +168,7 @@ class LabelTool(tkinter.Frame):
         print(self.labelFileName)
         self.imglbl.config(text='Image: ' + self.labelFileName)
         if os.path.exists(self.labelFileName):
-            with open(self.labelFileName, encoding="utf-8") as f:
+            with io.open(self.labelFileName, encoding="utf-8") as f:
                 for (i, line) in enumerate(f):
 
                     bbox = self.line_to_bbox(line)
@@ -222,17 +202,19 @@ class LabelTool(tkinter.Frame):
             self.globalhsid = 0
 
     def saveImage(self):
-        with open(self.labelFileName, 'w', encoding="utf-8") as f:
+        with io.open(self.labelFileName, 'w', encoding="utf-8") as f:
             for bbox in self.bboxList:
                 newstr = ('%s %s %s %s %s %s %s %s %s %s' % (bbox.hsid, str(bbox.classid), str(bbox.x), str(bbox.y),
                           str(bbox.w), str(bbox.h), str(bbox.tcrop), str(bbox.bcrop),
                           str(bbox.lcrop), str(bbox.rcrop)))
+                newstr = unicode(newstr)
                 f.write(newstr + '\n')
 
-        with open(os.path.splitext(self.labelFileName)[0]+'.txt', 'w', encoding="utf-8") as f:
+        with io.open(os.path.splitext(self.labelFileName)[0]+'.txt', 'w', encoding="utf-8") as f:
             for bbox in self.bboxList:
                 newstr = ('%s %s %s %s %s' % (str(bbox.classid), str(bbox.x), str(bbox.y),
                           str(bbox.w), str(bbox.h)))
+                newstr= unicode(newstr)
                 f.write(newstr + '\n')
         print('Image No. %d saved' % self.cur)
         pass
@@ -374,6 +356,7 @@ class LabelTool(tkinter.Frame):
         for imidx, imgpath in enumerate(self.imageList):
             if id in imgpath:
                 idx = imidx
+                break
 
         if 1 <= idx <= self.total and idx is not None:
             self.saveImage()
@@ -429,4 +412,5 @@ if __name__ == '__main__':
     tool = LabelTool(root)
     tool.loadDir()
     root.resizable(width=True, height=True)
+    root.update()
     root.mainloop()
