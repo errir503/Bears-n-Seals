@@ -42,12 +42,17 @@ for file in crop_txt_files:
 
     # sometime I remove bad labels or remove labels from an image we don't want to update those
     # and we set the status to removed
-    if len(lines) < 1:
+    if len(lines) < len(ids):
         for id in ids:
-            idx = idx2row[id]
-            hs = hotspots[idx]
-            hs.status = "removed"
-            continue
+            found = False
+            for line in lines:
+                items = line.split(" ")
+                if id == items[0]:
+                    found = True
+            if not found:
+                idx = idx2row[id]
+                hs = hotspots[idx]
+                hs.status = "removed"
 
     # go through each line and calculate the global coordinates
     for line in lines:
@@ -55,10 +60,15 @@ for file in crop_txt_files:
         idx = None
         if not items[0] in idx2row:
             id = str(int(float(items[0])))
-            if not id in idx2row:
+            found = None
+            for csvid in idx2row:
+                if id in csvid:
+                    found = csvid
+            if found is None:
                 print("Failed to find " + id)
                 continue
-
+            else:
+                id = found
             idx2row[items[0]] = len(hotspots)
             idx = idx2row[id]
             newhs = copy.copy(hotspots[idx])
@@ -99,11 +109,13 @@ for file in crop_txt_files:
             if hs.rgb.load_image():
                 img = hs.rgb.image
                 (yolox, yoloy, yolow, yoloh) = hs.getYoloBBox()
-                drawBBoxYolo(img, yolox, yoloy, yolow, yoloh)
+                drawBBoxYolo(img, yolox, yoloy, yolow, yoloh, hs.classIndex)
                 # pltIm(img)
                 cv2.imwrite('outimages/'+ hs.id + ".jpg", img)
                 hs.rgb.free()
 
         hotspots[idx] = hs
+header = "hotspot_id,timestamp,filt_thermal16,filt_thermal8,filt_color,x_pos,y_pos,thumb_left,thumb_top,thumb_right," \
+         "thumb_bottom,hotspot_type,species_id,updated_bot,updated_top,updated_left,updated_right,updated,status"
 
-api.saveHotspotsToCSV(output_csv)
+api.saveHotspotsToCSV(output_csv, header)

@@ -93,7 +93,7 @@ def load_config(name):
             print('%-12s: %s%s%s' % (candidate, bcolors.OKBLUE if val == 'False' else bcolors.RED, val, bcolors.ENDC))
         else:
             print('%-12s: %s' % (candidate, val))
-    print("")
+    print
 
     csv = config.get(name, configKeys[0])
     imdir = config.get(name, configKeys[1])

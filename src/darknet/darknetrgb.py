@@ -5,16 +5,15 @@ import cv2
 import numpy as np
 import os
 import time
-cfg_file = sys.argv[1]
-cfg_file = sys.argv[2]
-weight_file = sys.argv[3]
-out_csv_file = sys.argv[4]
 
-# cfg_file = b"cfg/sealsv3test.cfg"
-# data_file = b"cfg/seals.data"
-# weight_file = b"seal_weights/sealsv3_4000.weights"
-# out_csv_file = "possible_color.csv"
-pred_thres = 0.5
+
+cfg_file = b"cfg/seals_640_test.cfg"
+data_file = b"cfg/seals_640.data"
+weight_file = b"seal_weights_640/seals_640_7000.weights"
+out_csv_file = "res.csv"
+pred_thres = 0.7
+tilew = 640
+tileh = 640
 
 def sample(probs):
     s = sum(probs)
@@ -141,7 +140,9 @@ def array_to_image(arr):
     return im, arr
 
 
-def detect(net, meta, image, thresh=pred_thres, hier_thresh=pred_thres, nms=.45):
+def detect(net, meta, image, nms=.45):
+    hier_thresh=pred_thres
+    thresh=pred_thres  
     im, image = array_to_image(image)
     rgbgr_image(im)
     num = c_int(0)
@@ -169,8 +170,7 @@ def detect(net, meta, image, thresh=pred_thres, hier_thresh=pred_thres, nms=.45)
 
 
 def tile_image(image):
-    tilew = 800
-    tileh = 800
+
 
     imgh = image.shape[0]  # image height
     imgw = image.shape[1]  # image width
@@ -265,3 +265,5 @@ if __name__ == "__main__":
         del tiles
         del img
     i += 1
+
+# "hotspot_id,timestamp,filt_thermal16,filt_thermal8,filt_color,x_pos,y_pos,thumb_left,thumb_top,thumb_right,thumb_bottom,hotspot_type,species_id,updated_bot,updated_top,updated_left,updated_right,updated,status"

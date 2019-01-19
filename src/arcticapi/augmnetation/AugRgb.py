@@ -1,4 +1,8 @@
+import random
+
 from arcticapi.augmnetation.TrainingChip import TrainingChip
+from arcticapi.model.HotSpot import SpeciesList
+
 from utils import *
 import numpy as np
 
@@ -88,5 +92,83 @@ def prepare_chips(cfg, aeral_image):
     return uniquechips
 
 
+def test_train_split(chips):
+    random.shuffle(chips)
+    x = int(len(chips) / 4) * 3  # 3/4 train 1/4 test
+    train = chips[:x]
+    test = chips[x:]
+    return train, test
+
+def equalize_classes(chips):
+    dict_area = class_chip_dict_area(chips)
+    dict = class_chip_dict(chips)
+    counts = []
+    for k in dict_area:
+        vals = dict_area[k]
+        counts.append(len(vals))
+
+    max = np.max(counts)
+
+    imgs_to_add = np.subtract(max, counts)
+
+    for idx, ct in enumerate(imgs_to_add):
+        # We only care about ringed/bearded don't really care about UNK seals
+        if not idx == 0 and not idx == 1:
+            continue
+
+        class_chips = dict[idx]
+        class_len = len(class_chips)
+        added = 0
+        i = 0
+        x_copies = 0
+        while added < ct:
+            if i % class_len == 0:
+                x_copies += 1
+            # allow up to 3x duplicates
+            if x_copies > 4:
+                break
+            copy = class_chips[i % class_len].copy()
+            copy.filename = copy.filename + "x" + str(x_copies)
+            dict[idx].append(copy)
+            added += len(copy.bboxes.bounding_boxes)
+            i += 1
+        print("Added %d %ss" % (added, SpeciesList[idx]))
+
+    new_chips =  sum(dict.values(), [])
+    return new_chips
+
+def print_bbox_stats(chips):
+    dict = class_chip_dict_area(chips)
+    for k in dict:
+        vals = dict[k]
+
+        arr = np.asarray(vals)
+        avg = np.mean(arr)
+        stddev = np.std(arr, ddof=1)
+        if np.isnan(stddev):
+            stddev = -1
+        print("Class:%s Count:%d Avg_area:%d Stddev_area:%d" % (
+        SpeciesList[k], len(vals), int(avg), int(stddev)))
 
 
+def class_chip_dict_area(chips):
+    boxes = [b for c in chips for b in c.bboxes.bounding_boxes]
+    dict = {}
+    for box in boxes:
+        if box.label not in dict:
+            dict[box.label] = []
+
+        dict[box.label].append(box.area)
+    return dict
+
+
+def class_chip_dict(chips):
+    dict = {}
+    for chip in chips:
+        for box in chip.bboxes.bounding_boxes:
+            if box.label not in dict:
+                dict[box.label] = []
+            dict[box.label].append(chip)
+            break
+
+    return dict

@@ -3,15 +3,12 @@ import csv
 import random
 import sys
 
-import numpy as np
-import matplotlib.pyplot as plt
-
+from arcticapi.augmnetation import AugRgb
 from arcticapi.augmnetation.utils import write_label
 from arcticapi.csv_parser import parse_hotspot
-from arcticapi.model.HotSpot import SpeciesList
 from arcticapi.registration import image_registration
-
 from arcticapi.model.HotSpotMap import HotSpotMap
+from arcticapi.visuals import print_loading_bar
 
 # This is the controller of the api which is created using the path of the full resolution image directory
 # and the path to the NOAA hotspot csv file.
@@ -26,7 +23,6 @@ class ArcticApi:
         for row in reader:
             rows.append(row)
         f.close()
-        header = rows[0]
         del rows[0]  # remove col headers
 
         hsm = HotSpotMap()
@@ -38,7 +34,6 @@ class ArcticApi:
                 images[hotspot.rgb.path] = hotspot.rgb
             images[hotspot.rgb.path].hotspots.append(hotspot)
 
-        self.csvheader = header
         self.images = images
         self.hsm = hsm
         del rows
@@ -53,96 +48,66 @@ class ArcticApi:
                 image_registration.register_images(hs, showFigures, showImgs)
 
     def crop_label_images(self, cfg):
-            img_ct = len(self.images)
-            print("processing " + str(img_ct) + " images")
-            if not os.path.exists(cfg.out_dir):
-                os.mkdir(cfg.out_dir)
+        img_ct = len(self.images)
+        print("processing " + str(img_ct) + " images")
+        if not os.path.exists(cfg.out_dir):
+            os.mkdir(cfg.out_dir)
 
-            label_base = cfg.label.split(".")[0]
-            chips = []
-            for image_path in self.images:
-                chips = chips + self.images[image_path].generate_chips(cfg)
+        label_base = cfg.label.split(".")[0]
+        chips = []
+        for image_path in self.images:
+            chips = chips + self.images[image_path].generate_chips(cfg)
 
-            all_bboxes = [b for c in chips for b in c.bboxes.bounding_boxes ]
-            self.print_bbox_stats(all_bboxes)
+        print("\nOriginal Stats:")
+        AugRgb.print_bbox_stats(chips)
+        print
 
-            random.shuffle(chips)
-            x = int(len(chips)/4) * 3  # 3/4 train 1/4 test
-            train = chips[:x]
-            test = chips[x:]
-            print("Chipping complete %d chips created" % len(chips))
-            print("Starting data augmentation, cropping, duplication, and label generation")
-            duplicates = []
-            for chip in train:
-                copy = chip.copy()
-                chip.filename = chip.filename + "_a"
-                copy.filename = copy.filename + "_b"
-                duplicates.append(copy)
-                duplicates.append(chip)
-            train = duplicates
+        # Test/Train split
+        train, test = AugRgb.test_train_split(chips)
+        print("Attempting to make classes of similar size")
+        train = AugRgb.equalize_classes(train)
+        print
 
-            zoom_bounds = [-0.2, 0.2]
-            print("Generating training set...")
-            for idx, c in enumerate(train):
-                pct = ((idx + 0.0)/len(train)) * 100.0
-                sys.stdout.write("\r|%-73s| %3d%%" % ('#' * int(pct * .73), pct))
-                zoom = random.choice(zoom_bounds)
-                if not c.load(zoom):
-                    print("Chip not loaded in api.py :( %s" % c.filename)
-                    continue
-                # augmentations
-                c.color_change(-10, 10, False)
-                c.extend(5)
-                c.flip()
-                c.rotate()
-                c.save()  # save image
-                write_label(c.filename + ".jpg", label_base + "_train.txt")
-                c.free()
+        print("Training set stats:")
+        AugRgb.print_bbox_stats(train)
+        print("Generating training set...")
+        for idx, c in enumerate(train):
+            pct = ((idx + 0.0) / len(train)) * 100.0
+            sys.stdout.write("\r|%-73s| %3d%%" % ('#' * int(pct * .73), pct))
+            # models tend to struggle with larger seals so allow more zoom in than out
+            if not c.load(random.uniform(-.05, 0.2)):
+                print("Chip not loaded in api.py :( %s" % c.filename)
+                continue
+            # augmentations
+            c.color_change(-10, 10, False)
+            c.extend(5)
+            c.flip()
+            c.rotate()
+            c.save()  # save image
+            write_label(c.filename + ".jpg", label_base + "_train.txt")
+            c.free()
 
-            print("Generating test set...")
-            for chip in test:
-                if not chip.load():
-                    print("Chip not loaded in api.py :(")
-                    continue
-                chip.load() # load image
-                chip.extend(5)
-                chip.save() # save image and labels
-                chip.free() # free image
-                write_label(chip.filename + ".jpg", label_base + "_test.txt")
+        print("Testing set stats:")
+        AugRgb.print_bbox_stats(train)
+        print("Generating test set...")
+        for idx, chip in enumerate(test):
+            print_loading_bar(((idx + 0.0) / len(test)) * 100.0)
+            if not chip.load():
+                print("Chip not loaded in api.py :(")
+                continue
+            chip.load()  # load image
+            chip.extend(5)
+            chip.save()  # save image and labels
+            chip.free()  # free image
+            write_label(chip.filename + ".jpg", label_base + "_test.txt")
 
-            print("COMPLETE")
-            return
-
-
-    def print_bbox_stats(self, boxes):
-        dict = {}
-        for box in boxes:
-            if box.label not in dict:
-                dict[box.label] = []
-
-            dict[box.label].append(box.area)
-
-        for k in dict:
-            vals = dict[k]
-            # plt.title(SpeciesList[k])
-            # plt.hist(vals, fc='red', rwidth=1, bins=20)
-            # plt.show()
-
-            arr = np.asarray(vals)
-            avg = np.mean(arr)
-            stddev = np.std(arr, ddof=1)
-            if np.isnan(stddev):
-                stddev = -1
-            print("Class:%s Count:%d Avg_area:%d Stddev_area:%d" % (SpeciesList[k], len(vals), int(avg), int(stddev)))
-
-
+        print("COMPLETE")
+        return
 
     # Save all hotspots unfiltered in the standard seal csv format
-    def saveHotspotsToCSV(self, out_file):
+    def saveHotspotsToCSV(self, out_file, header):
         with open(out_file, 'w') as temp_file:
-            temp_file.write(",".join(self.csvheader) + "\n")
+            temp_file.write(header + "\n")
             for hs in self.hsm.hotspots:
                 newrowtxt = hs.toCSVRow()
                 temp_file.write(newrowtxt)
-
-

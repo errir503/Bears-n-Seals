@@ -2,14 +2,14 @@ import os
 import imgaug as ia
 
 SpeciesList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
-ColorsList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
+ColorsList = [(0, 255, 0), (243, 182, 31), (81, 13, 10), (256, 256, 256), (256, 256, 256)]
 
 
 class HotSpot:
     def __init__(self, id, xpos, ypos, thumb_left, thumb_top, thumb_right, thumb_bottom, type, species_id, rgb,
                  thermal, ir, timestamp, project_name, aircraft,
-                 updated_top = -1, updated_bot = -1, updated_left = -1, updated_right = -1,
-                 updated = False, status = "none"):
+                 updated_top=-1, updated_bot=-1, updated_left=-1, updated_right=-1,
+                 updated=False, status="none"):
         self.id = id  # id_hotspot
         self.thermal_loc = (xpos, ypos)  # location in thermal image
         # Bounding box
@@ -20,15 +20,15 @@ class HotSpot:
         # Center point
         self.center_x = thumb_left + ((thumb_right - thumb_left) / 2)
         self.center_y = thumb_bottom + ((thumb_top - thumb_bottom) / 2)
-        self.type = type # type of hotspot (Animal, Anomaly...)
-        self.species = species_id # species (Ringed, Bearded..)
-        self.classIndex = SpeciesList.index(species_id) # class index
-        self.rgb = rgb # RGB AerialImage
+        self.type = type  # type of hotspot (Animal, Anomaly...)
+        self.species = species_id  # species (Ringed, Bearded..)
+        self.classIndex = SpeciesList.index(species_id)  # class index
+        self.rgb = rgb  # RGB AerialImage
         self.thermal = thermal  # thermal AerialImage
         self.ir = ir  # IR AerialImage
-        self.timestamp = timestamp # timestamp
-        self.project_name = project_name # name of the projects usually CHESS
-        self.aircraft = aircraft # aircraft tail number
+        self.timestamp = timestamp  # timestamp
+        self.project_name = project_name  # name of the projects usually CHESS
+        self.aircraft = aircraft  # aircraft tail number
         # New columns for re-labeled csv files
         self.updated_top = updated_top
         self.updated_bot = updated_bot
@@ -37,7 +37,7 @@ class HotSpot:
         self.updated = updated
         self.status = status
 
-        b,t,l,r = self.getBTLR()
+        b, t, l, r = self.getBTLR()
         b = ia.BoundingBox(x1=l, y1=t, x2=r, y2=b, label=self.classIndex)
         b.hsId = self.id
         self.rgb_bb = b
@@ -58,7 +58,8 @@ class HotSpot:
         _, thermpath = os.path.split(self.thermal.path)
         _, irpath = os.path.split(self.ir.path)
         _, rgbpath = os.path.split(self.rgb.path)
-        cols = [str(self.id), str(self.timestamp), irpath, thermpath, rgbpath, str(self.thermal_loc[0]), str(self.thermal_loc[1]),
+        cols = [str(self.id), str(self.timestamp), irpath, thermpath, rgbpath, str(self.thermal_loc[0]),
+                str(self.thermal_loc[1]),
                 str(self.rgb_bb_l), str(self.rgb_bb_t), str(self.rgb_bb_r), str(self.rgb_bb_b), str(self.type),
                 str(self.species), str(self.updated_top), str(self.updated_bot), str(self.updated_left),
                 str(self.updated_right), str.lower(str(self.updated)), str(self.status)]
@@ -96,12 +97,10 @@ class HotSpot:
         yolow = float(w) / float(img.shape[1])
         yoloy = float(cy) / float(img.shape[0])
         yoloh = float(h) / float(img.shape[0])
-        return (yolox, yoloy, yolow, yoloh)
-
+        return yolox, yoloy, yolow, yoloh
 
     def getBTLR(self):
         if self.updated:
-            return (self.updated_bot, self.updated_top, self.updated_left, self.updated_right)
+            return self.updated_bot, self.updated_top, self.updated_left, self.updated_right
         else:
-            return (self.rgb_bb_b, self.rgb_bb_t, self.rgb_bb_l, self.rgb_bb_r)
-
+            return self.rgb_bb_b, self.rgb_bb_t, self.rgb_bb_l, self.rgb_bb_r

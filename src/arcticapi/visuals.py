@@ -3,6 +3,9 @@ import sys
 import cv2
 import matplotlib.pyplot as plt
 
+from arcticapi.model.HotSpot import ColorsList
+
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -32,16 +35,17 @@ def norm_matrix(m):
     return m
 
 # draw a bbox and center point of bbox on image given yolo labels
-def drawBBoxYolo(img, x, y, w, h):
+def drawBBoxYolo(img, x, y, w, h, label):
+    color = ColorsList[label]
     (imh, imw, imc) = img.shape
     x = int(x * imw)
     y = int(y * imh)
     w = int(w * imw)
     h = int(h * imh)
-    cv2.circle(img, (x, y), 5, (0, 255, 0), 2)
+    cv2.circle(img, (x, y), 5, color, 2)
     cv2.rectangle(img, (x - w / 2, y - h / 2),
                   (x + w / 2, y + h / 2),
-                  (0, 255, 0), 2)  # draw rect
+                  color, 2)  # draw rect
 
 def pltIm(img):
     imgplot = plt.imshow(img)
@@ -77,3 +81,6 @@ def plot_16bit_gray(img, cmap="gray"):
     """
     plt.imshow(img, vmin=0, vmax=65535, cmap=cmap)
     plt.show()
+
+def print_loading_bar(pct):
+    sys.stdout.write("\r|%-73s| %3d%%" % ('#' * int(pct * .73), pct))
