@@ -6,7 +6,7 @@ from arcticapi.model.HotSpot import SpeciesList
 from utils import *
 import numpy as np
 
-def prepare_chips(cfg, aeral_image, train_bboxes, toLabel = False):
+def prepare_chips(cfg, aeral_image, toLabel = False):
     """
     :param cfg: CropCfg
     :type hs: HotSpot
@@ -19,9 +19,11 @@ def prepare_chips(cfg, aeral_image, train_bboxes, toLabel = False):
     chips = []
     drawn = []
 
-    bboxes = train_bboxes
-
-    for bbox in train_bboxes:
+    train_bboxes = aeral_image.getBboxesForTraining(cfg)
+    label_bboxes = aeral_image.getBboxesForReLabeling(cfg)
+    priority_boxes = label_bboxes if toLabel else train_bboxes
+    secondary_boxes = []
+    for bbox in priority_boxes:
         # if already drawn skip
         found = False
         for hsId in drawn:
@@ -39,27 +41,28 @@ def prepare_chips(cfg, aeral_image, train_bboxes, toLabel = False):
 
 
         if toLabel:
-            bboxes = aeral_image.getBboxesForTraining(cfg) + train_bboxes
+            secondary_boxes = train_bboxes + label_bboxes
+        else:
+            secondary_boxes = train_bboxes
 
         # shift bounding boxes that fit the new crop dimensions
         shifted_bboxs = []
-        for bb in bboxes:
+        for bb in secondary_boxes:
             bbs_shifted = bb.shift(left=-lcrop, top=-tcrop)
             bbs_shifted.hsId = bb.hsId
             shifted_bboxs.append(bbs_shifted)
 
         if not bbox.shift(left=-lcrop, top=-tcrop).is_fully_within_image(crop_img):
-            print("For an odd reason hotspot " + bbox.hsId + " did not fully fit in the crop box:(%d, %d)(%d, %d) crop: (%d, %d)(%d, %d)" %
-                  (bbox.x1, bbox.y1, bbox.x2, bbox.y2, lcrop, bcrop, rcrop, tcrop))
+            print("For an odd reason hotspot " + bbox.hsId + " did not fully fit in the new box:(%d, %d)(%d, %d) crop: (%d, %d)(%d, %d)" %
+                  (bbox.x1, bbox.y2, bbox.x2, bbox.y1, lcrop, bcrop, rcrop, tcrop))
 
         # check if is within image, only add to drawn if is fully in image
         to_draw = []
         for bb in shifted_bboxs:
             if bb.is_partly_within_image(crop_img):
                 new = bb.cut_out_of_image(crop_img)
-                if new.area < bbox.area * 0.5:
-                    if not toLabel:
-                        print("TOO MUCH REMOVED FROM %s" % bb.hsId)
+                if new.area < bb.area * 0.5:
+                    print("TOO MUCH REMOVED FROM %s" % bb.hsId)
                     continue
                 new.hsId = bbox.hsId
                 to_draw.append(new)
@@ -76,8 +79,7 @@ def prepare_chips(cfg, aeral_image, train_bboxes, toLabel = False):
 
         chips.append(tr)
 
-    if not toLabel:
-        for bbox in bboxes:
+        for bbox in priority_boxes:
             contains = False
             for drawnid in drawn:
                 if bbox.hsId == drawnid:

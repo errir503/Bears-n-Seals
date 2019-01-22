@@ -67,11 +67,9 @@ class AerialImage():
             if not self.file_exists:
                 return []
             if make_train:
-                train_bboxes = self.getBboxesForTraining(cfg)
-                return AugRgb.prepare_chips(cfg, self, train_bboxes)
+                return AugRgb.prepare_chips(cfg, self)
             else:
-                label_bboxes = self.getBboxesForReLabeling(cfg)
-                return AugRgb.prepare_chips(cfg, self,label_bboxes, True)
+                return AugRgb.prepare_chips(cfg, self, True)
 
     def getBboxesForTraining(self, cfg):
         iabboxs = []
