@@ -9,14 +9,19 @@ import os
 import glob
 
 # colors for the bounding boxes
+from arcticapi import ArcticApi
+
 COLORS = ['#a661b6','#3bb218','#e6ee7f']
 CLASSES = ["Ringed", "Bearded", "UNK"]
 LABELS_DIR = "relabel"
+csv = '/Users/yuval/Documents/XNOR/Bears-n-Seals/src/bbox-labeler/out.csv'
+
 # noinspection PyUnusedLocal
 class LabelTool(Tkinter.Frame):
     def __init__(self, master):
         Tkinter.Frame.__init__(self, master)
         self.pack()
+        self.api = ArcticApi(csv, '')
         # set up the main frame
         self.parent = master
         self.parent.title("Seal LabelTool")
@@ -401,7 +406,22 @@ class LabelTool(Tkinter.Frame):
         return bbox
 
     def bbox_string(self, bbox):
-        return ('%s : %s (x:%.3f, y:%.3f) (w:%.3f, h:%.3f)' % (bbox.hsid, CLASSES[bbox.classid], bbox.x,
+        hs = self.api.hsm.get_hs(bbox.hsid)
+        l = hs.updated_left-bbox.lcrop
+        r = hs.updated_right - bbox.lcrop
+        t = hs.updated_top - bbox.tcrop
+        b = hs.updated_bot -bbox.tcrop
+        tmpId = self.mainPanel.create_rectangle(l,
+                                                b,
+                                                r,
+                                                t,
+                                                width=2,
+                                                outline="#000")
+        a = self.mainPanel.create_text(l, b, text="status: %s updated: %s" %(hs.status, str(hs.updated)), anchor="nw", fill="yellow")
+        a2 = self.mainPanel.create_text(l, t, text=hs.id, anchor="nw", fill="red")
+
+        updated_str = "U" if hs != None and hs.updated else "NU"
+        return ('%s %s : %s (x:%.3f, y:%.3f) (w:%.3f, h:%.3f)' % (updated_str, bbox.hsid, CLASSES[bbox.classid], bbox.x,
                                                   bbox.y, bbox.w, bbox.h))
 
 class Object(object):

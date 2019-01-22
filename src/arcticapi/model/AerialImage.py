@@ -57,7 +57,7 @@ class AerialImage():
 
         return img
 
-    def generate_chips(self, cfg, make_train):
+    def generate_chips(self, cfg):
         """
         :type cfg: CropCfg
         """
@@ -66,10 +66,8 @@ class AerialImage():
         elif cfg.imtype == "rgb":
             if not self.file_exists:
                 return []
-            if make_train:
-                return AugRgb.prepare_chips(cfg, self)
-            else:
-                return AugRgb.prepare_chips(cfg, self, True)
+            bounding_boxes = self.getBboxesForTraining(cfg)
+            return AugRgb.prepare_chips(cfg, self, bounding_boxes)
 
     def getBboxesForTraining(self, cfg):
         iabboxs = []
@@ -84,7 +82,7 @@ class AerialImage():
             new_box.hsId = hs.rgb_bb.hsId
             new_box.label = hs.rgb_bb.label
             iabboxs.append(new_box)
-        return iabboxs
+        return iabboxs + self.getBboxesForTraining(cfg)
 
     def getHotspotsForReLabeling(self, cfg):
         hotspots = []

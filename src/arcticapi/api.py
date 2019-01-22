@@ -10,6 +10,7 @@ from arcticapi.registration import image_registration
 from arcticapi.model.HotSpotMap import HotSpotMap
 from arcticapi.visuals import print_loading_bar
 
+
 # This is the controller of the api which is created using the path of the full resolution image directory
 # and the path to the NOAA hotspot csv file.
 # Once created contains a list of hotspots and a list of AerialImages which contain all information about the image,
@@ -47,33 +48,6 @@ class ArcticApi:
             if hs is not None:
                 image_registration.register_images(hs, showFigures, showImgs)
 
-    def crop_for_labeling(self,cfg):
-        img_ct = len(self.images)
-        print("processing " + str(img_ct) + " images")
-        if not os.path.exists(cfg.out_dir):
-            os.mkdir(cfg.out_dir)
-
-        label_base = cfg.label.split(".")[0]
-        chips = []
-        for image_path in self.images:
-            chips = chips + self.images[image_path].generate_chips(cfg, False)
-        print("\nOriginal Stats:")
-        AugRgb.print_bbox_stats(chips)
-
-        for idx, chip in enumerate(chips):
-            print_loading_bar(((idx + 0.0) / len(chips)) * 100.0)
-            if not chip.load():
-                print("Chip not loaded in api.py :(")
-                continue
-            chip.load()  # load image
-            chip.save()  # save image and labels
-            chip.free()  # free image
-            write_label(chip.filename + ".jpg", label_base + "_test.txt")
-
-        print("COMPLETE")
-        return
-
-
     def generate_training_set(self, cfg):
         img_ct = len(self.images)
         print("processing " + str(img_ct) + " images")
@@ -83,7 +57,7 @@ class ArcticApi:
         label_base = cfg.label.split(".")[0]
         chips = []
         for image_path in self.images:
-            chips = chips + self.images[image_path].generate_chips(cfg, True)
+            chips = chips + self.images[image_path].generate_chips(cfg)
 
         print("\nOriginal Stats:")
         AugRgb.print_bbox_stats(chips)

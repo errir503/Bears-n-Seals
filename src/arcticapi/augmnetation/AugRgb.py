@@ -6,7 +6,7 @@ from arcticapi.model.HotSpot import SpeciesList
 from utils import *
 import numpy as np
 
-def prepare_chips(cfg, aeral_image, toLabel = False):
+def prepare_chips(cfg, aeral_image, bounding_boxes):
     """
     :param cfg: CropCfg
     :type hs: HotSpot
@@ -19,11 +19,7 @@ def prepare_chips(cfg, aeral_image, toLabel = False):
     chips = []
     drawn = []
 
-    train_bboxes = aeral_image.getBboxesForTraining(cfg)
-    label_bboxes = aeral_image.getBboxesForReLabeling(cfg)
-    priority_boxes = label_bboxes if toLabel else train_bboxes
-    secondary_boxes = []
-    for bbox in priority_boxes:
+    for bbox in bounding_boxes:
         # if already drawn skip
         found = False
         for hsId in drawn:
@@ -40,14 +36,9 @@ def prepare_chips(cfg, aeral_image, toLabel = False):
         crop_img = np.zeros([bcrop-tcrop, rcrop-lcrop, 3], dtype=np.uint8)
 
 
-        if toLabel:
-            secondary_boxes = train_bboxes + label_bboxes
-        else:
-            secondary_boxes = train_bboxes
-
         # shift bounding boxes that fit the new crop dimensions
         shifted_bboxs = []
-        for bb in secondary_boxes:
+        for bb in bounding_boxes:
             bbs_shifted = bb.shift(left=-lcrop, top=-tcrop)
             bbs_shifted.hsId = bb.hsId
             shifted_bboxs.append(bbs_shifted)
@@ -62,9 +53,9 @@ def prepare_chips(cfg, aeral_image, toLabel = False):
             if bb.is_partly_within_image(crop_img):
                 new = bb.cut_out_of_image(crop_img)
                 if new.area < bb.area * 0.5:
-                    print("TOO MUCH REMOVED FROM %s" % bb.hsId)
+                    print("over 1/2 of bbox cut from %s so skipping" % bb.hsId)
                     continue
-                new.hsId = bbox.hsId
+                new.hsId = bb.hsId
                 to_draw.append(new)
 
             if bb.is_fully_within_image(crop_img):
@@ -78,8 +69,7 @@ def prepare_chips(cfg, aeral_image, toLabel = False):
         del crop_img
 
         chips.append(tr)
-
-        for bbox in priority_boxes:
+        for bbox in bounding_boxes:
             contains = False
             for drawnid in drawn:
                 if bbox.hsId == drawnid:
