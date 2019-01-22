@@ -80,7 +80,10 @@ class AerialImage():
     def getBboxesForReLabeling(self, cfg):
         iabboxs = []
         for hs in self.getHotspotsForReLabeling(cfg):
-            iabboxs.append(hs.rgb_bb)
+            new_box = hs.rgb_bb.extend(all_sides=-250)
+            new_box.hsId = hs.rgb_bb.hsId
+            new_box.label = hs.rgb_bb.label
+            iabboxs.append(new_box)
         return iabboxs
 
     def getHotspotsForReLabeling(self, cfg):
