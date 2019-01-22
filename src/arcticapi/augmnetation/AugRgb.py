@@ -49,8 +49,8 @@ def prepare_chips(cfg, aeral_image, train_bboxes, toLabel = False):
             shifted_bboxs.append(bbs_shifted)
 
         if not bbox.shift(left=-lcrop, top=-tcrop).is_fully_within_image(crop_img):
-            print("For an odd reason hotspot " + bbox.hsId + " did not fully fit in the crop")
-            continue
+            print("For an odd reason hotspot " + bbox.hsId + " did not fully fit in the crop box:(%d, %d)(%d, %d) crop: (%d, %d)(%d, %d)" %
+                  (bbox.x1, bbox.y1, bbox.x2, bbox.y2, lcrop, bcrop, rcrop, tcrop))
 
         # check if is within image, only add to drawn if is fully in image
         to_draw = []
