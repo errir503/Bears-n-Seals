@@ -86,18 +86,10 @@ class AerialImage():
         return iabboxs
 
     def getHotspotsForReLabeling(self, cfg):
-        relabelThis = False
-        for hs in self.hotspots:
-            if hs.isStatusRemoved() or not hs.updated:
-                relabelThis = True
-
-        if not relabelThis:
-            return []
-
         hotspots = []
         for hs in self.hotspots:
-            if hs.filterClass(cfg):
-                continue
+            if hs.isStatusRemoved() or not hs.updated:
+                hotspots.append(hs)
             hotspots.append(hs)
         return hotspots
 
