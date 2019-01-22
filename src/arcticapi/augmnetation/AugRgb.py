@@ -6,7 +6,7 @@ from arcticapi.model.HotSpot import SpeciesList
 from utils import *
 import numpy as np
 
-def prepare_chips(cfg, aeral_image, train_bboxes):
+def prepare_chips(cfg, aeral_image, train_bboxes, toLabel = False):
     """
     :param cfg: CropCfg
     :type hs: HotSpot
@@ -18,6 +18,9 @@ def prepare_chips(cfg, aeral_image, train_bboxes):
 
     chips = []
     drawn = []
+
+    bboxes = train_bboxes
+
     for bbox in train_bboxes:
         # if already drawn skip
         found = False
@@ -34,9 +37,13 @@ def prepare_chips(cfg, aeral_image, train_bboxes):
         # create crop
         crop_img = np.zeros([bcrop-tcrop, rcrop-lcrop, 3], dtype=np.uint8)
 
+
+        if toLabel:
+            bboxes = aeral_image.getBboxesForTraining(cfg) + train_bboxes
+
         # shift bounding boxes that fit the new crop dimensions
         shifted_bboxs = []
-        for bb in train_bboxes:
+        for bb in bboxes:
             bbs_shifted = bb.shift(left=-lcrop, top=-tcrop)
             bbs_shifted.hsId = bb.hsId
             shifted_bboxs.append(bbs_shifted)
@@ -51,7 +58,8 @@ def prepare_chips(cfg, aeral_image, train_bboxes):
             if bb.is_partly_within_image(crop_img):
                 new = bb.cut_out_of_image(crop_img)
                 if new.area < bbox.area * 0.5:
-                    print("TOO MUCH REMOVED FROM %s" % bb.hsId)
+                    if not toLabel:
+                        print("TOO MUCH REMOVED FROM %s" % bb.hsId)
                     continue
                 new.hsId = bbox.hsId
                 to_draw.append(new)
@@ -68,14 +76,15 @@ def prepare_chips(cfg, aeral_image, train_bboxes):
 
         chips.append(tr)
 
-    for bbox in train_bboxes:
-        contains = False
-        for drawnid in drawn:
-            if bbox.hsId == drawnid:
-                contains = True
+    if not toLabel:
+        for bbox in bboxes:
+            contains = False
+            for drawnid in drawn:
+                if bbox.hsId == drawnid:
+                    contains = True
+            if not contains:
+                print("Did not draw " + bbox.hsId)
 
-        if not contains:
-            print("Did not draw " + bbox.hsId)
     uniquechips = []
     for idx, chip in enumerate(chips):
         found = False

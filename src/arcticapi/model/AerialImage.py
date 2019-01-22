@@ -71,7 +71,7 @@ class AerialImage():
                 return AugRgb.prepare_chips(cfg, self, train_bboxes)
             else:
                 label_bboxes = self.getBboxesForReLabeling(cfg)
-                return AugRgb.prepare_chips(cfg, self,label_bboxes)
+                return AugRgb.prepare_chips(cfg, self,label_bboxes, True)
 
     def getBboxesForTraining(self, cfg):
         iabboxs = []
@@ -92,7 +92,6 @@ class AerialImage():
                 continue
             if hs.isStatusRemoved() or not hs.updated:
                 hotspots.append(hs)
-            hotspots.append(hs)
         return hotspots
 
     def getHotspotsForTraining(self, cfg):
@@ -103,7 +102,8 @@ class AerialImage():
             if hs.filterClass(cfg):
                 continue
             if not hs.updated:
-                print("Hotspot " + hs.id + " not updated")
+                if cfg.debug:
+                    print("Hotspot " + hs.id + " not updated")
                 continue
             hotspots.append(hs)
         return hotspots
