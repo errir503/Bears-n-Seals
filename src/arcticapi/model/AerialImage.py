@@ -88,7 +88,7 @@ class AerialImage():
     def getHotspotsForReLabeling(self, cfg):
         hotspots = []
         for hs in self.hotspots:
-            if hs.filterClass():
+            if hs.filterClass(cfg):
                 continue
             if hs.isStatusRemoved() or not hs.updated:
                 hotspots.append(hs)
