@@ -53,7 +53,10 @@ def main():
     make_model_config(cfg, classes)
 
     api = ArcticApi(cfg.csv, cfg.im_dir)
-    api.crop_label_images(cfg)
+    if cfg.genlabels:
+        api.crop_for_labeling(cfg)
+    else:
+        api.generate_training_set(cfg)
 
 # the long cli with all arugements, using the cfg is easier so just do that!
 def cli():
@@ -83,6 +86,8 @@ def cli():
     parser.add_argument('-all', action='store_true', default=False,
                         help='Make all classes one class (for ir hotspots)')
     parser.add_argument('-d', action='store_true', default=False,
+                        help='debug: draws bounding box bounds NOT FOR TRAINING')
+    parser.add_argument('-genlabels', action='store_true', default=False,
                         help='debug: draws bounding box bounds NOT FOR TRAINING')
 
 

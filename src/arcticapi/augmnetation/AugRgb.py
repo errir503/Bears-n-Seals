@@ -6,7 +6,7 @@ from arcticapi.model.HotSpot import SpeciesList
 from utils import *
 import numpy as np
 
-def prepare_chips(cfg, aeral_image):
+def prepare_chips(cfg, aeral_image, train_bboxes):
     """
     :param cfg: CropCfg
     :type hs: HotSpot
@@ -14,12 +14,11 @@ def prepare_chips(cfg, aeral_image):
     if not aeral_image.file_exists:
         return []
 
-    bboxes = aeral_image.getBboxes(cfg)
     w, h = aeral_image.w, aeral_image.h
 
     chips = []
     drawn = []
-    for bbox in bboxes:
+    for bbox in train_bboxes:
         # if already drawn skip
         found = False
         for hsId in drawn:
@@ -37,13 +36,14 @@ def prepare_chips(cfg, aeral_image):
 
         # shift bounding boxes that fit the new crop dimensions
         shifted_bboxs = []
-        for bb in bboxes:
+        for bb in train_bboxes:
             bbs_shifted = bb.shift(left=-lcrop, top=-tcrop)
             bbs_shifted.hsId = bb.hsId
             shifted_bboxs.append(bbs_shifted)
 
         if not bbox.shift(left=-lcrop, top=-tcrop).is_fully_within_image(crop_img):
             print("For an odd reason hotspot " + bbox.hsId + " did not fully fit in the crop")
+            continue
 
         # check if is within image, only add to drawn if is fully in image
         to_draw = []
@@ -67,9 +67,8 @@ def prepare_chips(cfg, aeral_image):
         del crop_img
 
         chips.append(tr)
-    # free image from memory
-    # aeral_image.free() TODO remove
-    for bbox in bboxes:
+
+    for bbox in train_bboxes:
         contains = False
         for drawnid in drawn:
             if bbox.hsId == drawnid:
@@ -90,7 +89,6 @@ def prepare_chips(cfg, aeral_image):
             uniquechips.append(chip)
 
     return uniquechips
-
 
 def test_train_split(chips):
     random.shuffle(chips)

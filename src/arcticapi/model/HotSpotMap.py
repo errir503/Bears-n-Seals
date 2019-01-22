@@ -31,3 +31,4 @@ class HotSpotMap:
             return self.hotspots[self.hs_id_to_idx[str(id)]]
         print("No HotSpot with id: " + str(id))
         return None
+

@@ -57,35 +57,58 @@ class AerialImage():
 
         return img
 
-    def generate_chips(self, cfg):
+    def generate_chips(self, cfg, make_train):
         """
         :type cfg: CropCfg
         """
         if cfg.imtype == "ir":
             AugIR.crop_ir_hotspot_8bit(cfg, self)
         elif cfg.imtype == "rgb":
-            return AugRgb.prepare_chips(cfg, self)
+            if not self.file_exists:
+                return []
+            if make_train:
+                train_bboxes = self.getBboxesForTraining(cfg)
+                return AugRgb.prepare_chips(cfg, self, train_bboxes)
+            else:
+                label_bboxes = self.getBboxesForReLabeling(cfg)
+                return AugRgb.prepare_chips(cfg, self,label_bboxes)
 
-    def getBboxes(self, cfg):
+    def getBboxesForTraining(self, cfg):
         iabboxs = []
-        for hs in self.getHotSpots(cfg):
+        for hs in self.getHotspotsForTraining(cfg):
             iabboxs.append(hs.rgb_bb)
         return iabboxs
 
-    def getHotSpots(self, cfg):
+    def getBboxesForReLabeling(self, cfg):
+        iabboxs = []
+        for hs in self.getHotspotsForReLabeling(cfg):
+            iabboxs.append(hs.rgb_bb)
+        return iabboxs
+
+    def getHotspotsForReLabeling(self, cfg):
         hotspots = []
         for hs in self.hotspots:
-            if hs.status == 'removed':
+            if hs.filterClass(cfg):
                 continue
-            # don't make crops or labels for bears
-            if not cfg.make_bear and hs.classIndex == 3:
+            if hs.isStatusRemoved():
+                hotspots.append(hs)
+            if not hs.updated:
+                hotspots.append(hs)
+        return hotspots
+
+    def getHotspotsForTraining(self, cfg):
+        hotspots = []
+        for hs in self.hotspots:
+            if hs.isStatusRemoved():
                 continue
-            # don't make crops or labels for anomalies
-            if not cfg.make_anomaly and hs.classIndex == 4:
+            if hs.filterClass(cfg):
                 continue
-            if not hs.updated: # TODO: find a better spot for this and maybe save non-updated ones
+            if not hs.updated:
                 print("Hotspot " + hs.id + " not updated")
                 continue
             hotspots.append(hs)
         return hotspots
+
+
+
 

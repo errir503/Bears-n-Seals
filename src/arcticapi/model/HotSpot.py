@@ -100,7 +100,18 @@ class HotSpot:
         return yolox, yoloy, yolow, yoloh
 
     def getBTLR(self):
-        if self.updated:
+        if self.updated and not self.isStatusRemoved() and not self.updated_bot == 1:
             return self.updated_bot, self.updated_top, self.updated_left, self.updated_right
         else:
             return self.rgb_bb_b, self.rgb_bb_t, self.rgb_bb_l, self.rgb_bb_r
+
+    def isStatusRemoved(self):
+        return self.status == 'removed'
+
+    def filterClass(self, cfg):
+        # don't make crops or labels for bears
+        if not cfg.make_bear and self.classIndex == 3:
+            return True
+        # don't make crops or labels for anomalies
+        if not cfg.make_anomaly and self.classIndex == 4:
+            return True
