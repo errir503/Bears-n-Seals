@@ -11,7 +11,7 @@ import glob
 # colors for the bounding boxes
 COLORS = ['#a661b6','#3bb218','#e6ee7f']
 CLASSES = ["Ringed", "Bearded", "UNK"]
-
+LABELS_DIR = "relabel"
 # noinspection PyUnusedLocal
 class LabelTool(Tkinter.Frame):
     def __init__(self, master):
@@ -133,7 +133,7 @@ class LabelTool(Tkinter.Frame):
 
     def loadDir(self, dbg=False):
         # get image list
-        self.imageDir = os.path.join(r'./Images')
+        self.imageDir = os.path.join(r'./'+LABELS_DIR)
         self.imageList = glob.glob(os.path.join(self.imageDir, '*.jpg'))
         if len(self.imageList) == 0:
             print('No .JPG images found in the specified dir!')
@@ -144,7 +144,7 @@ class LabelTool(Tkinter.Frame):
         self.total = len(self.imageList)
 
         self.loadImage()
-        print('%d images loaded from %s' % (self.total, './Images'))
+        print('%d images loaded from %s' % (self.total, './'+LABELS_DIR))
 
     def rint(self, num):
         return np.int32(np.rint(num))
