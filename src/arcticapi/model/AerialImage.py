@@ -27,7 +27,7 @@ class AerialImage():
 
 
     # Loads image to memory, returns true if success, false if not
-    def load_image(self, colorJet=False):
+    def load_image(self):
         if self.image is not None:
             return True
         elif self.type == "rgb":
@@ -35,10 +35,11 @@ class AerialImage():
         elif self.type == "thermal":
             self.image = cv2.imread(self.path, cv2.IMREAD_GRAYSCALE)
         elif self.type == "ir":
-            self.image = self.imreadIR(self.path, colorJet)
+            self.image = self.imreadIR(self.path)
         ret = self.image is not None
         if not ret:
             print("Failed to load image " + self.path)
+            return ret
         self.h, self.w = self.image.shape[:2]
         return ret
 
@@ -50,7 +51,10 @@ class AerialImage():
         self.load_image()
 
     def imreadIR(self, fileIR):
-        img = PILImage.open(fileIR)
+        try:
+            img = PILImage.open(fileIR)
+        except:
+            return None
         if img is None:
             return None
         img = np.array(img).astype(np.uint16)

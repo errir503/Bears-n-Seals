@@ -80,7 +80,7 @@ optional arguments:
 [afsc.noaa.gov/News/iceseal_pop_assess.htm](https://www.afsc.noaa.gov/News/iceseal_pop_assess.htm)
 
 
-##### Speed tests accuracy (mAP and F1 on test set for now)
+##### Speed tests accuracy RGB (mAP and F1 on test set for now)
 | Model         | Dims          | Frames| fps   | mAP   | F1    |
 |:-------------:|:-------------:|:-----:|:-----:|:-----:|:-----:|
 | yolov3        | 640x640       |   77  |  ~18  |  78%  | .84   |

@@ -9,8 +9,10 @@ from arcticapi.visuals import drawBBoxYolo
 # Using the existing CSV goes through all labels in the Images directory and updates the existing CSV file
 # with updates from the labels
 csv = '/Users/yuval/Documents/XNOR/bounding-box-labeler-yolo/_CHESS_ImagesSelected4Detection.csv'
+# csv = '/Users/yuval/Documents/XNOR/bounding-box-labeler-yolo/out.csv'
 img_path = '/Users/yuval/Documents/XNOR/Bears-n-Seals/images/CHESS/'
 output_csv = 'out.csv'
+img_paths = ["Images", "relabel"]
 
 # csv = 'out.csv'
 api = ArcticApi(csv, img_path)
@@ -22,11 +24,12 @@ for idx, hs in enumerate(hotspots):
 
 
 crop_txt_files = []
-for file in os.listdir("Images"):
-    if file.endswith(".2label"):
-        no_ext = os.path.splitext(file)[0]
-        ids = no_ext.split("_")[1:]
-        crop_txt_files.append({'ids': ids, 'path': os.path.join("Images", file)})
+for img_path in img_paths:
+    for file in os.listdir(img_path):
+        if file.endswith(".2label"):
+            no_ext = os.path.splitext(file)[0]
+            ids = no_ext.split("-")[0].split("_")[1:]
+            crop_txt_files.append({'ids': ids, 'path': os.path.join(img_path, file)})
 
 for file in crop_txt_files:
     ids = file['ids']
@@ -46,7 +49,7 @@ for file in crop_txt_files:
         for id in ids:
             found = False
             for line in lines:
-                items = line.split(" ")
+                items = line.split(" ")[0]
                 if id == items[0]:
                     found = True
             if not found:

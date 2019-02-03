@@ -1,3 +1,4 @@
+import os
 import random
 import copy
 import cv2
@@ -12,12 +13,11 @@ from arcticapi.visuals import drawBBoxYolo
 class TrainingChip():
     # constructs a training chip with imgaug bounding boxes and saves the image to filename so that it is not
     # stored in memory.  later on can use load, augmentations, and save for the data augmentation step
-    def __init__(self, aeral_image, crop_shape, cfg, imgpath, bboxes, crops):
+    def __init__(self, aeral_image, crop_shape, cfg, bboxes, crops):
         self.aeral_image = aeral_image
         self.image = None
         self.cfg = cfg
         self.crops = crops  # (topcrop, bottomcrop, leftcrop, rightcrop)
-        self.imgpath = imgpath
         ids = [x.hsId for x in bboxes]
         self.filename = cfg.out_dir + "crop_" + "_".join(ids)
 
@@ -84,6 +84,9 @@ class TrainingChip():
         cv2.imwrite(self.filename + ".jpg", self.image)
 
     def save(self):
+        if not os.path.exists(self.cfg.out_dir):
+            os.makedirs(self.cfg.out_dir)
+
         # if no labels, still a training image save with empty label file for darknet
         if len(self.bboxes.bounding_boxes) == 0:
             open(self.filename + ".txt", 'a').close()

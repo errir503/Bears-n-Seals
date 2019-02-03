@@ -27,15 +27,21 @@ class ArcticApi:
         del rows[0]  # remove col headers
 
         hsm = HotSpotMap()
-        images = {}
+        rgb_im = {}
+        ir_im = {}
         for row in rows:
             hotspot = parse_hotspot(row, im_path)
             hsm.add(hotspot)
-            if not hotspot.rgb.path in images:
-                images[hotspot.rgb.path] = hotspot.rgb
-            images[hotspot.rgb.path].hotspots.append(hotspot)
+            if not hotspot.rgb.path in rgb_im:
+                rgb_im[hotspot.rgb.path] = hotspot.rgb
+            if not hotspot.ir.path in ir_im:
+                ir_im[hotspot.ir.path] = hotspot.ir
+            rgb_im[hotspot.rgb.path].hotspots.append(hotspot)
+            ir_im[hotspot.ir.path].hotspots.append(hotspot)
 
-        self.images = images
+
+        self.rgb_images = rgb_im
+        self.ir_images = ir_im
         self.hsm = hsm
         del rows
 
@@ -49,15 +55,15 @@ class ArcticApi:
                 image_registration.register_images(hs, showFigures, showImgs)
 
     def generate_training_set(self, cfg):
-        img_ct = len(self.images)
+        img_ct = len(self.rgb_images)
         print("processing " + str(img_ct) + " images")
         if not os.path.exists(cfg.out_dir):
             os.mkdir(cfg.out_dir)
 
         label_base = cfg.label.split(".")[0]
         chips = []
-        for image_path in self.images:
-            chips = chips + self.images[image_path].generate_chips(cfg)
+        for image_path in self.rgb_images:
+            chips = chips + self.rgb_images[image_path].generate_chips(cfg)
 
         print("\nOriginal Stats:")
         AugRgb.print_bbox_stats(chips)

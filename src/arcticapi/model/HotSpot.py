@@ -61,7 +61,7 @@ class HotSpot:
         cols = [str(self.id), str(self.timestamp), irpath, thermpath, rgbpath, str(self.thermal_loc[0]),
                 str(self.thermal_loc[1]),
                 str(self.rgb_bb_l), str(self.rgb_bb_t), str(self.rgb_bb_r), str(self.rgb_bb_b), str(self.type),
-                str(self.species), str(self.updated_top), str(self.updated_bot), str(self.updated_left),
+                str(self.species), str(self.updated_bot), str(self.updated_top), str(self.updated_left),
                 str(self.updated_right), str.lower(str(self.updated)), str(self.status)]
         return ",".join(cols) + "\n"
 
@@ -75,11 +75,12 @@ class HotSpot:
         return (self.center_x, self.center_y)
 
     # returns (x, y, w, h) in yolo format
-    def getYoloBBox(self):
-        if not self.rgb.load_image():
+    def getYoloBBox(self, img = None):
+        if img is None and not self.rgb.load_image():
             return None
+        if img is not None:
+            img = self.rgb.image
 
-        img = self.rgb.image
         l = self.rgb_bb_l
         r = self.rgb_bb_r
         t = self.rgb_bb_t
@@ -99,8 +100,8 @@ class HotSpot:
         yoloh = float(h) / float(img.shape[0])
         return yolox, yoloy, yolow, yoloh
 
-    def getBTLR(self):
-        if self.updated and not self.isStatusRemoved() and not self.updated_bot == 1:
+    def getBTLR(self, forceOld = False):
+        if not forceOld and (self.updated and not self.isStatusRemoved() and not self.updated_bot == 1):
             return self.updated_bot, self.updated_top, self.updated_left, self.updated_right
         else:
             return self.rgb_bb_b, self.rgb_bb_t, self.rgb_bb_l, self.rgb_bb_r
@@ -115,3 +116,13 @@ class HotSpot:
         # don't make crops or labels for anomalies
         if not cfg.make_anomaly and self.classIndex == 4:
             return True
+
+    def update_bbox(self, x1, y1, x2, y2):
+        self.updated_top = y1
+        self.updated_bot = y2
+        self.updated_left = x1
+        self.updated_right = x2
+        b = ia.BoundingBox(x1=x1, y1=y1, x2=x2, y2=y2, label=self.classIndex)
+        b.hsId = self.id
+        self.rgb_bb = b
+

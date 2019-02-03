@@ -45,10 +45,7 @@ def camera_bounds(camera_pos, num_rows):
 
 
 ## ~70% AP by 8k iters on whole dataset with yolov3
-def normalize_percentile(filePath, colorJet):
-    img = PILImage.open(filePath)
-    if img is None:
-        return None
+def normalize_percentile(img, colorJet):
     img = np.array(img).astype(np.float32)
     img /= 0.5 # create broader distribution
     mi = np.percentile(img,1)

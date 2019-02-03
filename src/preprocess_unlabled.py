@@ -13,8 +13,8 @@ if not os.path.exists(out_path):
 api = ArcticApi(csv, img_path)
 cfg =  CropCfg(csv, img_path, out_path, 100, 0, 0, 640, "re-label.txt", False, False, False, True, "rgb", "relabel", False, False)
 chips = []
-for image_path in api.images:
-    aeral_image = api.images[image_path]
+for image_path in api.rgb_images:
+    aeral_image = api.rgb_images[image_path]
     bounding_boxes = aeral_image.getBboxesForReLabeling(cfg)
     chips = chips + AugRgb.prepare_chips(cfg, aeral_image, bounding_boxes)
 
