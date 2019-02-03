@@ -101,7 +101,7 @@ class HotSpot:
         return yolox, yoloy, yolow, yoloh
 
     def getBTLR(self, forceOld = False):
-        if not forceOld and (self.updated and not self.isStatusRemoved() and not self.updated_bot == 1):
+        if not forceOld and (self.updated and not self.isStatusRemoved()):
             return self.updated_bot, self.updated_top, self.updated_left, self.updated_right
         else:
             return self.rgb_bb_b, self.rgb_bb_t, self.rgb_bb_l, self.rgb_bb_r
@@ -122,6 +122,16 @@ class HotSpot:
         self.updated_bot = y2
         self.updated_left = x1
         self.updated_right = x2
+        if self.updated_top > self.updated_bot:
+            tmp = self.updated_top
+            self.updated_top = self.updated_bot
+            self.updated_bot = tmp
+
+        if self.updated_left > self.updated_right:
+            tmp = self.updated_right
+            self.updated_left = self.updated_right
+            self.updated_left = tmp
+
         b = ia.BoundingBox(x1=x1, y1=y1, x2=x2, y2=y2, label=self.classIndex)
         b.hsId = self.id
         self.rgb_bb = b

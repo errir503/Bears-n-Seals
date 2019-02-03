@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from arcticapi.model import AerialImage, HotSpot
+from model import AerialImage, HotSpot
 
 # Original columns
 HOTSPOT_ID_COL_IDX = 0

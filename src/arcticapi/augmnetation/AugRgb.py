@@ -1,7 +1,6 @@
 import random
-
-from arcticapi.augmnetation.TrainingChip import TrainingChip
-from arcticapi.model.HotSpot import SpeciesList
+import TrainingChip
+from src.arcticapi.model.HotSpot import SpeciesList
 
 from utils import *
 import numpy as np
@@ -177,6 +176,6 @@ def shift_boxes(bounding_boxes, lcrop, tcrop):
     return shifted_bboxs
 
 def shift_box(bbbox, lcrop, tcrop):
-    bbs_shifted = bbbox.shift(left=-lcrop, top=-tcrop)
+    bbs_shifted = bbbox.shift(left=lcrop, top=tcrop)
     bbs_shifted.hsId = bbbox.hsId
     return bbs_shifted

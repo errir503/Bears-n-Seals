@@ -1,9 +1,9 @@
 """Functions for transforming 16-bit thermal images into 8-bits"""
+
 import cv2
 import numpy as np
 from PIL import Image as PILImage
 
-from arcticapi.visuals import plot_px_distribution
 
 
 def norm_matrix(m):

@@ -1,4 +1,6 @@
-from arcticapi.model import HotSpot
-from arcticapi.augmnetation import AugIR, AugRgb, utils, TrainingChip
+import TrainingChip
+import AugIR
+import AugRgb
+import utils
 
-__all__ = [AugIR, AugRgb, utils, TrainingChip, HotSpot]
+__all__ = [AugIR, AugRgb, utils, TrainingChip]

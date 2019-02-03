@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
 # from validate import label, validation_gui
-from arcticapi import ArcticApi
+import main as LabelGUI
 
-__all__ = [ArcticApi]
+__all__ = [LabelGUI]

@@ -3,12 +3,12 @@ import csv
 import random
 import sys
 
-from arcticapi.augmnetation import AugRgb
-from arcticapi.augmnetation.utils import write_label
-from arcticapi.csv_parser import parse_hotspot
-from arcticapi.registration import image_registration
-from arcticapi.model.HotSpotMap import HotSpotMap
-from arcticapi.visuals import print_loading_bar
+from augmnetation import AugRgb
+from augmnetation.utils import write_label
+from csv_parser import parse_hotspot
+from registration import image_registration
+from model.HotSpotMap import HotSpotMap
+from visuals import print_loading_bar
 
 
 # This is the controller of the api which is created using the path of the full resolution image directory
@@ -110,6 +110,22 @@ class ArcticApi:
 
         print("COMPLETE")
         return
+
+    def addHotspot(self, hs):
+        self.rgb_images[hs.rgb.path].hotspots.append(hs)
+        self.hsm.add(hs)
+
+    def setStatus(self, hs, status):
+        for hotspot in self.rgb_images[hs.rgb.path].hotspots:
+            if hotspot.id == hs.id:
+                hs.status = status
+        self.hsm.get_hs(hs.id).status = status
+
+    def updateHs(self, hs, updated):
+        for hotspot in self.rgb_images[hs.rgb.path].hotspots:
+            if hotspot.id == hs.id:
+                hs.updated = updated
+        self.hsm.get_hs(hs.id).updated = updated
 
     # Save all hotspots unfiltered in the standard seal csv format
     def saveHotspotsToCSV(self, out_file, header):

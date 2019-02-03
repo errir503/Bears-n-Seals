@@ -1,5 +1,5 @@
-from arcticapi.model.AerialImage import AerialImage
-from arcticapi.model.HotSpot import HotSpot
-from arcticapi.model.HotSpotMap import HotSpotMap
+from AerialImage import AerialImage
+from HotSpot import HotSpot
+from HotSpotMap import HotSpotMap
 
 __all__ = [AerialImage, HotSpot, HotSpotMap]

@@ -6,8 +6,8 @@ import numpy as np
 import imgaug as ia
 
 from imgaug import augmenters as iaa
-from arcticapi.augmnetation.utils import getYoloFromRect
-from arcticapi.visuals import drawBBoxYolo
+from src.arcticapi.augmnetation.utils import getYoloFromRect
+from src.arcticapi.visuals import drawBBoxYolo
 
 
 class TrainingChip():

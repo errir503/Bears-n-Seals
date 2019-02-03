@@ -1,8 +1,7 @@
 import os
-
 import cv2
 import numpy as np
-import arcticapi.normalizer as norm
+from src.arcticapi import normalizer
 
 
 def crop_ir_hotspot_8bit(cfg, hs):
@@ -19,7 +18,7 @@ def crop_ir_hotspot_8bit(cfg, hs):
     img = img.astype(np.uint16)
     # img = np.array(img).astype(np.float32)
     # img = np.square(img)
-    img = norm.lin_normalize_image(img, True)
+    img = normalizer.lin_normalize_image(img, True)
 
     # plot_px_distribution(imgpre, img, "POST NORM DISTRIBUTION", 10000)
 

@@ -1,6 +1,6 @@
 from ConfigParser import SafeConfigParser
 
-from arcticapi.visuals import bcolors
+from visuals import bcolors
 
 configKeys = ['csv', 'imdir', 'imout', 'bbox_size', 'min_shift', 'max_shift',
                       'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug', 'image_type', 'output_list', 'merge_all_classes', 'genlabels']

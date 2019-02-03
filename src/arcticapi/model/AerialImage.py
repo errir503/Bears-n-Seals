@@ -3,8 +3,8 @@ import numpy as np
 import traceback
 from PIL import Image as PILImage
 
-from arcticapi.augmnetation import AugRgb, AugIR
-from arcticapi.augmnetation.utils import get_image_size
+from src.arcticapi.augmnetation import AugRgb, AugIR
+from src.arcticapi.augmnetation.utils import get_image_size
 
 
 class AerialImage():

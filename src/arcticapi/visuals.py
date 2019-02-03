@@ -3,7 +3,7 @@ import sys
 import cv2
 import matplotlib.pyplot as plt
 
-from arcticapi.model.HotSpot import ColorsList
+from model.HotSpot import ColorsList
 
 
 class bcolors:

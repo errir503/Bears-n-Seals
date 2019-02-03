@@ -9,20 +9,21 @@ from PIL import Image, ImageTk
 import os
 import glob
 import imgaug as ia
-
 # colors for the bounding boxes
-from arcticapi import ArcticApi, HotSpot
-from arcticapi.augmnetation.AugRgb import shift_boxes, getRectFromYolo, shift_box
-from arcticapi.augmnetation.TrainingChip import TrainingChip
-from arcticapi.config import load_config
+from src.arcticapi.augmnetation.AugRgb import shift_boxes, getRectFromYolo, shift_box
+from src.arcticapi.augmnetation.TrainingChip import TrainingChip
+from src.arcticapi.config import load_config
+
+from src.arcticapi import ArcticApi, HotSpot
 
 COLORS = ['#a661b6','#3bb218','#e6ee7f']
 CLASSES = ["Ringed", "Bearded", "UNK"]
-LABELS_DIR = "src/bbox-labeler/relabel-backup"
+LABELS_DIR = "/home/yuval/Documents/XNOR/Bears-n-Seals/src/bbox-labeler/relabel/"
 # LABELS_DIR = "Images"
 # csv_in = '/Users/yuval/Documents/XNOR/Bears-n-Seals/src/bbox-labeler/out.csv'
-csv_in = '/Users/yuval/Documents/XNOR/Bears-n-Seals/updated_live.csv'
-csv_out = '/Users/yuval/Documents/XNOR/Bears-n-Seals/updated_live_out.csv'
+# csv_in = '/home/yuval/Documents/XNOR/Bears-n-Seals/src/bbox-labeler/out.csv'
+csv_in = '/home/yuval/Documents/XNOR/Bears-n-Seals/src/bbox-labeler/updated_live_out.csv'
+csv_out = '/home/yuval/Documents/XNOR/Bears-n-Seals/src/bbox-labeler/updated_live_out.csv'
 
 # noinspection PyUnusedLocal
 class LabelTool(Tkinter.Frame):
@@ -53,7 +54,7 @@ class LabelTool(Tkinter.Frame):
         self.tkImg = None
         self.currentLabelClass = ''
         self.cla_can_temp = []
-        self.classCandidateFileName = 'src/bbox-labeler/class.txt'
+        self.classCandidateFileName = '/home/yuval/Documents/XNOR/Bears-n-Seals/src/bbox-labeler/class.txt'
 
         # initialize mouse state
         self.STATE = dict()
@@ -93,7 +94,7 @@ class LabelTool(Tkinter.Frame):
         if os.path.exists(self.classCandidateFileName):
             with open(self.classCandidateFileName, "r") as cf:
                 for line in cf.readlines():
-                    tmp = line.strip('\n')
+                    tmp = line.decode("utf-8-sig").encode("utf-8").strip('\n')
                     self.cla_can_temp.append(tmp)
 
         self.className = StringVar()
@@ -170,6 +171,7 @@ class LabelTool(Tkinter.Frame):
     def loadDir(self, dbg=False):
         # get image list
         self.imageDir = os.path.join(r'./'+LABELS_DIR)
+        self.imageDir = LABELS_DIR
         self.imageList = glob.glob(os.path.join(self.imageDir, '*.jpg'))
         if len(self.imageList) == 0:
             print('No .JPG images found in the specified dir!')
@@ -221,16 +223,21 @@ class LabelTool(Tkinter.Frame):
                 for (i, line) in enumerate(f):
                     bbox = self.line_to_bbox(line)
                     hs = self.api.hsm.get_hs(bbox.hsId)
-                    x1, y1, x2, y2 = getRectFromYolo(npim, bbox.x, bbox.y, bbox.w, bbox.h)
-                    hs.update_bbox(x1, y2, x2, y1)
-                    hs.rgb_bb = shift_box(hs.rgb_bb, -bbox.lcrop, -bbox.tcrop)
+                    if hs.status == "removed":
+                        self.api.setStatus(hs, "none")
+                    if not hs.updated:
+                        x1, y1, x2, y2 = getRectFromYolo(npim, bbox.x, bbox.y, bbox.w, bbox.h)
+                        b = ia.BoundingBox(x1=x1, y1=y1, x2=x2, y2=y2, label=bbox.label)
+                        b.hsId = bbox.hsId
+                        new_box = shift_box(b, bbox.lcrop, bbox.tcrop)
+                        hs.update_bbox(new_box.x1, new_box.y1, new_box.x2, new_box.y2)
                     if aereal_image is None:
                         aereal_image = self.api.rgb_images[hs.rgb.path]
                     hotspots.append(hs)
                     tcrop,bcrop,lcrop,rcrop=(bbox.tcrop, bbox.bcrop, bbox.lcrop, bbox.rcrop)
 
         bboxes_in_chip = [hs.rgb_bb for hs in hotspots]
-        bboxes_in_chip = shift_boxes(bboxes_in_chip, lcrop, tcrop)
+        bboxes_in_chip = shift_boxes(bboxes_in_chip, -lcrop, -tcrop)
         chip = TrainingChip(aereal_image, npim.shape, self.cfg, bboxes_in_chip, (tcrop, bcrop, lcrop, rcrop ))
         chip.image = npim
         chip.filename = os.path.dirname(chip.filename) + "/" + self.imageName
@@ -267,26 +274,9 @@ class LabelTool(Tkinter.Frame):
         open(self.chip.filename + ".2label", 'w').close()
         open(self.chip.filename + ".txt", 'w').close()
         self.chip.save()
-        # return
-        # with io.open(self.labelFileName, 'w', encoding="utf-8") as f:
-        #     for bbox in self.bboxList:
-        #         newstr = ('%s %s %s %s %s %s %s %s %s %s' % (bbox.hsid, str(bbox.classid), str(bbox.x), str(bbox.y),
-        #                   str(bbox.w), str(bbox.h), str(bbox.tcrop), str(bbox.bcrop),
-        #                   str(bbox.lcrop), str(bbox.rcrop)))
-        #         newstr = unicode(newstr)
-        #         f.write(newstr + '\n')
-
         header = "hotspot_id,timestamp,filt_thermal16,filt_thermal8,filt_color,x_pos,y_pos,thumb_left,thumb_top,thumb_right," \
                  "thumb_bottom,hotspot_type,species_id,updated_bot,updated_top,updated_left,updated_right,updated,status"
-        self.api.saveHotspotsToCSV(csv_out, "")
-
-        # with io.open(os.path.splitext(self.labelFileName)[0]+'.txt', 'w', encoding="utf-8") as f:
-        #     for bbox in self.bboxList:
-        #         newstr = ('%s %s %s %s %s' % (str(bbox.classid), str(bbox.x), str(bbox.y),
-        #                   str(bbox.w), str(bbox.h)))
-        #         newstr= unicode(newstr)
-        #         f.write(newstr + '\n')
-        # print('Image No. %d saved' % self.cur)
+        self.api.saveHotspotsToCSV(csv_out, header)
 
     def mouseClick(self, event):
         if self.STATE['click'] == 0:
@@ -320,21 +310,21 @@ class LabelTool(Tkinter.Frame):
         bbox.h = h
         bbox.x = xCenter
         bbox.y = yCenter
-        bbox.classid = CLASSES.index(str(self.currentLabelClass))
-        bbox.bcrop = self.globalcrops.bcrop
-        bbox.tcrop = self.globalcrops.tcrop
-        bbox.lcrop = self.globalcrops.lcrop
-        bbox.rcrop = self.globalcrops.rcrop
-        self.globalhsid = str(round(float(self.globalhsid) + 0.1,1))
-        hs = self.api.hsm.get_hs(bbox.globalhsid)
-        new_hs = HotSpot()
+        bbox.label = CLASSES.index(str(self.currentLabelClass))
 
+        hs = self.api.hsm.get_hs(self.globalhsid)
+        self.globalhsid = str(round(float(self.globalhsid) + 0.1,1))
+        new_hs = HotSpot(self.globalhsid, hs.thermal_loc[0], hs.thermal_loc[1], hs.rgb_bb_l, hs.rgb_bb_t,  hs.rgb_bb_r, hs.rgb_bb_b, hs.type, hs. species, hs.rgb, hs.thermal, hs.ir, hs.timestamp,
+                         hs.project_name, hs.aircraft, y1, y2, x1, x2, True, "new")
+
+        new_box = shift_box(new_hs.rgb_bb, self.chip.crops[2], self.chip.crops[0])
+        new_hs.update_bbox(new_box.x1, new_box.y1, new_box.x2, new_box.y2)
+        self.api.addHotspot(new_hs)
         bbox.hsId = self.globalhsid
-        self.bboxList.append(bbox)
         self.bboxIdList.append(self.bboxId)
         self.bboxId = None
         self.listbox.insert(END, self.bbox_string(bbox))
-        self.listbox.itemconfig(len(self.bboxIdList) - 1, fg=COLORS[int(bbox.classid)])
+        self.listbox.itemconfig(len(self.bboxIdList) - 1, fg=COLORS[int(bbox.label)])
 
     def update_bbox(self, bbox_idx, x1, y1, x2, y2):
         w = (abs(x1 - x2) + 0.0) / self.img.size[0]
@@ -347,13 +337,15 @@ class LabelTool(Tkinter.Frame):
         bbox.y = yCenter
         bbox.w = w
         bbox.h = h
-        bbox.classid = hs.rgb_bb.label
+        bbox.label = hs.rgb_bb.label
         bbox.hsId = hs.rgb_bb.hsId
 
         x1, y1, x2, y2 = getRectFromYolo(self.chip.image, xCenter, yCenter, w, h)
         hs.update_bbox(x1, y1, x2, y2)
-        hs.rgb_bb = shift_box(hs.rgb_bb, -self.chip.crops[2], -self.chip.crops[0])
-        hs.updated = True
+        new_bb = shift_box(hs.rgb_bb, self.chip.crops[2], self.chip.crops[0])
+        hs.update_bbox(new_bb.x1, new_bb.y1, new_bb.x2, new_bb.y2)
+
+        self.api.updateHs(hs, True)
 
         updated_boxes = []
         updated_boxes.append(hs.rgb_bb)
@@ -405,7 +397,8 @@ class LabelTool(Tkinter.Frame):
         idx = int(sel[0])
 
         hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
-        hs.status = "removed"
+        self.api.setStatus(hs, "removed")
+        self.api.updateHs(hs, True)
 
         self.mainPanel.delete(self.bboxIdList[idx])
         self.bboxIdList.pop(idx)
@@ -470,7 +463,7 @@ class LabelTool(Tkinter.Frame):
 
     def line_to_bbox(self, line):
         # Line Format:
-        # hsid classid x y w h topcrop bottomcrop leftcrop rightcrop
+        # hsid label x y w h topcrop bottomcrop leftcrop rightcrop
         tmp2 = [t.strip() for t in line.split()]
         tmp = [float(t) if idx > 1 and idx < 6 else t for idx, t in enumerate(tmp2)]
         tmp[1] = int(tmp[1])
@@ -480,7 +473,7 @@ class LabelTool(Tkinter.Frame):
         tmp[9] = int(tmp[9])
         bbox = Object()
         bbox.hsId = tmp[0]
-        bbox.classid = tmp[1]
+        bbox.label = tmp[1]
         bbox.x = tmp[2]
         bbox.y = tmp[3]
         bbox.w = tmp[4]
