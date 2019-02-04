@@ -75,12 +75,7 @@ class HotSpot:
         return (self.center_x, self.center_y)
 
     # returns (x, y, w, h) in yolo format
-    def getYoloBBox(self, img = None):
-        if img is None and not self.rgb.load_image():
-            return None
-        if img is not None:
-            img = self.rgb.image
-
+    def getYoloBBox(self, img):
         l = self.rgb_bb_l
         r = self.rgb_bb_r
         t = self.rgb_bb_t

@@ -3,13 +3,13 @@ from ConfigParser import SafeConfigParser
 from visuals import bcolors
 
 configKeys = ['csv', 'imdir', 'imout', 'bbox_size', 'min_shift', 'max_shift',
-                      'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug', 'image_type', 'output_list', 'merge_all_classes', 'genlabels']
+                      'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug', 'image_type', 'output_list', 'merge_all_classes']
 
 cfgFileName = 'config.ini'
 
 class CropCfg(object):
     def __init__(self, csv, im_dir, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly,
-                 debug, imtype, name, combine_all, genlabels):
+                 debug, imtype, name, combine_all):
         self.csv = csv
         self.im_dir = im_dir
         self.out_dir = out_dir
@@ -25,7 +25,6 @@ class CropCfg(object):
         self.debug = debug
         self.imtype = imtype
         self.name = name
-        self.genlabels = genlabels
 
 def make_model_config(cfg, classes):
     config = SafeConfigParser()
@@ -69,7 +68,6 @@ def make_config(args):
     config.set(name, configKeys[11], args.imtype)
     config.set(name, configKeys[12], args.outlist)
     config.set(name, configKeys[13], args.all)
-    config.set(name, configKeys[14], args.genlabels)
 
     with open(cfgFileName, 'w') as configfile:
         config.write(configfile)
@@ -96,7 +94,6 @@ def load_config(name):
         else:
             print('%-12s: %s' % (candidate, val))
     print
-    keylen = len(configKeys)
     csv = config.get(name, configKeys[0])
     imdir = config.get(name, configKeys[1])
     imout = config.get(name, configKeys[2])
@@ -111,7 +108,6 @@ def load_config(name):
     imtype = config.get(name, configKeys[11])
     outlist = config.get(name, configKeys[12])
     combine_all = config.getboolean(name, configKeys[13])
-    genlabels = False if keylen < 15 else config.getboolean(name, configKeys[14])
     return CropCfg(csv, imdir, imout, bbox_size, min_shift, max_shift, crop_size, outlist, merge_seal_classes,
-                   make_bear, make_anomaly, debug, imtype, name, combine_all, genlabels)
+                   make_bear, make_anomaly, debug, imtype, name, combine_all)
 

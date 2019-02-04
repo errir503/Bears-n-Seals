@@ -84,8 +84,6 @@ def cli():
                         help='Make all classes one class (for ir hotspots)')
     parser.add_argument('-d', action='store_true', default=False,
                         help='debug: draws bounding box bounds NOT FOR TRAINING')
-    parser.add_argument('-genlabels', action='store_true', default=False,
-                        help='debug: draws bounding box bounds NOT FOR TRAINING')
 
 
     return parser.parse_args(sys.argv[1:])

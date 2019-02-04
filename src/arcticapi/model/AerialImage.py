@@ -1,3 +1,5 @@
+import os
+
 import cv2
 import numpy as np
 import traceback
@@ -5,6 +7,7 @@ from PIL import Image as PILImage
 
 from src.arcticapi.augmnetation import AugRgb, AugIR
 from src.arcticapi.augmnetation.utils import get_image_size
+from src.arcticapi.visuals import *
 
 
 class AerialImage():
@@ -111,6 +114,48 @@ class AerialImage():
             hotspots.append(hs)
         return hotspots
 
+    def saveLabels(self, cfg):
+        if cfg.debug:
+            if not self.load_image():
+                print("Failed to load")
+                return
+
+        if self.w is None or self.h is None:
+            if not self.load_image():
+                print("Failed to load")
+                return
+            else:
+                self.h = self.image.shape[0]
+                self.w = self.image.shape[1]
+
+
+        file_name = cfg.im_dir + os.path.splitext(os.path.basename(self.path))[0]
+        added = 0
+        for hs in self.hotspots:
+            if hs.isStatusRemoved():
+                continue
+            if hs.filterClass(cfg):
+                continue
+            if not hs.updated:
+                continue
+            with open(file_name + ".txt", 'a') as file:
+                x, y, w, h = hs.getYoloBBox(np.zeros([self.h,self.w,3],dtype=np.uint8))
+                classIndex = hs.classIndex
+
+                if cfg.combine_seal and (classIndex == 0 or classIndex == 1 or classIndex == 2):
+                    classIndex = 0
+
+                yoloLabel = (classIndex, x, y, w, h)
+                file.write(" ".join([str(i) for i in yoloLabel]) + "\n")
+
+            if cfg.debug:  # draws same as yolo so guaranteed to show if labels are correct
+                drawBBoxYolo(self.image, x, y, w, h, classIndex)
+            added += 1
+        if added > 0:
+            if cfg.debug:
+                cv2.imwrite(file_name + "-debug.jpg", self.image)
+            with open(cfg.label, 'a') as file:
+                file.write(cfg.im_dir + os.path.basename(self.path) + "\n")
 
 
 

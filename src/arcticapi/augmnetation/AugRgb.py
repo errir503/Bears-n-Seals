@@ -1,4 +1,5 @@
 import random
+
 import TrainingChip
 from src.arcticapi.model.HotSpot import SpeciesList
 
@@ -36,7 +37,7 @@ def prepare_chips(cfg, aeral_image, bounding_boxes):
 
 
         # shift bounding boxes that fit the new crop dimensions
-        shifted_bboxs = shift_boxes(bounding_boxes, lcrop, tcrop)
+        shifted_bboxs = shift_boxes(bounding_boxes, -lcrop, -tcrop)
 
         if not bbox.shift(left=-lcrop, top=-tcrop).is_fully_within_image(crop_img):
             print("For an odd reason hotspot " + bbox.hsId + " did not fully fit in the new box:(%d, %d)(%d, %d) crop: (%d, %d)(%d, %d)" %
@@ -60,7 +61,7 @@ def prepare_chips(cfg, aeral_image, bounding_boxes):
         if len(to_draw) == 0:
             print("0 bboxes")
             continue
-        tr = TrainingChip(aeral_image, crop_img.shape, cfg, to_draw, (tcrop, bcrop, lcrop, rcrop))
+        tr = TrainingChip.TrainingChip(aeral_image, crop_img.shape, cfg, to_draw, (tcrop, bcrop, lcrop, rcrop))
         del crop_img
 
         chips.append(tr)
