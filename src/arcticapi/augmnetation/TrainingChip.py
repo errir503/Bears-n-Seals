@@ -96,11 +96,6 @@ class TrainingChip():
         # Generate trainin label
         for bbs in self.bboxes.bounding_boxes:
             with open(self.filename + ".txt", 'a') as file:
-                classIndex = bbs.label
-
-                if self.cfg.combine_seal and (classIndex == 0 or classIndex == 1 or classIndex == 2):
-                    bbs.label = 0
-
                 x, y, w, h = getYoloFromRect(self.bboxes.height, self.bboxes.width, bbs.x1, bbs.y1, bbs.x2, bbs.y2)
                 yoloLabel = (bbs.hsId, bbs.label, x, y, w, h)
                 file.write(" ".join([str(i) for i in yoloLabel[1:]]) + "\n")

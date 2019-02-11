@@ -1,6 +1,8 @@
 import os
 import imgaug as ia
 
+from src.arcticapi.model.BoundingBox import BoundingBox
+
 SpeciesList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
 ColorsList = [(0, 255, 0), (243, 182, 31), (81, 13, 10), (256, 256, 256), (256, 256, 256)]
 
@@ -38,8 +40,7 @@ class HotSpot:
         self.status = status
 
         b, t, l, r = self.getBTLR()
-        b = ia.BoundingBox(x1=l, y1=t, x2=r, y2=b, label=self.classIndex)
-        b.hsId = self.id
+        b = BoundingBox(l, t, r, b, self.classIndex, self.id)
         self.rgb_bb = b
 
     def load_all(self):

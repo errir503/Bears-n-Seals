@@ -104,3 +104,6 @@ Train, print append to text file
 Test/Train Split:
 * `head -n 500 rgb_640u.txt > ../seal-darknet/sealvalid_640.txt`
 * `tail -n +500 rgb_640u.txt > ../seal-darknet/sealtrain_640.txt` 
+
+Merge negatives w/training set:
+* `cat rgb_640_train.txt ../potential_negs/labels4001-5000.txt | sort --random-sort > train_w_negs.txt`

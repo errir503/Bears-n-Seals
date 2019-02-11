@@ -65,13 +65,14 @@ def prepare_chips(cfg, aeral_image, bounding_boxes):
         del crop_img
 
         chips.append(tr)
-        for bbox in bounding_boxes:
-            contains = False
-            for drawnid in drawn:
-                if bbox.hsId == drawnid:
-                    contains = True
-            if not contains:
-                print("Did not draw " + bbox.hsId)
+
+    for bbox in bounding_boxes:
+        contains = False
+        for drawnid in drawn:
+            if bbox.hsId == drawnid:
+                contains = True
+        if not contains:
+            print("Did not draw %s %d" % (bbox.hsId, bbox.label))
 
     uniquechips = []
     for idx, chip in enumerate(chips):
@@ -89,7 +90,7 @@ def prepare_chips(cfg, aeral_image, bounding_boxes):
 
 def test_train_split(chips):
     random.shuffle(chips)
-    x = int(len(chips) / 4) * 3  # 3/4 train 1/4 test
+    x = int(len(chips) / 5) * 4  # 3/4 train 1/4 test
     train = chips[:x]
     test = chips[x:]
     return train, test

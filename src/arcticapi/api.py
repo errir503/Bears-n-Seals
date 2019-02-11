@@ -69,24 +69,33 @@ class ArcticApi:
         AugRgb.print_bbox_stats(chips)
         print
 
+
+        if cfg.combine_seal:
+            for chip in chips:
+                for bbs in chip.bboxes.bounding_boxes:
+                    if (bbs.label == 0 or bbs.label == 1 or bbs.label == 2):
+                        bbs.label = 0
+
         # Test/Train split
         train, test = AugRgb.test_train_split(chips)
-        print("Attempting to make classes of similar size")
         train = AugRgb.equalize_classes(train)
+        print("Attempting to make classes of similar size")
+        # train = AugRgb.equalize_classes(train)
         print
+        AugRgb.print_bbox_stats(train)
+        AugRgb.print_bbox_stats(test)
 
         print("Training set stats:")
-        AugRgb.print_bbox_stats(train)
         print("Generating training set...")
         for idx, c in enumerate(train):
             pct = ((idx + 0.0) / len(train)) * 100.0
             sys.stdout.write("\r|%-73s| %3d%%" % ('#' * int(pct * .73), pct))
             # models tend to struggle with larger seals so allow more zoom in than out
-            if not c.load(random.uniform(-.05, 0.2)):
+            if not c.load(random.uniform(-.05, 0.1)):
                 print("Chip not loaded in api.py :( %s" % c.filename)
                 continue
-            # augmentations
-            c.color_change(-10, 10, False)
+            # augmentations`
+            # c.color_change(-10, 10, False)
             c.extend(5)
             c.flip()
             c.rotate()
@@ -95,16 +104,15 @@ class ArcticApi:
             c.free()
 
         print("Testing set stats:")
-        AugRgb.print_bbox_stats(train)
         print("Generating test set...")
         for idx, chip in enumerate(test):
             print_loading_bar(((idx + 0.0) / len(test)) * 100.0)
             if not chip.load():
                 print("Chip not loaded in api.py :(")
                 continue
-            chip.load()  # load image
             chip.extend(5)
             chip.save()  # save image and labels
+            chip.aeral_image.free()
             chip.free()  # free image
             write_label(chip.filename + ".jpg", label_base + "_test.txt")
 

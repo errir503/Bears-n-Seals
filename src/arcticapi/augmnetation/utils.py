@@ -110,7 +110,7 @@ def random_shift(topCrop, bottomCrop, leftCrop, rightCrop, w, h, minShift, maxSh
 
 def write_label(file_name, label_file):
     with open(label_file, 'a') as file:
-        file.write(os.getcwd() + "/" + file_name + "\n")
+        file.write(file_name + "\n")
 
 
 
