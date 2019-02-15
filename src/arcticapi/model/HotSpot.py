@@ -43,6 +43,9 @@ class HotSpot:
         b = BoundingBox(l, t, r, b, self.classIndex, self.id)
         self.rgb_bb = b
 
+    def getSpecies(self):
+        return SpeciesList[self.classIndex]
+
     def load_all(self):
         if self.thermal.load_image() and self.rgb.load_image() and self.ir.load_image():
             return True

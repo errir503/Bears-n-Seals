@@ -71,13 +71,13 @@ class TrainingChip():
             new_boxes.bounding_boxes[idx].hsId = self.bboxes.bounding_boxes[idx].hsId
 
         self.bboxes = new_boxes
-        self.aeral_image.free()
         return True
 
     # free the chip from memory
     def free(self):
         del self.image
         self.image = None
+        self.aeral_image.free()
 
     # save the
     def save_image(self):

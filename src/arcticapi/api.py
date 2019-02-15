@@ -76,9 +76,13 @@ class ArcticApi:
                     if (bbs.label == 0 or bbs.label == 1 or bbs.label == 2):
                         bbs.label = 0
 
+        for chip in chips:
+            for bbs in chip.bboxes.bounding_boxes:
+                if bbs.label == 2:
+                    bbs.label = 0
         # Test/Train split
         train, test = AugRgb.test_train_split(chips)
-        train = AugRgb.equalize_classes(train)
+        # train = AugRgb.equalize_classes(train)
         print("Attempting to make classes of similar size")
         # train = AugRgb.equalize_classes(train)
         print
@@ -91,16 +95,18 @@ class ArcticApi:
             pct = ((idx + 0.0) / len(train)) * 100.0
             sys.stdout.write("\r|%-73s| %3d%%" % ('#' * int(pct * .73), pct))
             # models tend to struggle with larger seals so allow more zoom in than out
-            if not c.load(random.uniform(-.05, 0.1)):
+            # if not c.load(random.uniform(-.05, 0.1)):
+            if not c.load():
                 print("Chip not loaded in api.py :( %s" % c.filename)
                 continue
             # augmentations`
-            # c.color_change(-10, 10, False)
-            c.extend(5)
-            c.flip()
-            c.rotate()
+            c.color_change(-5, 5, False)
+            # c.extend(2)
+            # c.flip()
+            # c.rotate()
             c.save()  # save image
             write_label(c.filename + ".jpg", label_base + "_train.txt")
+            c.aeral_image.free()
             c.free()
 
         print("Testing set stats:")
@@ -110,7 +116,7 @@ class ArcticApi:
             if not chip.load():
                 print("Chip not loaded in api.py :(")
                 continue
-            chip.extend(5)
+            chip.extend(2)
             chip.save()  # save image and labels
             chip.aeral_image.free()
             chip.free()  # free image

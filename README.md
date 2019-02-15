@@ -91,10 +91,6 @@ optional arguments:
 Make test set of all color images:
 * `ls -l /data/noaa/NOAA_ImagesForDetectionDevelopment/CHESS/*_COLOR-8-BIT.JPG > colorvalid.txt`
 
-Generat map score, calc anchors (Must use AB Darknet fork)
-* `./darknet detector map cfg/bearsnseals.data cfg/bearsnseals.cfg weights/backup.weights`
-* `./darknet detector calc_anchors cfg/seals_640.data  -num_of_clusters 9 -width 640 -height 640`
-
 Get size of all 16 bit thermals
 * `du -ch /data/noaa/NOAA_ImagesForDetectionDevelopment/CHESS/*THERM-16BIT.PNG | grep total`
 
@@ -107,3 +103,14 @@ Test/Train Split:
 
 Merge negatives w/training set:
 * `cat rgb_640_train.txt ../potential_negs/labels4001-5000.txt | sort --random-sort > train_w_negs.txt`
+
+Generate negative chips 640x640
+* `convert -crop 640x640+1000+1000 -limit memory 1gb CHESS2016_N94S_FL1_C__201604072300* ../640_negs/cropped_%d.JPG`
+* `for k in *.JPG; do convert $k -crop 640x640+1000+1000 -limit memory 2gb -limit  map 2gb -verbose ../640_negs/cropped_$k; done`
+
+Generate training weights(Alexy's repo)
+* `./darknet partial cfg/yolov3-spp.cfg yolov3-spp.weights yolov3-spp.conv.87 87`
+
+Generat map score, calc anchors (Alexy's repo)
+* `./darknet detector map cfg/bearsnseals.data cfg/bearsnseals.cfg weights/backup.weights`
+* `./darknet detector calc_anchors cfg/seals_640.data  -num_of_clusters 9 -width 640 -height 640`
