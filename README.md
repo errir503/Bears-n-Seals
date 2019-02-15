@@ -81,11 +81,18 @@ optional arguments:
 
 
 ##### Speed tests accuracy RGB (mAP and F1 on test set for now)
-| Model         | Dims          | Frames| fps   | mAP   | F1    |
-|:-------------:|:-------------:|:-----:|:-----:|:-----:|:-----:|
-| yolov3        | 640x640       |   77  |  ~18  |  78%  | .84   |
+| Model         | Dims          | Frames| fps   | mAP   | F1    | Notes  |
+|:-------------:|:-------------:|:-----:|:-----:|:-----:|:-----:|:------:|
+| yolov3        | 640x640       |   77  |  ~18  |  78%  | .84   | Without negatives random=1 layers=-1,11, 3 classes (Ringed/Bearded/UNK)    |
+| yolov3-tiny-3l     | 1024x1024     |   ?   |  c    |  61%  | .5    | With lots of negative training images, random=0, 2 class(Ringed/Bearded). w/focal loss|
 
+Notes:
+* I need to start updating this more, theres been a lot more testing done than whats shown here
+* Training & evaluating with good negative examples is important otherwise gets a lot of FP when run on the full images
+* Focal loss seems to be working very well for this dataset
+* From the results I'm seing random=0 is ok because there isn't a huge variance in seal sizes
 
+![label anchors 9 clusters 1024x1024](./img/9_clusters_1024x1024.png =400x400).
 ### Useful Commands:
 
 Make test set of all color images:
