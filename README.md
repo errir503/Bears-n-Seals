@@ -92,7 +92,7 @@ Notes:
 * Focal loss seems to be working very well for this dataset
 * From the results I'm seing random=0 is ok because there isn't a huge variance in seal sizes
 
-![label anchors 9 clusters 1024x1024](./img/9_clusters_1024x1024.png =400x400).
+![label anchors 9 clusters 1024x1024](./img/9_clusters_1024x1024.png).
 ### Useful Commands:
 
 Make test set of all color images:
