@@ -3,15 +3,15 @@ import imgaug as ia
 
 from src.arcticapi.model.BoundingBox import BoundingBox
 
-SpeciesList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA"]
+SpeciesList = ["Ringed Seal", "Bearded Seal", "UNK Seal", "Polar Bear", "NA", "Walrus", "Caribou", "Fox", "Bird", "UNK Animal", "Cetacean"]
 ColorsList = [(0, 255, 0), (243, 182, 31), (81, 13, 10), (256, 256, 256), (256, 256, 256)]
 
 
 class HotSpot:
-    def __init__(self, id, xpos, ypos, thumb_left, thumb_top, thumb_right, thumb_bottom, type, species_id, rgb,
-                 thermal, ir, timestamp, project_name, aircraft,
+    def __init__(self, id, xpos, ypos, thumb_left, thumb_top, thumb_right, thumb_bottom, type, species_id, rgb
+                 , ir, timestamp, project_name, aircraft,
                  updated_top=-1, updated_bot=-1, updated_left=-1, updated_right=-1,
-                 updated=False, status="none"):
+                 updated=False, status="none", confidence="NA"):
         self.id = id  # id_hotspot
         self.thermal_loc = (xpos, ypos)  # location in thermal image
         # Bounding box
@@ -26,7 +26,6 @@ class HotSpot:
         self.species = species_id  # species (Ringed, Bearded..)
         self.classIndex = SpeciesList.index(species_id)  # class index
         self.rgb = rgb  # RGB AerialImage
-        self.thermal = thermal  # thermal AerialImage
         self.ir = ir  # IR AerialImage
         self.timestamp = timestamp  # timestamp
         self.project_name = project_name  # name of the projects usually CHESS
@@ -38,6 +37,7 @@ class HotSpot:
         self.updated_right = updated_right
         self.updated = updated
         self.status = status
+        self.confidence = confidence
 
         b, t, l, r = self.getBTLR()
         b = BoundingBox(l, t, r, b, self.classIndex, self.id)
@@ -47,7 +47,7 @@ class HotSpot:
         return SpeciesList[self.classIndex]
 
     def load_all(self):
-        if self.thermal.load_image() and self.rgb.load_image() and self.ir.load_image():
+        if self.rgb.load_image() and self.ir.load_image():
             return True
         else:
             print("Skipped " + self.id)
@@ -56,18 +56,24 @@ class HotSpot:
     def free_all(self):
         self.rgb.free()
         self.ir.free()
-        self.thermal.free()
 
-    def toCSVRow(self):
-        _, thermpath = os.path.split(self.thermal.path)
+    def toCSVRow(self, new=False):
         _, irpath = os.path.split(self.ir.path)
         _, rgbpath = os.path.split(self.rgb.path)
-        cols = [str(self.id), str(self.timestamp), irpath, thermpath, rgbpath, str(self.thermal_loc[0]),
-                str(self.thermal_loc[1]),
-                str(self.rgb_bb_l), str(self.rgb_bb_t), str(self.rgb_bb_r), str(self.rgb_bb_b), str(self.type),
-                str(self.species), str(self.updated_bot), str(self.updated_top), str(self.updated_left),
-                str(self.updated_right), str.lower(str(self.updated)), str(self.status)]
-        return ",".join(cols) + "\n"
+        if new: # new dataset microsoft made
+            cols = ["-1", str(self.timestamp), rgbpath, irpath, str(self.id), str(self.type),
+                    str(self.species), self.confidence, self.rgb.fog,
+                    str(self.thermal_loc[0]), str(self.thermal_loc[1]),
+                    str(self.rgb_bb_l), str(self.rgb_bb_t), str(self.rgb_bb_r), str(self.rgb_bb_b), str(self.updated_left), str(self.updated_top), str(self.updated_right),
+                    str(self.updated_bot), str.lower(str(self.updated)), str(self.status)]
+            return ",".join(cols) + "\n"
+        else: # old dataset format
+            cols = [str(self.id), str(self.timestamp), irpath, "none", rgbpath, str(self.thermal_loc[0]),
+                    str(self.thermal_loc[1]),
+                    str(self.rgb_bb_l), str(self.rgb_bb_t), str(self.rgb_bb_r), str(self.rgb_bb_b), str(self.type),
+                    str(self.species), str(self.updated_bot), str(self.updated_top), str(self.updated_left),
+                    str(self.updated_right), str.lower(str(self.updated)), str(self.status)]
+            return ",".join(cols) + "\n"
 
     def getRGBCenterPt(self):
         b, t, l, r = self.getBTLR()

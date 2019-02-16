@@ -2,16 +2,17 @@ from ConfigParser import SafeConfigParser
 
 from visuals import bcolors
 
-configKeys = ['csv', 'imdir', 'imout', 'bbox_size', 'min_shift', 'max_shift',
-                      'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug', 'image_type', 'output_list', 'merge_all_classes']
+configKeys = ['csv', 'rgb_dir', 'imout', 'bbox_size', 'min_shift', 'max_shift',
+                      'crop_size', 'merge_seal_classes', 'make_bear', 'make_anomaly', 'debug', 'image_type', 'output_list', 'merge_all_classes', 'ir_dir']
 
 cfgFileName = 'config.ini'
 
 class CropCfg(object):
-    def __init__(self, csv, im_dir, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly,
+    def __init__(self, csv, rgb_dir, ir_dir, out_dir, bbox_size, minShift, maxShift, crop_size, label, combine_seal, make_bear, make_anomaly,
                  debug, imtype, name, combine_all):
         self.csv = csv
-        self.im_dir = im_dir
+        self.rgb_dir = rgb_dir
+        self.ir_dir = ir_dir
         self.out_dir = out_dir
         self.bbox_size = bbox_size
         self.minShift = minShift
@@ -55,7 +56,7 @@ def make_config(args):
     name = args.name
     config.add_section(name)
     config.set(name, configKeys[0], args.csv)
-    config.set(name, configKeys[1], args.imdir)
+    config.set(name, configKeys[1], args.rgb_dir)
     config.set(name, configKeys[2], args.imout)
     config.set(name, configKeys[3], str(args.bb))
     config.set(name, configKeys[4], str(args.min))
@@ -68,6 +69,7 @@ def make_config(args):
     config.set(name, configKeys[11], args.imtype)
     config.set(name, configKeys[12], args.outlist)
     config.set(name, configKeys[13], args.all)
+    config.set(name, configKeys[14], args.ir_dir)
 
     with open(cfgFileName, 'w') as configfile:
         config.write(configfile)
@@ -95,7 +97,7 @@ def load_config(name):
             print('%-12s: %s' % (candidate, val))
     print
     csv = config.get(name, configKeys[0])
-    imdir = config.get(name, configKeys[1])
+    rgb_dir = config.get(name, configKeys[1])
     imout = config.get(name, configKeys[2])
     bbox_size = config.getint(name, configKeys[3])
     min_shift = config.getint(name, configKeys[4])
@@ -108,6 +110,8 @@ def load_config(name):
     imtype = config.get(name, configKeys[11])
     outlist = config.get(name, configKeys[12])
     combine_all = config.getboolean(name, configKeys[13])
-    return CropCfg(csv, imdir, imout, bbox_size, min_shift, max_shift, crop_size, outlist, merge_seal_classes,
+    ir_dir = config.get(name, configKeys[14])
+
+    return CropCfg(csv, rgb_dir, ir_dir, imout, bbox_size, min_shift, max_shift, crop_size, outlist, merge_seal_classes,
                    make_bear, make_anomaly, debug, imtype, name, combine_all)
 

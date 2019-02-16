@@ -5,7 +5,7 @@ import sys
 
 from augmnetation import AugRgb
 from augmnetation.utils import write_label
-from csv_parser import parse_hotspot
+from csv_parser import parse_hotspot, parse_hotspot_new_dataset
 from registration import image_registration
 from model.HotSpotMap import HotSpotMap
 from visuals import print_loading_bar
@@ -16,10 +16,10 @@ from visuals import print_loading_bar
 # Once created contains a list of hotspots and a list of AerialImages which contain all information about the image,
 # and hotspots within that image
 class ArcticApi:
-    def __init__(self, csv_path, im_path):
+    def __init__(self, cfg):
         rows = list()
 
-        f = open(csv_path, 'r')
+        f = open(cfg.csv, 'r')
         reader = csv.reader(f)
         for row in reader:
             rows.append(row)
@@ -30,7 +30,9 @@ class ArcticApi:
         rgb_im = {}
         ir_im = {}
         for row in rows:
-            hotspot = parse_hotspot(row, im_path)
+            hotspot = parse_hotspot_new_dataset(row, cfg)
+            if hotspot is None:
+                continue
             hsm.add(hotspot)
             if not hotspot.rgb.path in rgb_im:
                 rgb_im[hotspot.rgb.path] = hotspot.rgb

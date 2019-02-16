@@ -52,8 +52,28 @@ def parse_ts(ts):
         return None
 
 
+def parse_hotspot_new_dataset(row, cfg):
+    rgb_name_meta_deta = row[1].split("_")
+    ir_name_meta_deta = row[2].split("_")
+    rgb = AerialImage(cfg.rgb_dir + row[1], "rgb", rgb_name_meta_deta[3], fog=[row[7]])
+    ir = AerialImage(cfg.rgb_dir + row[2], "ir", ir_name_meta_deta[3], fog=[row[7]])
+    if row[8] == "NA":
+        return None
+    return HotSpot(row[3],
+                   int(row[8]),
+                   int(row[9]),
+                   int(row[10]),
+                   int(row[11]),
+                   int(row[12]),
+                   int(row[13]),
+                   row[4],
+                   row[5],
+                   rgb,
+                   ir,
+                   rgb_name_meta_deta[5],
+                   rgb_name_meta_deta[1], rgb_name_meta_deta[2], confidence=row[6])
 
-def parse_hotspot(row, res_path):
+def parse_hotspot(row, cfg):
     # get camera positions, project name, and aircraft
     # time = parse_ts(row[TIMESTAMP])
     time = row[TIMESTAMP]
@@ -61,9 +81,8 @@ def parse_hotspot(row, res_path):
     project_name, aircraft, thermal_pos = parse_meta_data(row[IMG_THERMAL8_COL_IDX])
     project_name, aircraft, ir_pos = parse_meta_data(row[IMG_THERMAL16_COL_IDX])
     # create each image object
-    rgb = AerialImage(res_path + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
-    thermal = AerialImage(res_path + row[IMG_THERMAL8_COL_IDX], "thermal", thermal_pos)
-    ir = AerialImage(res_path + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
+    rgb = AerialImage(cfg.rgb_dir + row[IMG_RGB_COL_IDX], "rgb", rgb_pos)
+    ir = AerialImage(cfg.ir_dir + row[IMG_THERMAL16_COL_IDX], "ir", ir_pos)
 
     if len(row) == 13:
         return HotSpot(row[HOTSPOT_ID_COL_IDX],
@@ -76,7 +95,6 @@ def parse_hotspot(row, res_path):
                        row[HOTSPOT_TYPE_COL_IDX],
                        row[SPECIES_ID_COL_IDX],
                        rgb,
-                       thermal,
                        ir,
                        time,
                        project_name, aircraft)
@@ -93,7 +111,6 @@ def parse_hotspot(row, res_path):
                        row[HOTSPOT_TYPE_COL_IDX],
                        row[SPECIES_ID_COL_IDX],
                        rgb,
-                       thermal,
                        ir,
                        time,
                        project_name, aircraft,

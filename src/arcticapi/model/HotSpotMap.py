@@ -10,16 +10,12 @@ class HotSpotMap:
         if rgb.path not in self.images:
             self.images[rgb.path] = []
 
-        thermal = hotspot.thermal
-        if thermal.path not in self.images:
-            self.images[thermal.path] = []
 
         ir = hotspot.ir
         if ir.path not in self.images:
             self.images[ir.path] = []
 
         self.images[rgb.path].append(len(self.hotspots))
-        self.images[thermal.path].append(len(self.hotspots))
         self.images[ir.path].append(len(self.hotspots))
 
         self.hs_id_to_idx[hotspot.id] = len(self.hotspots)

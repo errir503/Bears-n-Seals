@@ -52,7 +52,7 @@ def main():
 
     make_model_config(cfg, classes)
 
-    api = ArcticApi(cfg.csv, cfg.im_dir)
+    api = ArcticApi(cfg)
     api.generate_training_set(cfg)
 
 # the long cli with all arugements, using the cfg is easier so just do that!
@@ -62,8 +62,10 @@ def cli():
 
     parser.add_argument('--csv', required=True, type=str, default=None,
                         help='csv file: relative path to the seal image data csv file')
-    parser.add_argument('--imdir', required=True, type=str, default=None,
-                        help='image dir: relative path to the directory containing all images')
+    parser.add_argument('--rgb_dir', required=True, type=str, default=None,
+                        help='image dir: relative path to the directory containing rgb images')
+    parser.add_argument('--ir_dir', required=True, type=str, default=None,
+                        help='image dir: relative path to the directory containing ir images')
     parser.add_argument('--imout', required=True, type=str, default=None,
                         help='out dir: relative path to the directory to store cropped images')
     parser.add_argument('--name', type=str, default="last_run", help='name: name for the run')

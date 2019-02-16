@@ -11,7 +11,7 @@ from src.arcticapi.visuals import *
 
 
 class AerialImage():
-    def __init__(self, path, type, camerapos):
+    def __init__(self, path, type, camerapos, fog = "NA"):
         self.path = path
         self.type = type  # rgb, therm8, or therm16
         self.image = None  # not loaded
@@ -20,6 +20,7 @@ class AerialImage():
         self.w = None
         self.h = None
         self.file_exists = False
+        self.fog = fog
 
         try:
             self.w, self.h = get_image_size(self.path)
