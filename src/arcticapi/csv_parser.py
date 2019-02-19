@@ -55,8 +55,8 @@ def parse_ts(ts):
 def parse_hotspot_new_dataset(row, cfg):
     rgb_name_meta_deta = row[1].split("_")
     ir_name_meta_deta = row[2].split("_")
-    rgb = AerialImage(cfg.rgb_dir + row[1], "rgb", rgb_name_meta_deta[3], fog=[row[7]])
-    ir = AerialImage(cfg.rgb_dir + row[2], "ir", ir_name_meta_deta[3], fog=[row[7]])
+    rgb = AerialImage(cfg.rgb_dir + row[1], "rgb", rgb_name_meta_deta[3], fog=row[7])
+    ir = AerialImage(cfg.rgb_dir + row[2], "ir", ir_name_meta_deta[3], fog=row[7])
     if row[8] == "NA":
         return None
     return HotSpot(row[3],

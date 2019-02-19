@@ -101,7 +101,7 @@ class AerialImage():
     def getBboxesForReLabeling(self):
         iabboxs = []
         for hs in self.hotspots:
-            if hs.updated:
+            if hs.updated_left != -1:
                 iabboxs.append(hs.rgb_bb)
                 continue
             new_box = hs.rgb_bb.extend(all_sides=-200)
