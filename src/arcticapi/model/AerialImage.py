@@ -21,6 +21,7 @@ class AerialImage():
         self.h = None
         self.file_exists = False
         self.fog = fog
+        self.chips = None
 
         try:
             self.w, self.h = get_image_size(self.path)
@@ -77,20 +78,37 @@ class AerialImage():
             bounding_boxes = self.getBboxesForTraining(cfg)
             return AugRgb.prepare_chips(cfg, self, bounding_boxes)
 
+    def generate_all_chips(self, cfg):
+        """
+        :type cfg: CropCfg
+        """
+        if cfg.imtype == "ir":
+            AugIR.crop_ir_hotspot_8bit(cfg, self)
+        elif cfg.imtype == "rgb":
+            if not self.file_exists:
+                return []
+            bounding_boxes = self.getBboxesForReLabeling()
+            return AugRgb.prepare_chips(cfg, self, bounding_boxes)
+
     def getBboxesForTraining(self, cfg):
         iabboxs = []
+        # for hs in self.getHotspotsForTraining(cfg):
+        #     iabboxs.append(hs.rgb_bb)
         for hs in self.getHotspotsForTraining(cfg):
             iabboxs.append(hs.rgb_bb)
         return iabboxs
 
-    def getBboxesForReLabeling(self, cfg):
+    def getBboxesForReLabeling(self):
         iabboxs = []
-        for hs in self.getHotspotsForReLabeling(cfg):
-            new_box = hs.rgb_bb.extend(all_sides=-250)
+        for hs in self.hotspots:
+            if hs.updated:
+                iabboxs.append(hs.rgb_bb)
+                continue
+            new_box = hs.rgb_bb.extend(all_sides=-200)
             new_box.hsId = hs.rgb_bb.hsId
             new_box.label = hs.rgb_bb.label
             iabboxs.append(new_box)
-        return iabboxs + self.getBboxesForTraining(cfg)
+        return iabboxs
 
     def getHotspotsForReLabeling(self, cfg):
         hotspots = []

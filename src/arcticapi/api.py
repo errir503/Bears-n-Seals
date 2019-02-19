@@ -143,6 +143,18 @@ class ArcticApi:
                 hs.updated = updated
         self.hsm.get_hs(hs.id).updated = updated
 
+    def getRGBImagesWithSeals(self):
+        all_images = self.rgb_images.keys()
+        images_w_seals = []
+        for img in all_images:
+            hasSeal = False
+            for hs in self.rgb_images[img].hotspots:
+                if hs.species in ["Ringed Seal", "Bearded Seal", "UNK Seal"]:
+                    hasSeal = True
+            if hasSeal:
+                images_w_seals.append(img)
+        return images_w_seals
+
     # Save all hotspots unfiltered in the standard seal csv format
     def saveHotspotsToCSV(self, out_file, header):
         with open(out_file, 'w') as temp_file:

@@ -11,7 +11,7 @@ img_path = '/data/raw_data/CHESS/'
 out_path = "/data/raw_data/merged.csv"
 cfg = load_config("full")
 
-api = ArcticApi(csv_me, img_path)
+api = ArcticApi(cfg)
 
 ms_hs = {}
 odd_rows = []
