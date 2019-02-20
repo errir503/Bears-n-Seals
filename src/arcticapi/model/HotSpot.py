@@ -60,8 +60,8 @@ class HotSpot:
     def toCSVRow(self, new=False):
         _, irpath = os.path.split(self.ir.path)
         _, rgbpath = os.path.split(self.rgb.path)
-        if new: # new dataset microsoft made
-            cols = ["-1", str(self.timestamp), rgbpath, irpath, str(self.id), str(self.type),
+        if new: # new dataset
+            cols = ["-1", rgbpath, irpath, str(self.id), str(self.type),
                     str(self.species), self.confidence, self.rgb.fog,
                     str(self.thermal_loc[0]), str(self.thermal_loc[1]),
                     str(self.rgb_bb_l), str(self.rgb_bb_t), str(self.rgb_bb_r), str(self.rgb_bb_b), str(self.updated_left), str(self.updated_top), str(self.updated_right),
@@ -106,7 +106,7 @@ class HotSpot:
         return yolox, yoloy, yolow, yoloh
 
     def getBTLR(self, forceOld = False):
-        if not forceOld and (self.updated and not self.isStatusRemoved()):
+        if not forceOld and (self.updated and not self.isStatusRemoved() and not self.updated_left == -1 and not self.updated_right == -1):
             return self.updated_bot, self.updated_top, self.updated_left, self.updated_right
         else:
             return self.rgb_bb_b, self.rgb_bb_t, self.rgb_bb_l, self.rgb_bb_r

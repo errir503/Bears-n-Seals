@@ -1,32 +1,21 @@
-import io
-
 import Tkinter
 from Tkinter import *
 
-import numpy
 import numpy as np
 from PIL import Image, ImageTk
 import os
-import glob
 import imgaug as ia
-# colors for the bounding boxes
-from src.arcticapi.augmnetation import AugRgb
-from src.arcticapi.augmnetation.AugRgb import shift_boxes, getRectFromYolo, shift_box
-from src.arcticapi.augmnetation.TrainingChip import TrainingChip
+from src.arcticapi.augmnetation.AugRgb import shift_box
 from src.arcticapi.config import load_config
 
 from src.arcticapi import ArcticApi, HotSpot
 from src.arcticapi.model.HotSpot import SpeciesList
 
-COLORS = ['#a661b6','#3bb218','#e6ee7f']
+# colors for the bounding boxes
+# COLORS = ['#a661b6','#3bb218','#e6ee7f']
 COLORS = ['#a661b6','#3bb218','#00FFFF','#000000','#008080', '#800000']
 CLASSES = ["Ringed", "Bearded", "UNK"]
-LABELS_DIR = "/home/yuval/Documents/XNOR/Bears-n-Seals/src/bbox-labeler/relabel/"
-# LABELS_DIR = "Images"
-# csv_in = '/Users/yuval/Documents/XNOR/Bears-n-Seals/src/bbox-labeler/out.csv'
-# csv_in = '/home/yuval/Documents/XNOR/Bears-n-Seals/src/bbox-labeler/out.csv'
-csv_in = '/home/yuval/Documents/XNOR/Bears-n-Seals/src/bbox-labeler/updated_live_out.csv'
-csv_out = '/home/yuval/Documents/XNOR/Bears-n-Seals/src/bbox-labeler/updated_live_out.csv'
+csv_out = '/data/raw_data/TrainingAnimals_WithSightings_updating.csv'
 
 
 # noinspection PyUnusedLocal
@@ -41,7 +30,7 @@ class LabelTool(Tkinter.Frame):
         self.image_idx = 0
         self.chips = None
         self.chip_idx = 0
-
+        self.m = 0
 
         # set up the main frame
         self.parent = master
@@ -97,6 +86,8 @@ class LabelTool(Tkinter.Frame):
         self.parent.bind("<Down>", self.zoom_out)  # press down arrow to zoom out
         self.parent.bind("<Up>", self.zoom_in)  # press up arrow to zoom in
         self.parent.bind("<Delete>", self.delBBox_key)  # press 'delete' to delete selected box
+
+
         self.mainPanel.grid(row=1, column=1, rowspan=5, sticky=W + N)
 
         self.cla_can_temp = SpeciesList
@@ -118,18 +109,12 @@ class LabelTool(Tkinter.Frame):
 
         self.statusBtns = Frame(self.frame)
         self.statusBtns.grid(row=5, column=2, columnspan=3, sticky=W + E)
-        self.off_edge = Button(self.statusBtns, text='OffEdge', width=15, command=self.mark_off_edge)
+        self.off_edge = Button(self.statusBtns, text='OffEdge', width=15, command=lambda: self.set_status('off_edge'))
         self.off_edge.grid(row=1, column=1, sticky=W + N)
-        self.badres = Button(self.statusBtns, text='BadRes', width=15, command=self.mark_bad_res)
+        self.badres = Button(self.statusBtns, text='BadRes', width=15, command=lambda: self.set_status('bad_res'))
         self.badres.grid(row=1, column=2, sticky=W + E + N)
-        self.dup = Button(self.statusBtns, text='Duplicate', width=15, command=self.prevChip)
+        self.dup = Button(self.statusBtns, text='None', width=15, command=lambda: self.set_status('none'))
         self.dup.grid(row=1, column=3, sticky=E + N)
-        # self.croppedme = Button(self.statusBtns, text='CroppedByMe', width=15, command=self.prevImage)
-        # self.croppedme.grid(row=2, column=1, sticky=W + N)
-        # self.croppededge = Button(self.statusBtns, text='CroppedOnEdge', width=15, command=self.prevImage)
-        # self.croppededge.grid(row=2, column=2, sticky=W + E + N)
-        # self.new = Button(self.statusBtns, text='New', width=15, command=self.prevImage)
-        # self.new.grid(row=2, column=3, sticky=E + N)
 
         self.btnDel = Button(self.frame, text='Delete Bbox', command=self.delBBox)
         self.btnDel.grid(row=6, column=2, sticky=W + E + N)
@@ -186,8 +171,6 @@ class LabelTool(Tkinter.Frame):
         if aereal_image is None:
             print("Image path does not exist in aeral images")
             return None
-        # if aereal_image.chips is not None:
-        #     return aereal_image
 
         self.chips = aereal_image.generate_all_chips(self.cfg)
         return aereal_image
@@ -245,7 +228,7 @@ class LabelTool(Tkinter.Frame):
                                                 fill=bbs.color,font="Arial 10 bold")
                 r1 = self.mainPanel.create_rectangle(self.mainPanel.bbox(a1), fill="white")
                 self.mainPanel.tag_lower(r1, a1) # make text infront of background
-                a2 = self.mainPanel.create_text(bbs.x1, bbs.y1, text=hs.id, anchor="sw", fill=bbs.color)
+                a2 = self.mainPanel.create_text(bbs.x1, bbs.y1-2, text=hs.id, anchor="sw", fill=bbs.color)
                 r2 = self.mainPanel.create_rectangle(self.mainPanel.bbox(a2), fill="white")
                 self.mainPanel.tag_lower(r2, a2)  # make text infront of background
                 self.imgElements.append(r1)
@@ -276,13 +259,10 @@ class LabelTool(Tkinter.Frame):
 
 
     def saveImage(self):
-        pass
-        # open(self.chip.filename + ".2label", 'w').close()
-        # open(self.chip.filename + ".txt", 'w').close()
-        # self.chip.save()
-        # header = "hotspot_id,timestamp,filt_thermal16,filt_thermal8,filt_color,x_pos,y_pos,thumb_left,thumb_top,thumb_right," \
-        #          "thumb_bottom,hotspot_type,species_id,updated_bot,updated_top,updated_left,updated_right,updated,status"
-        # self.api.saveHotspotsToCSV(csv_out, header)
+        header = "id,color_image,thermal_image,hotspot_id,hotspot_type,species_id,species_confidence,fog,thermal_x," \
+                 "thermal_y,color_left,color_top,color_right,color_bottom, updated_left, updated_top, updated_right, updated_bottom, " \
+                 "updated, status"
+        self.api.saveHotspotsToCSV(csv_out, header)
 
 
 
@@ -402,6 +382,8 @@ class LabelTool(Tkinter.Frame):
                 self.chip_idx += 1
             self.loadImage()
 
+
+
     def gotoImage(self):
         idx = int(self.idxEntry.get())
         if 1 <= idx <= self.total:
@@ -425,6 +407,19 @@ class LabelTool(Tkinter.Frame):
     def setClass(self, event=None):
         self.currentLabelClass = self.className.get()
         print('set label class to :', self.currentLabelClass)
+
+        selection = self.listbox.curselection()
+
+        if len(selection) != 1:
+            return
+        for sel in selection:
+            idx = int(sel)
+            hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
+            hs.species = self.currentLabelClass
+            hs.classIndex = SpeciesList.index(hs.species)
+            self.api.setClass(hs)
+            self.api.updateHs(hs, True)
+        self.loadImage()
 
     def zoom_in(self, event=None):
         self.zoom *= 1.2
@@ -478,14 +473,14 @@ class LabelTool(Tkinter.Frame):
 
 
     def delBBox(self):
-        sel = self.listbox.curselection()
-        if len(sel) != 1:
+        selection = self.listbox.curselection()
+        if len(selection) != 1:
             return
-        idx = int(sel[0])
-
-        hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
-        self.api.setStatus(hs, "removed")
-        self.api.updateHs(hs, True)
+        for sel in selection:
+            idx = int(sel)
+            hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
+            self.api.setStatus(hs, "removed")
+            self.api.updateHs(hs, True)
         self.loadImage()
 
         # self.mainPanel.delete(self.bboxIdList[idx])
@@ -493,27 +488,40 @@ class LabelTool(Tkinter.Frame):
         # self.bboxList.pop(idx)
         # self.listbox.delete(idx)
 
-    def mark_bad_res(self):
-        sel = self.listbox.curselection()
-        if len(sel) != 1:
+    def set_status(self, status):
+        selection = self.listbox.curselection()
+        if len(selection) != 1:
             return
-        idx = int(sel[0])
-
-        hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
-        self.api.setStatus(hs, "bad_res") # set hs status to bad res
-        self.api.updateHs(hs, True) # mark hs as updated
+        for sel in selection:
+            idx = int(sel)
+            hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
+            self.api.setStatus(hs, status) # set hs status to bad res
+            self.api.updateHs(hs, True) # mark hs as updated
         self.loadImage()
 
-    def mark_off_edge(self):
-        sel = self.listbox.curselection()
-        if len(sel) != 1:
-            return
-        idx = int(sel[0])
+    # def mark_bad_res(self):
+    #     selection = self.listbox.curselection()
+    #     if len(selection) != 1:
+    #         return
+    #     for sel in selection:
+    #         idx = int(sel)
+    #         hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
+    #         self.api.setStatus(hs, "bad_res") # set hs status to bad res
+    #         self.api.updateHs(hs, True) # mark hs as updated
+    #     self.loadImage()
+    #
+    # def mark_off_edge(self):
+    #     selection = self.listbox.curselection()
+    #     if len(selection) != 1:
+    #         return
+    #     for sel in selection:
+    #         idx = int(sel)
+    #         hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
+    #         self.api.setStatus(hs, "off_edge") # set hs status to off_edge
+    #         self.api.updateHs(hs, True) # mark hs as updated
+    #     self.loadImage()
 
-        hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
-        self.api.setStatus(hs, "off_edge") # set hs status to off_edge
-        self.api.updateHs(hs, True) # mark hs as updated
-        self.loadImage()
+
 
 class Object(object):
     pass

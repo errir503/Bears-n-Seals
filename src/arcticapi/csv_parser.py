@@ -59,6 +59,21 @@ def parse_hotspot_new_dataset(row, cfg):
     ir = AerialImage(cfg.rgb_dir + row[2], "ir", ir_name_meta_deta[3], fog=row[7])
     if row[8] == "NA":
         return None
+    if len(row) == 20:
+        return HotSpot(row[3],
+                       int(row[8]),
+                       int(row[9]),
+                       int(row[10]),
+                       int(row[11]),
+                       int(row[12]),
+                       int(row[13]),
+                       row[4],
+                       row[5],
+                       rgb,
+                       ir,
+                       rgb_name_meta_deta[5],
+                       rgb_name_meta_deta[1], rgb_name_meta_deta[2], int(row[15]), int(row[17]),int(row[14]),int(row[16]), row[18] == "true",row[19],confidence=row[6])
+
     return HotSpot(row[3],
                    int(row[8]),
                    int(row[9]),

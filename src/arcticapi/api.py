@@ -29,9 +29,11 @@ class ArcticApi:
         hsm = HotSpotMap()
         rgb_im = {}
         ir_im = {}
+        self.NA_rows = []
         for row in rows:
             hotspot = parse_hotspot_new_dataset(row, cfg)
             if hotspot is None:
+                self.NA_rows.append(row)
                 continue
             hsm.add(hotspot)
             if not hotspot.rgb.path in rgb_im:
@@ -132,16 +134,29 @@ class ArcticApi:
         self.hsm.add(hs)
 
     def setStatus(self, hs, status):
+        hs.status = status
         for hotspot in self.rgb_images[hs.rgb.path].hotspots:
             if hotspot.id == hs.id:
-                hs.status = status
-        self.hsm.get_hs(hs.id).status = status
+                hotspot.status = hs.status
+        self.hsm.get_hs(hs.id).status = hs.status
+
+    def setClass(self, hs):
+        for hotspot in self.rgb_images[hs.rgb.path].hotspots:
+            if hotspot.id == hs.id:
+                hotspot.classIndex = hs.classIndex
+                hotspot.species = hs.species
+                hotspot.rgb_bb.label = hs.classIndex
+
+        self.hsm.get_hs(hs.id).classIndex = hs.classIndex
+        self.hsm.get_hs(hs.id).species = hs.species
+        self.hsm.get_hs(hs.id).rgb_bb.label = hs.classIndex
 
     def updateHs(self, hs, updated):
+        hs.updated = updated
         for hotspot in self.rgb_images[hs.rgb.path].hotspots:
             if hotspot.id == hs.id:
-                hs.updated = updated
-        self.hsm.get_hs(hs.id).updated = updated
+                hotspot.updated = hs.updated
+        self.hsm.get_hs(hs.id).updated = hs.updated
 
     def getRGBImagesWithSeals(self):
         all_images = self.rgb_images.keys()
@@ -160,5 +175,8 @@ class ArcticApi:
         with open(out_file, 'w') as temp_file:
             temp_file.write(header + "\n")
             for hs in self.hsm.hotspots:
-                newrowtxt = hs.toCSVRow()
+                newrowtxt = hs.toCSVRow(True)
                 temp_file.write(newrowtxt)
+            for na_row in self.NA_rows:
+                temp_file.write(','.join(na_row) + '\n')
+
