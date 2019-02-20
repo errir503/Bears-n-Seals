@@ -495,32 +495,22 @@ class LabelTool(Tkinter.Frame):
         for sel in selection:
             idx = int(sel)
             hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
-            self.api.setStatus(hs, status) # set hs status to bad res
+            if status == "none":
+                hs.status = "none"
+            else:
+                statuses = hs.status.split('-')
+                if status in statuses:
+                    continue
+                if "none" in statuses:
+                    statuses.remove('none')
+                hs.status = '-'.join(statuses)
+                if len(statuses) == 0:
+                    hs.status = status
+                else:
+                    hs.status = hs.status + "-" + status
+            self.api.setStatus(hs, hs.status) # set hs status to bad res
             self.api.updateHs(hs, True) # mark hs as updated
         self.loadImage()
-
-    # def mark_bad_res(self):
-    #     selection = self.listbox.curselection()
-    #     if len(selection) != 1:
-    #         return
-    #     for sel in selection:
-    #         idx = int(sel)
-    #         hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
-    #         self.api.setStatus(hs, "bad_res") # set hs status to bad res
-    #         self.api.updateHs(hs, True) # mark hs as updated
-    #     self.loadImage()
-    #
-    # def mark_off_edge(self):
-    #     selection = self.listbox.curselection()
-    #     if len(selection) != 1:
-    #         return
-    #     for sel in selection:
-    #         idx = int(sel)
-    #         hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
-    #         self.api.setStatus(hs, "off_edge") # set hs status to off_edge
-    #         self.api.updateHs(hs, True) # mark hs as updated
-    #     self.loadImage()
-
 
 
 class Object(object):
