@@ -1,0 +1,146 @@
+2019-02-24 23:15:21,917 INFO [default] #instances = 150, #features = 4
+2019-02-24 23:15:22,071 INFO [default] #instances = 150, #features = 4
+2019-02-24 23:59:44,830 INFO [default] #instances = 19328, #features = 5120
+2019-02-24 23:59:45,074 INFO [default] #classes = 2
+2019-02-24 23:59:46,261 INFO [default] working set size = 1024
+2019-02-24 23:59:46,263 INFO [default] training start
+2019-02-24 23:59:46,734 INFO [default] global iter = 0, total local iter = 179, diff = 2
+2019-02-25 00:00:18,670 INFO [default] global iter = 31, total local iter = 2867888, diff = 1.41139
+2019-02-25 00:00:18,670 INFO [default] training finished
+2019-02-25 00:00:18,670 INFO [default] obj = -9240.96
+2019-02-25 00:00:18,673 INFO [default] rho = -4.19879
+2019-02-25 00:00:18,673 INFO [default] #sv = 1152
+2019-02-25 00:00:18,938 INFO [default] #total unique sv = 1152
+2019-02-25 00:00:18,941 INFO [default] training finished
+2019-02-25 00:02:17,814 INFO [default] #instances = 19328, #features = 5120
+2019-02-25 00:02:18,045 INFO [default] #classes = 2
+2019-02-25 00:02:19,212 INFO [default] working set size = 1024
+2019-02-25 00:02:19,213 INFO [default] training start
+2019-02-25 00:02:19,674 INFO [default] global iter = 0, total local iter = 609, diff = 2
+2019-02-25 00:02:33,724 INFO [default] global iter = 38, total local iter = 826935, diff = 0.000980159
+2019-02-25 00:02:33,724 INFO [default] training finished
+2019-02-25 00:02:33,724 INFO [default] obj = -75469.5
+2019-02-25 00:02:33,727 INFO [default] rho = -8.17707
+2019-02-25 00:02:33,727 INFO [default] #sv = 8531
+2019-02-25 00:02:34,057 INFO [default] #total unique sv = 8531
+2019-02-25 00:02:34,059 INFO [default] training finished
+2019-02-25 00:04:03,324 INFO [default] #instances = 19328, #features = 5120
+2019-02-25 00:04:03,555 INFO [default] #classes = 2
+2019-02-25 00:04:04,724 INFO [default] working set size = 1024
+2019-02-25 00:04:04,725 INFO [default] training start
+2019-02-25 00:04:05,187 INFO [default] global iter = 0, total local iter = 609, diff = 2
+2019-02-25 00:04:19,270 INFO [default] global iter = 38, total local iter = 826935, diff = 0.000980159
+2019-02-25 00:04:19,270 INFO [default] training finished
+2019-02-25 00:04:19,270 INFO [default] obj = -75469.5
+2019-02-25 00:04:19,273 INFO [default] rho = -8.17707
+2019-02-25 00:04:19,273 INFO [default] #sv = 8531
+2019-02-25 00:04:19,587 INFO [default] #total unique sv = 8531
+2019-02-25 00:04:19,590 INFO [default] training finished
+2019-02-25 00:07:30,026 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:07:35,040 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:10:38,660 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:10:43,674 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:13:19,912 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:13:24,863 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:14:56,886 INFO [default] #instances = 100, #features = 5120
+2019-02-25 00:15:20,306 INFO [default] #instances = 100, #features = 5120
+2019-02-25 00:16:09,720 INFO [default] #instances = 100, #features = 5120
+2019-02-25 00:17:13,369 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:18:29,995 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:19:10,449 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:22:38,747 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:29:48,637 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:30:49,141 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:33:35,204 INFO [default] #instances = 19328, #features = 5120
+2019-02-25 00:33:35,433 INFO [default] #classes = 2
+2019-02-25 00:33:36,595 INFO [default] working set size = 1024
+2019-02-25 00:33:36,596 INFO [default] training start
+2019-02-25 00:33:37,947 INFO [default] global iter = 0, total local iter = 102401, diff = 2
+2019-02-25 00:34:05,249 INFO [default] #instances = 5000, #features = 5120
+2019-02-25 00:35:13,730 INFO [default] global iter = 100, total local iter = 10260476, diff = -nan
+2019-02-25 00:36:49,874 INFO [default] global iter = 200, total local iter = 20500576, diff = -nan
+2019-02-25 00:38:26,817 INFO [default] global iter = 300, total local iter = 30740676, diff = -nan
+2019-02-25 00:40:03,843 INFO [default] global iter = 400, total local iter = 40980776, diff = -nan
+2019-02-25 00:41:41,383 INFO [default] global iter = 500, total local iter = 51220876, diff = -nan
+2019-02-25 00:43:19,085 INFO [default] global iter = 600, total local iter = 61460976, diff = -nan
+2019-02-25 00:44:56,560 INFO [default] global iter = 700, total local iter = 71701076, diff = -nan
+2019-02-25 00:46:33,524 INFO [default] global iter = 800, total local iter = 81941176, diff = -nan
+2019-02-25 00:48:10,252 INFO [default] global iter = 900, total local iter = 92181276, diff = -nan
+2019-02-25 00:49:47,418 INFO [default] global iter = 1000, total local iter = 102421376, diff = -nan
+2019-02-25 00:51:24,558 INFO [default] global iter = 1100, total local iter = 112661476, diff = -nan
+2019-02-25 00:53:01,626 INFO [default] global iter = 1200, total local iter = 122901576, diff = -nan
+2019-02-25 00:54:38,919 INFO [default] global iter = 1300, total local iter = 133141676, diff = -nan
+2019-02-25 00:56:16,994 INFO [default] global iter = 1400, total local iter = 143381776, diff = -nan
+2019-02-25 00:57:54,689 INFO [default] global iter = 1500, total local iter = 153621876, diff = -nan
+2019-02-25 00:59:32,183 INFO [default] global iter = 1600, total local iter = 163861976, diff = -nan
+2019-02-25 01:01:09,558 INFO [default] global iter = 1700, total local iter = 174102076, diff = -nan
+2019-02-25 01:02:46,819 INFO [default] #instances = 19328, #features = 5120
+2019-02-25 01:02:47,050 INFO [default] #classes = 2
+2019-02-25 01:02:48,208 INFO [default] working set size = 1024
+2019-02-25 01:02:48,209 INFO [default] training start
+2019-02-25 01:02:49,621 INFO [default] global iter = 0, total local iter = 102401, diff = 2
+2019-02-25 01:03:21,140 INFO [default] global iter = 37, total local iter = 2767411, diff = 4.58287
+2019-02-25 01:03:21,140 INFO [default] training finished
+2019-02-25 01:03:21,140 INFO [default] obj = -395296
+2019-02-25 01:03:21,142 INFO [default] rho = 5.91203
+2019-02-25 01:03:21,142 INFO [default] #sv = 4478
+2019-02-25 01:03:21,425 INFO [default] #total unique sv = 4478
+2019-02-25 01:03:21,428 INFO [default] training finished
+2019-02-25 01:05:05,353 INFO [default] #instances = 19328, #features = 5120
+2019-02-25 01:05:05,602 INFO [default] #classes = 2
+2019-02-25 01:05:06,792 INFO [default] working set size = 1024
+2019-02-25 01:05:06,793 INFO [default] training start
+2019-02-25 01:05:08,235 INFO [default] global iter = 0, total local iter = 102401, diff = 2
+2019-02-25 01:06:54,742 INFO [default] #instances = 19328, #features = 5120
+2019-02-25 01:06:54,975 INFO [default] #classes = 2
+2019-02-25 01:06:56,178 INFO [default] working set size = 1024
+2019-02-25 01:06:56,180 INFO [default] training start
+2019-02-25 01:06:57,583 INFO [default] global iter = 0, total local iter = 102401, diff = 2
+2019-02-25 01:07:29,010 INFO [default] global iter = 37, total local iter = 2767411, diff = 4.58287
+2019-02-25 01:07:29,011 INFO [default] training finished
+2019-02-25 01:07:29,011 INFO [default] obj = -395296
+2019-02-25 01:07:29,013 INFO [default] rho = 5.91203
+2019-02-25 01:07:29,013 INFO [default] #sv = 4478
+2019-02-25 01:07:29,307 INFO [default] #total unique sv = 4478
+2019-02-25 01:07:29,310 INFO [default] training finished
+2019-02-25 01:08:04,749 INFO [default] file ./svc_1 not found
+2019-02-25 01:08:15,700 INFO [default] file ./svc_1.models not found
+2019-02-25 01:09:32,146 INFO [default] #instances = 19328, #features = 5120
+2019-02-25 01:09:32,381 INFO [default] #classes = 2
+2019-02-25 01:09:33,554 INFO [default] working set size = 1024
+2019-02-25 01:09:37,659 INFO [default] training start
+2019-02-25 01:09:38,018 INFO [default] global iter = 0, total local iter = 341, diff = 303.176
+2019-02-25 01:09:42,654 INFO [default] global iter = 25, total local iter = 4156, diff = 9.14857e-08
+2019-02-25 01:09:42,654 INFO [default] training finished
+2019-02-25 01:09:42,654 INFO [default] obj = -0
+2019-02-25 01:09:42,657 INFO [default] rho = -nan
+2019-02-25 01:09:42,657 INFO [default] #sv = 0
+2019-02-25 01:09:42,954 INFO [default] #total unique sv = 0
+2019-02-25 01:09:42,957 INFO [default] training finished
+2019-02-25 01:11:10,783 INFO [default] #instances = 19328, #features = 5120
+2019-02-25 01:11:11,019 INFO [default] #classes = 2
+2019-02-25 01:11:12,161 INFO [default] working set size = 1024
+2019-02-25 01:11:18,776 INFO [default] training start
+2019-02-25 01:11:19,132 INFO [default] global iter = 0, total local iter = 341, diff = 2258.96
+2019-02-25 01:11:22,907 INFO [default] global iter = 21, total local iter = 3542, diff = -4.49419e-05
+2019-02-25 01:11:22,907 INFO [default] training finished
+2019-02-25 01:11:22,907 INFO [default] obj = -0
+2019-02-25 01:11:22,909 INFO [default] rho = -nan
+2019-02-25 01:11:22,909 INFO [default] #sv = 0
+2019-02-25 01:11:23,216 INFO [default] #total unique sv = 0
+2019-02-25 01:11:23,219 INFO [default] training finished
+2019-02-25 01:12:45,812 INFO [default] #instances = 19328, #features = 5120
+2019-02-25 01:12:46,050 INFO [default] #classes = 2
+2019-02-25 01:12:47,252 INFO [default] working set size = 1024
+2019-02-25 01:12:47,254 INFO [default] training start
+2019-02-25 01:12:48,695 INFO [default] global iter = 0, total local iter = 102401, diff = 2
+2019-02-25 01:13:19,925 INFO [default] global iter = 37, total local iter = 2767411, diff = 4.58287
+2019-02-25 01:13:19,925 INFO [default] training finished
+2019-02-25 01:13:19,925 INFO [default] obj = -395296
+2019-02-25 01:13:19,928 INFO [default] rho = 5.91203
+2019-02-25 01:13:19,928 INFO [default] #sv = 4478
+2019-02-25 01:13:20,206 INFO [default] #total unique sv = 4478
+2019-02-25 01:13:20,209 INFO [default] training finished
+2019-02-25 18:46:34,491 INFO [default] #instances = 5000, #features = 5120
+2019-03-03 12:47:47,716 INFO [default] #instances = 5000, #features = 512
+2019-03-03 13:00:12,665 INFO [default] #instances = 5000, #features = 512

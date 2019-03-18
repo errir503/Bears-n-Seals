@@ -53,7 +53,10 @@ def main():
     make_model_config(cfg, classes)
 
     api = ArcticApi(cfg)
-    api.generate_training_set(cfg)
+    if cfg.imtype == "ir":
+        api.generate_training_ir(cfg)
+    else:
+        api.generate_training_set(cfg)
 
 # the long cli with all arugements, using the cfg is easier so just do that!
 def cli():

@@ -33,13 +33,38 @@ def prepare_chips(cfg, aeral_image, bounding_boxes):
                                                                                    cfg.minShift,
                                                                                    cfg.crop_size)
         # create crop
-        crop_img = np.zeros([bcrop-tcrop, rcrop-lcrop, 3], dtype=np.uint8)
+        crop_height = bcrop - tcrop
+        crop_width = rcrop-lcrop
+        crop_img = np.zeros([crop_height, crop_width, 3], dtype=np.uint8)
 
 
         # shift bounding boxes that fit the new crop dimensions
         shifted_bboxs = shift_boxes(bounding_boxes, -lcrop, -tcrop)
+        bbox = shift_box(bbox, -lcrop, -tcrop)
+        if bbox.x1 <= 0:
+            id = bbox.hsId
+            bbox = bbox.shift(left=-bbox.x1)
+            bbox.hsId = id
+            shifted_bboxs = shift_boxes(shifted_bboxs, -bbox.x1, 0)
+        if bbox.y1 <= 0:
+            id = bbox.hsId
+            bbox = bbox.shift(top=-bbox.y1)
+            bbox.hsId = id
+            shifted_bboxs = shift_boxes(shifted_bboxs, 0, -bbox.y1)
 
-        if not bbox.shift(left=-lcrop, top=-tcrop).is_fully_within_image(crop_img):
+        if bbox.y2 >= crop_height:
+            id = bbox.hsId
+            bbox = bbox.shift(top=(crop_height-bbox.y2-2))
+            bbox.hsId = id
+            shifted_bboxs = shift_boxes(shifted_bboxs, 0, (crop_height-bbox.y2-2))
+
+        if bbox.x2 >= crop_width:
+            id = bbox.hsId
+            bbox = bbox.shift(left=(crop_width-bbox.x2 -2))
+            bbox.hsId = id
+            shifted_bboxs = shift_boxes(shifted_bboxs, (crop_width-bbox.x2-2), 0)
+
+        if not bbox.is_fully_within_image(crop_img):
             print("For an odd reason hotspot " + bbox.hsId + " did not fully fit in the new box:(%d, %d)(%d, %d) crop: (%d, %d)(%d, %d)" %
                   (bbox.x1, bbox.y2, bbox.x2, bbox.y1, lcrop, bcrop, rcrop, tcrop))
 
@@ -48,11 +73,11 @@ def prepare_chips(cfg, aeral_image, bounding_boxes):
         for bb in shifted_bboxs:
             if bb.is_partly_within_image(crop_img):
                 new = bb.cut_out_of_image(crop_img)
-                if new.area < bb.area * 0.5:
+                if new.area < bb.area * 0.1: #TODO?
                     print("over 1/2 of bbox cut from %s so skipping" % bb.hsId)
                     continue
                 new.hsId = bb.hsId
-                to_draw.append(new)
+                to_draw.append(new) #TODO change back to append(new)
 
             if bb.is_fully_within_image(crop_img):
                 drawn.append(bb.hsId)
@@ -63,15 +88,18 @@ def prepare_chips(cfg, aeral_image, bounding_boxes):
             continue
         tr = TrainingChip.TrainingChip(aeral_image, crop_img.shape, cfg, to_draw, (tcrop, bcrop, lcrop, rcrop))
         del crop_img
+        del shifted_bboxs
 
         chips.append(tr)
 
-    for bbox in bounding_boxes:
-        contains = False
-        for drawnid in drawn:
-            if bbox.hsId == drawnid:
-                contains = True
-        if not contains:
+    drawn_check = []
+    for c in chips:
+        for bbox in c.bboxes.bounding_boxes:
+            if bbox.area > 100000:
+                print(bbox.hsId)
+            drawn_check.append(bbox.hsId)
+    for drawnid in drawn:
+        if not drawnid in drawn_check:
             print("Did not draw %s %d" % (bbox.hsId, bbox.label))
 
     uniquechips = []
@@ -90,7 +118,7 @@ def prepare_chips(cfg, aeral_image, bounding_boxes):
 
 def test_train_split(chips):
     random.shuffle(chips)
-    x = int(len(chips) / 5) * 4  # 3/4 train 1/4 test
+    x = int(len(chips) / 4) * 3  # 3/4 train 1/4 test
     train = chips[:x]
     test = chips[x:]
     return train, test

@@ -37,12 +37,12 @@ def norm_matrix(m):
 # draw a bbox and center point of bbox on image given yolo labels
 def drawBBoxYolo(img, x, y, w, h, label):
     color = ColorsList[label]
-    (imh, imw, imc) = img.shape
+    (imh, imw) = (img.shape[0], img.shape[1])
     x = int(x * imw)
     y = int(y * imh)
     w = int(w * imw)
     h = int(h * imh)
-    cv2.circle(img, (x, y), 5, color, 2)
+    # cv2.circle(img, (x, y), 5, color, 2)
     cv2.rectangle(img, (x - w / 2, y - h / 2),
                   (x + w / 2, y + h / 2),
                   color, 2)  # draw rect

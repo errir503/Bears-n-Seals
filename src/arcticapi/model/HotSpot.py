@@ -112,7 +112,7 @@ class HotSpot:
             return self.rgb_bb_b, self.rgb_bb_t, self.rgb_bb_l, self.rgb_bb_r
 
     def isStatusRemoved(self):
-        return self.status == 'removed'
+        return 'removed' in self.status
 
     def filterClass(self, cfg):
         # don't make crops or labels for bears

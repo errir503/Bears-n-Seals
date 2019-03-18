@@ -71,7 +71,7 @@ class AerialImage():
         :type cfg: CropCfg
         """
         if cfg.imtype == "ir":
-            AugIR.crop_ir_hotspot_8bit(cfg, self)
+            return AugIR.crop_ir_hotspot_8bit(cfg, self)
         elif cfg.imtype == "rgb":
             if not self.file_exists:
                 return []

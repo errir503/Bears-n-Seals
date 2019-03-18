@@ -13,20 +13,31 @@ from src.arcticapi.visuals import drawBBoxYolo
 class TrainingChip():
     # constructs a training chip with imgaug bounding boxes and saves the image to filename so that it is not
     # stored in memory.  later on can use load, augmentations, and save for the data augmentation step
-    def __init__(self, aeral_image, crop_shape, cfg, bboxes, crops):
+    def __init__(self, aeral_image, crop_shape, cfg, bboxes, crops, filename = None):
         self.aeral_image = aeral_image
         self.image = None
         self.cfg = cfg
         self.crops = crops  # (topcrop, bottomcrop, leftcrop, rightcrop)
         ids = [x.hsId for x in bboxes]
-        self.filename = cfg.out_dir + "crop_" + "_".join(ids)
+        if filename is None:
+            self.filename = cfg.out_dir + "crop_" + "_".join(ids)
+        else:
+            self.filename = filename
 
         self.bboxes = ia.BoundingBoxesOnImage(bboxes, shape=crop_shape)
 
     # loads the chip
     def load(self, zoom_factor=0):
-        zoom_factor = random.uniform(0, 1) * zoom_factor
         t, b, l, r = self.crops
+        if zoom_factor == 0:
+            res = self.aeral_image.load_image()
+            if not res:
+                return False
+
+            self.image = self.aeral_image.image[t:b, l: r].astype(np.uint8)
+            return True
+
+        zoom_factor = random.uniform(0, 1) * zoom_factor
         shifted_boxes = []
         if zoom_factor != 0:
             dy = int(((r - l) * zoom_factor) / 2)
@@ -55,8 +66,7 @@ class TrainingChip():
                 shifted_boxes = self.bboxes.bounding_boxes
 
         self.image = self.aeral_image.image[t:b, l: r].astype(np.uint8)
-        if zoom_factor == 0:
-            return True
+
 
         bbs = ia.BoundingBoxesOnImage(shifted_boxes, shape=self.image.shape)
         seq = iaa.Sequential([
@@ -84,14 +94,15 @@ class TrainingChip():
         cv2.imwrite(self.filename + ".jpg", self.image)
 
     def save(self):
+        img_name = self.filename + ".png" if len(self.image.shape) == 2 else self.filename + ".jpg"
         if not os.path.exists(self.cfg.out_dir):
             os.makedirs(self.cfg.out_dir)
 
         # if no labels, still a training image save with empty label file for darknet
         if len(self.bboxes.bounding_boxes) == 0:
             open(self.filename + ".txt", 'a').close()
-            cv2.imwrite(self.filename + ".jpg", self.image)
-            return
+            cv2.imwrite(img_name, self.image)
+            return img_name
 
         # Generate trainin label
         for bbs in self.bboxes.bounding_boxes:
@@ -99,18 +110,12 @@ class TrainingChip():
                 x, y, w, h = getYoloFromRect(self.bboxes.height, self.bboxes.width, bbs.x1, bbs.y1, bbs.x2, bbs.y2)
                 yoloLabel = (bbs.hsId, bbs.label, x, y, w, h)
                 file.write(" ".join([str(i) for i in yoloLabel[1:]]) + "\n")
-                # create 2label file which allows to use the bounding box labeler tool to
-                # go through crops and to re-label.  .2label file formatted as
-                # hsid classid x y w h topcrop bottomcrop leftcrop rightcrop
-                # (last 4 are tile's location in original image)
-                with open(self.filename + ".2label", 'a') as file:
-                    file.write(" ".join([str(i) for i in yoloLabel]) + " " +
-                               " ".join([str(i) for i in self.crops]) + "\n")
 
                 if self.cfg.debug:  # draws same as yolo so guaranteed to show if labels are correct
                     drawBBoxYolo(self.image, x, y, w, h, bbs.label)
 
-        self.save_image()
+        cv2.imwrite(img_name, self.image)
+        return img_name
 
     def random_hue_adjustment(self, ratio):
         hsv = cv2.cvtColor(self.image, cv2.COLOR_RGB2HSV)
@@ -169,3 +174,12 @@ class TrainingChip():
         new = copy.deepcopy(self)
         new.image = None
         return new
+
+    def shift(self, dx, dy):
+        shifted_boxes = []
+        for bb in self.bboxes.bounding_boxes:
+            bbs_shifted = bb.shift(left=dx, top=dy)
+            bbs_shifted.hsId = bb.hsId
+            shifted_boxes.append(bbs_shifted)
+        self.bboxes = ia.BoundingBoxesOnImage(shifted_boxes, shape=self.image.shape)
+

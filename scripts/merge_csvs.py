@@ -38,9 +38,10 @@ for hs in api.hsm.hotspots:
         ms_hs[hs.id].append(hs.updated_bot)
         ms_hs[hs.id].append(hs.updated)
         ms_hs[hs.id].append(hs.status)
-        ms_hs[hs.id].append("merged_unverified")
+        # ms_hs[hs.id].append("merged_unverified")
 
     else:
+        pass
         if hs.type == "Anomaly":
             continue
         base_rgb = os.path.basename(hs.rgb.path)
@@ -82,7 +83,7 @@ for key, value in ms_hs.iteritems():
     temp.append(value)
 temp.sort(key=lambda x: float(x[3]))
 wtr = csv.writer(open ('scripts/out.csv', 'w'), delimiter=',', lineterminator='\n')
-header = "id,color_image,thermal_image,hotspot_id,hotspot_type,species_id,species_confidence,fog,thermal_x,thermal_y,color_left,color_top,color_right,color_bottom, updated_left, updated_top, updated_right, updated_bottom, updated, status, merge_status"
+header = "id,color_image,thermal_image,hotspot_id,hotspot_type,species_id,species_confidence,fog,thermal_x,thermal_y,color_left,color_top,color_right,color_bottom, updated_left, updated_top, updated_right, updated_bottom, updated, status"
 wtr.writerow(header.split(','))
 for row in temp:
     wtr.writerow(row)

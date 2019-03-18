@@ -51,8 +51,14 @@ def lbp_hist(img):
     ax.set_yscale('log')
     plt.show()
 
+from PIL import Image
 # for filename in glob.glob('/data/raw_data/TrainingAnimals_ThermalImages_00/*.PNG'): #assuming gif
-for filename in glob.glob('/data/raw_data/TrainingBackground_ThermalImages_00/*.PNG'): #assuming gif
+for filename in glob.glob('/data/training_sets/ThermalImages/train_normalized/*.PNG'): #assuming gif
+
+    im = Image.open(filename)
+    im.verify()
+    continue
+
     base = os.path.basename(filename)
     im=Image.open(filename)
     im = np.array(im).astype('uint32')
@@ -74,4 +80,4 @@ for filename in glob.glob('/data/raw_data/TrainingBackground_ThermalImages_00/*.
 
 
         # pil_im.save('/data/raw_data/TrainingAnimals_ThermalImages_00_norm/'+base)
-        pil_im.save('/data/raw_data/TrainingBackground_ThermalImages_00_norm/'+base)
+        pil_im.save('/data/training_sets/ThermalImages/train_normalized/'+base)

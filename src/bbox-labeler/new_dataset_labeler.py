@@ -1,4 +1,5 @@
 import Tkinter
+import cv2
 from Tkinter import *
 
 import numpy as np
@@ -13,9 +14,9 @@ from src.arcticapi.model.HotSpot import SpeciesList
 
 # colors for the bounding boxes
 # COLORS = ['#a661b6','#3bb218','#e6ee7f']
-COLORS = ['#a661b6','#3bb218','#00FFFF','#000000','#008080', '#800000']
+COLORS = ['#a661b6','#3bb218','#00FFFF','#000000','#008080', '#800000', '#585656', '#a7a9a9']
 CLASSES = ["Ringed", "Bearded", "UNK"]
-csv_out = '/data/raw_data/TrainingAnimals_WithSightings_updating.csv'
+csv_out = '/home/yuval/Documents/XNOR/Bears-n-Seals/data/TrainingAnimals_WithSightings_updating.csv'
 
 
 # noinspection PyUnusedLocal
@@ -26,15 +27,16 @@ class LabelTool(Tkinter.Frame):
         self.pack()
         self.cfg = load_config("new_data")
         self.api = ArcticApi(self.cfg)
-        self.image_names = self.api.getRGBImagesWithSeals()
+        self.image_names = self.api.getImagesWithSeals()
         self.image_idx = 0
-        self.chips = None
+        self.chips = []
         self.chip_idx = 0
         self.m = 0
 
         # set up the main frame
         self.parent = master
         self.parent.title("Seal LabelTool")
+        self.novi = Toplevel()
         self.frame = Frame(self.parent)
         self.frame.pack(fill=BOTH, expand=1)
         self.parent.resizable(width=True, height=True)
@@ -59,6 +61,7 @@ class LabelTool(Tkinter.Frame):
         self.STATE = dict()
         self.STATE['click'] = 0
         self.STATE['x'], self.STATE['y'] = 0, 0
+        self.SHOW_UI = True
 
         # reference to bbox
         self.bboxIdList = []
@@ -79,13 +82,18 @@ class LabelTool(Tkinter.Frame):
         self.mainPanel.bind("<Motion>", self.mouseMove)
         self.parent.bind("<Escape>", self.cancelBBox)  # press <Espace> to cancel current bbox
         self.parent.bind("c", self.clearBBox)  # press c to clear bbox
+        self.parent.bind("t", lambda e: self.toggleUI())  # press t to toggle ui labels
         self.parent.bind("u", lambda e: self.listbox.selection_clear(0, END))  # press u to unselect all in listbox
         self.parent.bind("<Left>", self.prevChip)  # press 'a' to go backward
         self.parent.bind("<Right>", self.nextChip)  # press 'd' to go forward
         self.parent.bind("<space>", self.nextChip)  # press space to go forward
-        self.parent.bind("<Down>", self.zoom_out)  # press down arrow to zoom out
-        self.parent.bind("<Up>", self.zoom_in)  # press up arrow to zoom in
+        # self.parent.bind("<Down>", self.zoom_out)  # press down arrow to zoom out
+        # self.parent.bind("<Up>", self.zoom_in)  # press up arrow to zoom in
         self.parent.bind("<Delete>", self.delBBox_key)  # press 'delete' to delete selected box
+        self.parent.bind('<Shift-Right>', lambda e: self.moveChip("right"))
+        self.parent.bind('<Shift-Left>', lambda e: self.moveChip("left"))
+        self.parent.bind('<Shift-Up>', lambda e: self.moveChip("up"))
+        self.parent.bind('<Shift-Down>', lambda e: self.moveChip("down"))
 
 
         self.mainPanel.grid(row=1, column=1, rowspan=5, sticky=W + N)
@@ -115,11 +123,24 @@ class LabelTool(Tkinter.Frame):
         self.badres.grid(row=1, column=2, sticky=W + E + N)
         self.dup = Button(self.statusBtns, text='None', width=15, command=lambda: self.set_status('none'))
         self.dup.grid(row=1, column=3, sticky=E + N)
+        self.toggleUiElems = Button(self.statusBtns, text='ToggleUI', width=15, command=self.toggleUI)
+        self.toggleUiElems.grid(row=2, column=1, sticky=E + N)
+        self.toggleUiElems = Button(self.statusBtns, text='Maybe', width=15, command=lambda: self.set_status('maybe_seal'))
+        self.toggleUiElems.grid(row=2, column=2, sticky=E + N)
+        self.toggleUiElems = Button(self.statusBtns, text='Duplicate', width=15, command=lambda: self.set_type('Duplicate'))
+        self.toggleUiElems.grid(row=3, column=1, sticky=E + N)
+        self.toggleUiElems = Button(self.statusBtns, text='Animal', width=15,
+                                    command=lambda: self.set_type('Animal'))
+        self.toggleUiElems.grid(row=3, column=2, sticky=E + N)
+        self.toggleUiElems = Button(self.statusBtns, text='IR', width=15, command=self.openIr)
+        self.toggleUiElems.grid(row=3, column=3, sticky=E + N)
 
         self.btnDel = Button(self.frame, text='Delete Bbox', command=self.delBBox)
         self.btnDel.grid(row=6, column=2, sticky=W + E + N)
         self.btnClear = Button(self.frame, text='ClearAll', command=self.clearBBox)
         self.btnClear.grid(row=7, column=2, sticky=W + E + N)
+
+
 
         # control panel for image navigation
         self.ctrPanel = Frame(self.frame)
@@ -158,6 +179,38 @@ class LabelTool(Tkinter.Frame):
 
         self.loadImage()
 
+    def moveChip(self, direction):
+        crops = [x for x in self.chip.crops]
+        #(topcrop, bottomcrop, leftcrop, rightcrop)
+        stride = 10
+        updated = False
+        if direction == "up" and crops[0] >= stride:
+            crops[0] -= stride
+            crops[1] -= stride
+            updated = True
+            self.chip.shift(0, stride)
+        elif direction == "down" and crops[1] <= self.chip.aeral_image.h - stride:
+            crops[0] += stride
+            crops[1] += stride
+            updated = True
+            self.chip.shift(0, -stride)
+        elif direction == "left" and crops[2] > stride:
+            crops[2] -= stride
+            crops[3] -= stride
+            self.chip.shift(stride, 0)
+            updated = True
+        elif direction == "right" and crops[3] <= self.chip.aeral_image.w - stride:
+            crops[2] += stride
+            crops[3] += stride
+            self.chip.shift(-stride, 0)
+            updated = True
+        if not updated:
+            return
+
+        self.chip.crops = (crops[0], crops[1], crops[2], crops[3])
+        self.loadImage(chip = self.chip)
+
+
     def rint(self, num):
         return np.int32(np.rint(num))
 
@@ -171,13 +224,17 @@ class LabelTool(Tkinter.Frame):
         if aereal_image is None:
             print("Image path does not exist in aeral images")
             return None
-
+        for chip in self.chips:
+            chip.free()
         self.chips = aereal_image.generate_all_chips(self.cfg)
         return aereal_image
 
-    def loadImage(self, refresh=False):
+    def loadImage(self, refresh=False, chip = None):
         aereal_image = self.getCurrentImage()
-        self.chip = self.chips[self.chip_idx]
+        if chip is None:
+            self.chip = self.chips[self.chip_idx]
+        else:
+            self.chip = chip
 
         if not refresh:
             self.chip.load()
@@ -203,6 +260,8 @@ class LabelTool(Tkinter.Frame):
         self.clearBBox()
         self.imageName = os.path.split(aereal_image.path)[-1].split('.jpg')[0]
         self.imglbl.config(text='Image: ' + self.imageName)
+        if not refresh:
+          self.openIr()
 
 
         for idx, bbs in enumerate(self.chip.bboxes.bounding_boxes):
@@ -210,6 +269,8 @@ class LabelTool(Tkinter.Frame):
             # bbs.color = COLORS[bbs.label]
             bbs.color = COLORS[idx]
             if hs.isStatusRemoved():
+                if not self.SHOW_UI:
+                    continue
                 bbs.color = "#FFFFFF"
             elif hs.type == "Duplicate":
                 bbs.color = "#ffa500"
@@ -220,9 +281,10 @@ class LabelTool(Tkinter.Frame):
                                                     width=2,
                                                     outline=bbs.color)
 
-            self.draw_original_center_pt(hs, bbs)
+            if self.SHOW_UI:
+                self.draw_original_center_pt(hs, bbs)
             # paint name
-            if not hs.type == "Duplicate" and not hs.isStatusRemoved():
+            if not hs.type == "Duplicate" and not hs.isStatusRemoved() and self.SHOW_UI:
                 a1 = self.mainPanel.create_text(bbs.x1, bbs.y2, text="status: %s updated: %s" % (hs.status, str(hs.updated)),
                                                 anchor="nw",
                                                 fill=bbs.color,font="Arial 10 bold")
@@ -377,6 +439,19 @@ class LabelTool(Tkinter.Frame):
         if self.image_idx < self.total:
             if self.chip_idx + 1 >= len(self.chips):
                 self.image_idx += 1
+                while True:
+                    if self.image_idx >= len(self.image_names):
+                        break
+                    imagePath = self.image_names[self.image_idx - 1]
+                    aereal_image = self.api.rgb_images[imagePath]
+                    found = False
+                    for hotspot in aereal_image.hotspots:
+                        if not hotspot.updated:
+                            found = True
+                    if found:
+                        break
+                    else:
+                        self.image_idx+=1
                 self.chip_idx = 0
             else:
                 self.chip_idx += 1
@@ -447,7 +522,7 @@ class LabelTool(Tkinter.Frame):
         # self.imgElements.append(box2)
 
         updated_str = "U" if hs != None and hs.updated else "NU"
-        return ('%s %s : %s (b:%d, t:%d) (l:%d, r:%d)' % (updated_str, bbox.hsId, CLASSES[bbox.label], b_orig,
+        return ('%s %s : %s (b:%d, t:%d) (l:%d, r:%d)' % (updated_str, bbox.hsId, bbox.label, b_orig,
                                                           t_orig, l_orig, r_orig))
 
     def draw_crop_bounds(self,w,h):
@@ -483,10 +558,21 @@ class LabelTool(Tkinter.Frame):
             self.api.updateHs(hs, True)
         self.loadImage()
 
-        # self.mainPanel.delete(self.bboxIdList[idx])
-        # self.bboxIdList.pop(idx)
-        # self.bboxList.pop(idx)
-        # self.listbox.delete(idx)
+    def toggleUI(self):
+        self.SHOW_UI = not self.SHOW_UI
+        self.loadImage()
+
+    def set_type(self, type):
+        selection = self.listbox.curselection()
+        if len(selection) != 1:
+            return
+        for sel in selection:
+            idx = int(sel)
+            hs = self.api.hsm.get_hs(self.bboxList[idx].hsId)
+            hs.type = type
+            self.api.setType(hs, hs.type)  # set hs status to bad res
+            self.api.updateHs(hs, True)  # mark hs as updated
+        self.loadImage()
 
     def set_status(self, status):
         selection = self.listbox.curselection()
@@ -512,6 +598,33 @@ class LabelTool(Tkinter.Frame):
             self.api.updateHs(hs, True) # mark hs as updated
         self.loadImage()
 
+    def openIr(self):
+        hotspots = self.api.rgb_images[self.image_names[self.image_idx-1]].hotspots
+        if len(hotspots) < 1:
+            return
+        if not hotspots[0].ir.load_image():
+            return
+        im = hotspots[0].ir.image
+        mi = np.percentile(im, 1)
+        ma = np.percentile(im, 100)
+        normalized = (im - mi) / (ma - mi)
+
+        normalized = normalized * 255
+        normalized[normalized < 0] = 0
+        normalized = normalized.astype(np.uint8)
+        normalized = cv2.resize(normalized, dsize=(320, 256), interpolation=cv2.INTER_CUBIC)
+        for child in self.novi.winfo_children():
+            child.destroy()
+        if not self.novi.winfo_exists():
+            self.novi = Toplevel()
+        canvas = Canvas(self.novi, width = 320, height = 256)
+        canvas.pack(expand = YES, fill = BOTH)
+        # gif1 = PhotoImage(file = 'image.gif')
+                                    #image not visual
+        norm_tk_im = ImageTk.PhotoImage(image=Image.fromarray(normalized))
+        canvas.create_image(0, 0, image = norm_tk_im, anchor = NW)
+        #assigned the gif1 to the canvas object
+        canvas.img = norm_tk_im
 
 class Object(object):
     pass
