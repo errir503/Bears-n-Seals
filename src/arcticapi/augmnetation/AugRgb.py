@@ -175,6 +175,7 @@ def print_bbox_stats(chips):
         SpeciesList[k], len(vals), int(avg), int(stddev)))
 
 
+
 def class_chip_dict_area(chips):
     boxes = [b for c in chips for b in c.bboxes.bounding_boxes]
     dict = {}

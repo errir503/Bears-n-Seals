@@ -2,6 +2,7 @@ import sys
 
 import cv2
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from model.HotSpot import ColorsList
 
@@ -84,3 +85,22 @@ def plot_16bit_gray(img, cmap="gray"):
 
 def print_loading_bar(pct):
     sys.stdout.write("\r|%-73s| %3d%%" % ('#' * int(pct * .73), pct))
+
+def plot_sizes(chips, api):
+    x = []
+    y = []
+    classes = []
+    for chip in chips:
+        for box in chip.bboxes.bounding_boxes:
+            c = api.hsm.get_hs(box.hsId).classIndex
+            if c > 1:
+                continue
+            classes.append(str(c))
+            x.append(box.x2 - box.x1)
+            y.append(box.y2 - box.y1)
+    df = pd.DataFrame(dict(x=x, y=y, classes=classes))
+    colors = {'0': 'red', '1': 'blue'}
+    fig, ax = plt.subplots()
+    ax.scatter(df['x'], df['y'], c=df['classes'].apply(lambda b: colors[b]))
+
+    plt.show()

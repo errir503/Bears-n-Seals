@@ -446,7 +446,7 @@ class LabelTool(Tkinter.Frame):
                     aereal_image = self.api.rgb_images[imagePath]
                     found = False
                     for hotspot in aereal_image.hotspots:
-                        if not hotspot.updated:
+                        if not hotspot.updated and not "duplicate" in hotspot.status:
                             found = True
                     if found:
                         break

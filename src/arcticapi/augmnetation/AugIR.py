@@ -5,8 +5,10 @@ import numpy as np
 from src.arcticapi import normalizer
 import TrainingChip
 from src.arcticapi.model.BoundingBox import BoundingBox
+import time
 
-
+timerc = 0
+totalc = 0
 def crop_ir_hotspot_8bit(cfg, aerial_image):
     """
     :param cfg: CropCfg
@@ -16,12 +18,19 @@ def crop_ir_hotspot_8bit(cfg, aerial_image):
         return
 
     img = aerial_image.image
+    start = time.time()
     mi = np.percentile(img, 1)
     ma = np.percentile(img, 100)
     normalized = (img - mi) / (ma - mi)
 
     normalized = normalized * 255
     normalized[normalized < 0] = 0
+    end = time.time()
+    global timerc
+    timerc += (end-start)
+    global totalc
+    totalc += 1
+    print(timerc/totalc)
     normalized = normalized.astype(np.uint8)
     img = normalized
     # img = np.stack((img,) * 3, axis=-1)

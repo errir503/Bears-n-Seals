@@ -4,15 +4,13 @@ import csv
 import random
 import sys
 
-from PIL import Image
-
 from augmnetation import AugRgb
 from augmnetation.utils import write_label
 from csv_parser import parse_hotspot, parse_hotspot_new_dataset
 from registration import image_registration
 from model.HotSpotMap import HotSpotMap
 from model.AerialImage import AerialImage
-from visuals import print_loading_bar
+from visuals import print_loading_bar, plot_sizes
 
 
 # This is the controller of the api which is created using the path of the full resolution image directory
@@ -101,7 +99,12 @@ class ArcticApi:
 
         label_base = cfg.label.split(".")[0]
         chips = []
+        path = ""
+        max = 0
         for image_path in self.rgb_images:
+            if len(self.rgb_images[image_path].hotspots) > max:
+                max = len(self.rgb_images[image_path].hotspots)
+                path = self.rgb_images[image_path].path
             chips = chips + self.rgb_images[image_path].generate_chips(cfg)
         good_chips = []
         for chip in chips:
@@ -119,6 +122,8 @@ class ArcticApi:
             if is_ok:
                 good_chips.append(chip)
         chips = good_chips
+
+        plot_sizes(chips, self)
         print("\nOriginal Stats:")
         AugRgb.print_bbox_stats(chips)
         print
