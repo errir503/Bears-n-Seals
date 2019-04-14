@@ -18,23 +18,23 @@ def crop_ir_hotspot_8bit(cfg, aerial_image):
         return
 
     img = aerial_image.image
-    start = time.time()
-    mi = np.percentile(img, 1)
-    ma = np.percentile(img, 100)
-    normalized = (img - mi) / (ma - mi)
-
-    normalized = normalized * 255
-    normalized[normalized < 0] = 0
-    end = time.time()
-    global timerc
-    timerc += (end-start)
-    global totalc
-    totalc += 1
-    print(timerc/totalc)
-    normalized = normalized.astype(np.uint8)
-    img = normalized
-    # img = np.stack((img,) * 3, axis=-1)
-    aerial_image.image = img
+    # start = time.time()
+    # mi = np.percentile(img, 1)
+    # ma = np.percentile(img, 100)
+    # normalized = (img - mi) / (ma - mi)
+    #
+    # normalized = normalized * 255
+    # normalized[normalized < 0] = 0
+    # end = time.time()
+    # global timerc
+    # timerc += (end-start)
+    # global totalc
+    # totalc += 1
+    # print(timerc/totalc)
+    # normalized = normalized.astype(np.uint8)
+    # img = normalized
+    # # img = np.stack((img,) * 3, axis=-1)
+    # aerial_image.image = img
 
     # plot_px_distribution(imgpre, img, "POST NORM DISTRIBUTION", 10000)
     bbs = []
@@ -42,8 +42,8 @@ def crop_ir_hotspot_8bit(cfg, aerial_image):
     for hs in aerial_image.hotspots:
         if "new" in hs.status:
             continue
-        offset_x = 10
-        offset_y = 10
+        offset_x = 12
+        offset_y = 12
         # offset_x = randint(5, 9)
         # offset_y= randint(5, 9)
 

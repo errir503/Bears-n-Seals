@@ -94,7 +94,7 @@ class TrainingChip():
         cv2.imwrite(self.filename + ".jpg", self.image)
 
     def save(self):
-        img_name = self.filename + ".png" if len(self.image.shape) == 2 else self.filename + ".jpg"
+        img_name = self.filename + ".png" if len(self.image.shape) == 2 or self.image.shape[2] == 4 else self.filename + ".jpg"
         if not os.path.exists(self.cfg.out_dir):
             os.makedirs(self.cfg.out_dir)
 

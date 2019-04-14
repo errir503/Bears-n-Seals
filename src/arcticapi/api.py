@@ -37,6 +37,7 @@ class ArcticApi:
             if hotspot is None:
                 self.NA_rows.append(row)
                 continue
+
             hsm.add(hotspot)
             if not hotspot.rgb.path in rgb_im:
                 rgb_im[hotspot.rgb.path] = hotspot.rgb
@@ -49,6 +50,7 @@ class ArcticApi:
         self.rgb_images = rgb_im
         self.ir_images = ir_im
         self.hsm = hsm
+        self.cfg = cfg
         del rows
 
     def register(self, id=None, showFigures=False, showImgs=False):
@@ -60,7 +62,7 @@ class ArcticApi:
             if hs is not None:
                 image_registration.register_images(hs, showFigures, showImgs)
     def generate_training_ir(self, cfg):
-        background_path = "/data/raw_data/TrainingBackground_ThermalImages_00/*.PNG"
+        background_path = "/data/raw_data/VIAME_BACKGROND_NORMALIZED/*.PNG"
         background_images = []
         all_im  = glob.glob(background_path)
         all_im_len = len(all_im)
@@ -84,12 +86,7 @@ class ArcticApi:
             chip.aeral_image.free()
             print_loading_bar(((idx + 0.0) / all_im_len) * 100.0)
 
-        all_images = background_images + hotspot_images
 
-        random.shuffle(all_images)
-        with open(cfg.out_dir + 'all_labels.txt', 'w') as f:
-            for img in all_images:
-                f.write(img + "\n")
 
     def generate_training_set(self, cfg):
         img_ct = len(self.rgb_images)
@@ -163,7 +160,7 @@ class ArcticApi:
             # augmentations`
             # c.color_change(-5, 5, False)
             # c.extend(2)
-            c.flip()
+            # c.flip()
             c.extend(2)
             c.save()  # save image
             write_label(c.filename + ".jpg", cfg.out_dir+label_base + "_train.txt")
@@ -240,11 +237,14 @@ class ArcticApi:
 
     # Save all hotspots unfiltered in the standard seal csv format
     def saveHotspotsToCSV(self, out_file, header):
+            self.saveHotspots(self.hsm.hotspots, out_file, header, True)
+
+    def saveHotspots(self, hotspots, out_file, header, NA_ROW = False):
         with open(out_file, 'w') as temp_file:
             temp_file.write(header + "\n")
-            for hs in self.hsm.hotspots:
+            for hs in hotspots:
                 newrowtxt = hs.toCSVRow(True)
                 temp_file.write(newrowtxt)
-            for na_row in self.NA_rows:
-                temp_file.write(','.join(na_row) + '\n')
-
+            if NA_ROW:
+                for na_row in self.NA_rows:
+                    temp_file.write(','.join(na_row) + '\n')

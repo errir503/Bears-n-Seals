@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 from model import AerialImage, HotSpot
@@ -55,7 +56,11 @@ def parse_ts(ts):
 def parse_hotspot_new_dataset(row, cfg):
     rgb_name_meta_deta = row[1].split("_")
     ir_name_meta_deta = row[2].split("_")
-    rgb = AerialImage(cfg.rgb_dir + row[1], "rgb", rgb_name_meta_deta[3], fog=row[7])
+    rgb_path = cfg.rgb_dir + row[1]
+    # if (True):
+    #     rgb_path = os.path.splitext(rgb_path)[0] + '.PNG'
+
+    rgb = AerialImage(rgb_path, "rgb", rgb_name_meta_deta[3], fog=row[7])
     ir = AerialImage(cfg.ir_dir + row[2], "ir", ir_name_meta_deta[3], fog=row[7])
     if row[8] == "NA":
         return None

@@ -16,7 +16,7 @@ from src.arcticapi.model.HotSpot import SpeciesList
 # COLORS = ['#a661b6','#3bb218','#e6ee7f']
 COLORS = ['#a661b6','#3bb218','#00FFFF','#000000','#008080', '#800000', '#585656', '#a7a9a9']
 CLASSES = ["Ringed", "Bearded", "UNK"]
-csv_out = '/home/yuval/Documents/XNOR/Bears-n-Seals/data/TrainingAnimals_WithSightings_updating.csv'
+csv_out = '/fast/fps/fps.csv'
 
 
 # noinspection PyUnusedLocal
@@ -25,7 +25,7 @@ class LabelTool(Tkinter.Frame):
     def __init__(self, master):
         Tkinter.Frame.__init__(self, master)
         self.pack()
-        self.cfg = load_config("new_data")
+        self.cfg = load_config("fps")
         self.api = ArcticApi(self.cfg)
         self.image_names = self.api.getImagesWithSeals()
         self.image_idx = 0

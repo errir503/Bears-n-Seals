@@ -36,11 +36,12 @@ class AerialImage():
         if self.image is not None:
             return True
         elif self.type == "rgb":
-            self.image = cv2.imread(self.path)
+            self.image = cv2.imread(self.path, cv2.IMREAD_UNCHANGED)
         elif self.type == "thermal":
             self.image = cv2.imread(self.path, cv2.IMREAD_GRAYSCALE)
         elif self.type == "ir":
-            self.image = self.imreadIR(self.path)
+            self.image = cv2.imread(self.path)
+            # self.image = self.imreadIR(self.path)
         ret = self.image is not None
         if not ret:
             print("Failed to load image " + self.path)
