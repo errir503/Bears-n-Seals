@@ -1,4 +1,9 @@
+This project has become a mess so I'm pulling what I need from here and working in 
+[https://github.com/readicculus/sealnet](https://github.com/readicculus/sealnet).  Basically this repo was a lot of exploration.  As I learned more about the dataset, the models, what works well what doesn't, I realized I need a way to easily generate training datasets from the raw data, and to easily switch between models.
 
+This repo has come a long way in exploring how modern ml tools can help NOAA detect seals, it has become to powerful of a tool for the human mind to understand so we must leave it behind. 
+
+ 
 # Bears-n-Seals
 This project is a collaboration between NOAA and XNOR AI.  The goal of this
 project is to detect seals and polar bears in aerial imagery from different locations in the arctic.
